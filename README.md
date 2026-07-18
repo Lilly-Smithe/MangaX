@@ -31,3 +31,7 @@ python -m venv .venv
 ```powershell
 .\build_reader.bat
 ```
+
+Betik, Reader klasor paketinden kurulum konumu ve istege bagli masaustu
+kisayolu sunan standart Windows Setup dosyasini da olusturur. Bunun icin
+Inno Setup 6 veya 7 derleyicisinin kurulu olmasi gerekir.
