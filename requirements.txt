@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic
+httpx
+Pillow
+psutil
+pywebview
+certifi

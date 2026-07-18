@@ -1,0 +1,107 @@
+# routers/library.py
+# Kütüphane endpoint'leri
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+from models import (
+    DeleteRequest,
+    KnownChaptersRequest,
+    LibraryBulkUpdateRequest,
+    LibraryMetadataRequest,
+    ProgressRequest,
+)
+from core_dependencies import library_manager
+
+router = APIRouter(prefix="/api", tags=["Library"])
+
+
+@router.get("/library")
+def get_library():
+    """Yerel kütüphaneyi getir"""
+    return library_manager.get_library(include_storage=False)
+
+
+@router.post("/library/maintenance")
+def schedule_library_maintenance(background_tasks: BackgroundTasks):
+    """Pahalı dosya ve metadata onarımlarını yanıt yolunun dışında çalıştır."""
+    background_tasks.add_task(library_manager.run_background_maintenance)
+    return {"status": "scheduled"}
+
+
+@router.post("/progress")
+def update_progress(req: ProgressRequest):
+    """Okuma ilerlemesini güncelle"""
+    manga = library_manager.update_progress(
+        req.manga_id,
+        req.chapter_id,
+        req.page_index,
+        manga_title=req.manga_title,
+        description=req.description,
+        cover_url=req.cover_url,
+        status=req.status,
+        chapter_num=req.chapter_num,
+        chapter_title=req.chapter_title,
+        source_id=req.source_id,
+        language=req.language,
+        online=req.online,
+        page_offset=req.page_offset,
+        chapter_percent=req.chapter_percent,
+    )
+    return {"status": "success", "manga": manga}
+
+
+@router.post("/delete")
+def delete_chapter(req: DeleteRequest):
+    """İndirilmiş bölümü sil"""
+    success = library_manager.remove_downloaded_chapter(
+        req.manga_id, req.chapter_id
+    )
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Bölüm silinemedi veya bulunamadı."
+        )
+    return {"status": "success", "message": "Bölüm silindi."}
+
+
+@router.delete("/library/{manga_id}")
+def delete_manga(manga_id: str):
+    """Bir serinin tüm indirmelerini ve kütüphane kaydını sil."""
+    success = library_manager.remove_manga(manga_id)
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Seri silinemedi veya bulunamadı."
+        )
+    return {"status": "success", "message": "Seri tamamen silindi."}
+
+
+@router.put("/library/{manga_id}/metadata")
+def update_library_metadata(manga_id: str, req: LibraryMetadataRequest):
+    manga = library_manager.update_library_metadata(
+        manga_id,
+        library_status=req.library_status,
+        user_rating=req.user_rating,
+        personal_note=req.personal_note,
+        collections=req.collections,
+    )
+    if not manga:
+        raise HTTPException(status_code=404, detail="Kütüphane kaydı bulunamadı.")
+    return {"status": "success", "manga": manga}
+
+
+@router.put("/library/bulk-update")
+def bulk_update_library(req: LibraryBulkUpdateRequest):
+    mangas = library_manager.bulk_update_library(
+        req.manga_ids,
+        library_status=req.library_status,
+        add_collection=req.add_collection,
+    )
+    return {"status": "success", "updated": len(mangas), "mangas": mangas}
+
+
+@router.post("/library/{manga_id}/known-chapters")
+def update_known_chapters(manga_id: str, req: KnownChaptersRequest):
+    manga = library_manager.update_known_chapters(manga_id, req.chapter_numbers)
+    if not manga:
+        raise HTTPException(status_code=404, detail="Kütüphane kaydı bulunamadı.")
+    return {"status": "success", "manga": manga}

@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+
+<html lang="tr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MangaX Reader</title>
+
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+
+<link href="/static/css/styles.css?v=20260718w" rel="stylesheet"/>
+</head>
+<body data-app-edition="reader" data-github-extensions-available="false">
+<div class="app-container">
+
+<aside class="sidebar" id="app-sidebar">
+<div class="sidebar-header">
+<div class="logo">
+<span class="logo-manga">Manga</span><span class="logo-x">X</span>
+</div>
+<button aria-expanded="true" aria-label="Sol menüyü daralt" class="sidebar-collapse-btn" id="sidebar-collapse-btn" onclick="toggleSidebarCollapsed()" title="Menüyü daralt" type="button">
+<i aria-hidden="true" class="fa-solid fa-angles-left"></i>
+</button>
+</div>
+<nav class="sidebar-menu">
+<button class="nav-btn active" data-label="Kütüphanem" data-tab="library">
+<i class="fa-solid fa-bookmark"></i>
+<span>Kütüphanem</span>
+</button>
+
+<div class="sidebar-bottom-menu">
+
+
+<button class="nav-btn" data-label="Ayarlar" data-tab="settings">
+<i class="fa-solid fa-gear"></i>
+<span>Ayarlar</span>
+</button>
+</div>
+</nav>
+<div class="sidebar-footer">
+<span class="app-version">v0.11.60</span>
+</div>
+</aside>
+
+<main class="main-content">
+
+<section class="tab-panel active" id="library-tab">
+<div class="tab-header library-main-header">
+<div>
+<h1>Kütüphanem</h1>
+<p class="tab-subtitle">Yerel manga kütüphanenizi düzenleyin ve okumaya devam edin.</p>
+</div>
+<button class="btn btn-primary local-import-open-btn" onclick="openLocalImportDialog()" type="button">
+<i class="fa-solid fa-plus"></i> Manga Ekle
+                    </button>
+</div>
+<div aria-label="Kütüphane görünümü" class="library-view-tabs" role="tablist">
+<button class="library-view-tab active" id="library-continue-btn" onclick="switchLibraryView('continue')" type="button">
+<i class="fa-solid fa-play"></i> Devam Et
+                        <span class="library-tab-count" id="library-continue-count">0</span>
+</button>
+<button class="library-view-tab" id="library-catalog-btn" onclick="switchLibraryView('catalog')" type="button">
+<i class="fa-solid fa-layer-group"></i> Kitaplık
+                        <span class="library-tab-count" id="library-catalog-count">0</span>
+</button>
+
+</div>
+<div class="library-view-panel active" id="library-continue-panel">
+<div class="library-grid" id="library-continue-grid"></div>
+<div class="empty-state" id="library-continue-empty">
+<i class="fa-solid fa-book-open-reader"></i>
+<h3>Devam edilecek seri yok</h3>
+<p>Yerel bir bölüm açtığınızda okuma ilerlemeniz burada görünür.</p>
+
+</div>
+</div>
+<div class="library-view-panel" id="library-catalog-panel">
+<div class="library-catalog-toolbar">
+<div aria-label="Okuma durumu filtreleri" class="library-status-filters" id="library-status-filters">
+<button class="active" data-library-status="all" onclick="setLibraryStatusFilter('all')" type="button">Tümü</button>
+<button data-library-status="reading" onclick="setLibraryStatusFilter('reading')" type="button">Okunuyor</button>
+<button data-library-status="completed" onclick="setLibraryStatusFilter('completed')" type="button">Tamamlandı</button>
+<button data-library-status="on_hold" onclick="setLibraryStatusFilter('on_hold')" type="button">Beklemede</button>
+<button data-library-status="dropped" onclick="setLibraryStatusFilter('dropped')" type="button">Bırakıldı</button>
+</div>
+<div class="library-catalog-controls">
+<select aria-label="Koleksiyona göre filtrele" id="library-collection-filter" onchange="setLibraryCollectionFilter(this.value)">
+<option value="">Tüm koleksiyonlar</option>
+</select>
+<select aria-label="Kitaplığı sırala" id="library-sort-select" onchange="setLibrarySortOrder(this.value)">
+<option value="updated_desc">Son güncellenen</option>
+<option value="title_asc">Ada göre</option>
+<option value="rating_desc">Puanı yüksek</option>
+<option value="unread_desc">Okunmamış bölüm</option>
+</select>
+<div aria-label="Görünüm seçimi" class="library-layout-toggle">
+<button class="active" id="library-cover-view-btn" onclick="setLibraryCatalogView('cover')" title="Kapak görünümü" type="button"><i class="fa-solid fa-grip"></i></button>
+<button id="library-list-view-btn" onclick="setLibraryCatalogView('list')" title="Kompakt liste" type="button"><i class="fa-solid fa-list"></i></button>
+</div>
+<button class="btn btn-secondary library-select-toggle" id="library-select-toggle" onclick="toggleLibrarySelectionMode()" type="button"><i class="fa-solid fa-check-double"></i> Toplu Seç</button>
+</div>
+</div>
+<div class="library-bulk-bar hidden" id="library-bulk-bar">
+<strong><span id="library-selected-count">0</span> seri seçildi</strong>
+<select aria-label="Seçilenlerin okuma durumu" id="library-bulk-status">
+<option value="">Durumu değiştirme</option>
+<option value="reading">Okunuyor</option>
+<option value="completed">Tamamlandı</option>
+<option value="on_hold">Beklemede</option>
+<option value="dropped">Bırakıldı</option>
+</select>
+<input id="library-bulk-collection" maxlength="40" placeholder="Koleksiyon ekle…" type="text"/>
+<button class="btn btn-primary" onclick="applyLibraryBulkUpdate()" type="button">Uygula</button>
+<button class="btn btn-secondary" onclick="clearLibrarySelection()" type="button">Seçimi Temizle</button>
+</div>
+<div class="library-grid library-catalog-grid" id="library-catalog-grid"></div>
+<div class="empty-state" id="library-catalog-empty">
+<i class="fa-solid fa-layer-group"></i>
+<h3>Bu görünümde seri yok</h3>
+<p>Yerel kütüphanenize eklediğiniz seriler burada görünür.</p>
+</div>
+</div>
+
+</section>
+
+
+
+
+
+<section class="tab-panel" id="settings-tab">
+<div class="tab-header">
+<h1>Ayarlar</h1>
+<p class="tab-subtitle">Tercihlerinizi kategoriler halinde düzenleyin ve MangaX durumunu kontrol edin.</p>
+</div>
+<div class="settings-workspace">
+<nav aria-label="Ayar kategorileri" class="settings-category-nav">
+
+
+<button class="settings-category-btn active" data-settings-category="reader" onclick="switchSettingsCategory('reader')" type="button">
+<span class="settings-category-icon"><i class="fa-solid fa-book-open-reader"></i></span>
+<span><strong>Okuyucu</strong><small>Varsayılan görünüm</small></span>
+</button>
+
+<button class="settings-category-btn" data-settings-category="backup" onclick="switchSettingsCategory('backup')" type="button">
+<span class="settings-category-icon"><i class="fa-solid fa-box-archive"></i></span>
+<span><strong>Yedekleme</strong><small>Taşıma ve yerel koruma</small></span>
+</button>
+
+
+<button class="settings-category-btn" data-settings-category="system" onclick="switchSettingsCategory('system')" type="button">
+<span class="settings-category-icon"><i class="fa-solid fa-stethoscope"></i></span>
+<span><strong>Sistem</strong><small>Tanılama ve hakkında</small></span>
+</button>
+</nav>
+<div class="settings-layout settings-preferences-layout">
+<div class="settings-column settings-preferences-grid">
+
+
+
+
+
+
+<div class="settings-card settings-category-panel active" data-settings-panel="reader">
+<div class="settings-card-header"><i class="fa-solid fa-book-open-reader"></i><h2>Varsayılan Okuyucu</h2></div>
+<p class="settings-card-desc">Değişiklikler doğrudan varsayılanlara kaydedilir; sizi boş okuyucu ekranına götürmez.</p>
+<div class="reader-settings-workspace" id="reader-settings-workspace">
+<div class="reader-settings-editor">
+<div class="advanced-settings-grid">
+<label><span>Okuma modu</span><select class="settings-input settings-select" id="settings-reader-mode" onchange="saveReaderDefaultsFromSettings()"><option value="webtoon">Webtoon</option><option value="classic">Klasik</option></select></label>
+<label><span>Sayfa düzeni</span><select class="settings-input settings-select" id="settings-reader-spread" onchange="saveReaderDefaultsFromSettings()"><option value="single">Tek sayfa</option><option value="double">Çift sayfa</option></select></label>
+<label><span>Sığdırma</span><select class="settings-input settings-select" id="settings-reader-fit" onchange="saveReaderDefaultsFromSettings()"><option value="page">Sayfaya sığdır</option><option value="width">Genişliğe sığdır</option></select></label>
+<label><span>Arka plan</span><select class="settings-input settings-select" id="settings-reader-background" onchange="saveReaderDefaultsFromSettings()"><option value="black">Siyah</option><option value="charcoal">Koyu gri</option><option value="sepia">Sepya</option></select></label>
+<label><span>Yakınlaştırma (%)</span><input class="settings-input" id="settings-reader-zoom" max="250" min="50" oninput="saveReaderDefaultsFromSettings()" type="number"/></label>
+<label><span>Parlaklık (%)</span><input class="settings-input" id="settings-reader-brightness" max="140" min="35" oninput="saveReaderDefaultsFromSettings()" type="number"/></label>
+</div>
+<div class="settings-toggle-row"><div class="settings-toggle-copy"><span>Bölüm sonunda otomatik geç</span><small>Sonraki bölüm bulunduğunda geri sayımdan sonra açar.</small></div><label class="toggle-switch"><input id="settings-reader-auto-next" onchange="saveReaderDefaultsFromSettings()" type="checkbox"/><span class="toggle-slider"></span></label></div>
+<div class="reader-settings-actions">
+<button class="btn btn-primary" id="reader-preview-toggle" onclick="toggleReaderSettingsPreview()" type="button"><i class="fa-solid fa-eye"></i> Canlı Önizlemeyi Aç</button>
+<button class="btn btn-secondary" onclick="resetReaderDefaultsFromSettings()" type="button"><i class="fa-solid fa-rotate-left"></i> Okuyucuyu Sıfırla</button>
+<span aria-live="polite" class="reader-settings-save-state" id="reader-settings-save-state"></span>
+</div>
+</div>
+<aside aria-hidden="true" class="reader-settings-preview" id="reader-settings-preview">
+<div class="reader-preview-toolbar">
+<div><span>CANLI ÖNİZLEME</span><strong id="reader-preview-mode-label">Webtoon · Tek sayfa</strong></div>
+<button aria-label="Canlı önizlemeyi kapat" onclick="toggleReaderSettingsPreview(false)" title="Önizlemeyi kapat" type="button"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<div class="reader-preview-stage" data-background="black" data-fit="page" data-mode="webtoon" data-spread="single" id="reader-preview-stage">
+<div class="reader-preview-pages" id="reader-preview-pages">
+<article class="reader-preview-page" data-preview-page="0"><span>01</span><div class="preview-panel preview-panel-wide"></div><div class="preview-panel-row"><i></i><i></i></div><strong>Bir yolculuk başlıyor…</strong></article>
+<article class="reader-preview-page" data-preview-page="1"><span>02</span><div class="preview-action-burst"><i></i></div><div class="preview-dialog">Bu yalnızca bir önizleme!</div><div class="preview-panel preview-panel-short"></div></article>
+<article class="reader-preview-page" data-preview-page="2"><span>03</span><div class="preview-panel-row preview-panel-tall"><i></i><i></i></div><strong>Sonraki bölümde devam edecek</strong><div class="preview-end-mark">MANGAX</div></article>
+</div>
+</div>
+<div class="reader-preview-navigation">
+<button aria-label="Önceki örnek sayfa" onclick="stepReaderSettingsPreview(-1)" type="button"><i class="fa-solid fa-chevron-left"></i></button>
+<span id="reader-preview-page-label">1 / 3</span>
+<button aria-label="Sonraki örnek sayfa" onclick="stepReaderSettingsPreview(1)" type="button"><i class="fa-solid fa-chevron-right"></i></button>
+</div>
+</aside>
+</div>
+</div>
+
+
+
+
+<div class="settings-card backup-settings-card settings-category-panel" data-settings-panel="backup">
+<div class="settings-card-header">
+<i class="fa-solid fa-box-archive"></i>
+<h2>Yedekleme</h2>
+</div>
+<p class="settings-card-desc">Kütüphaneni, hassas okuma geçmişini, kaynaklarını ve kullanıcı ayarlarını başka bilgisayara taşı.</p>
+<div class="backup-summary-row">
+<div class="backup-summary-icon"><i class="fa-solid fa-book-bookmark"></i></div>
+<div><strong>Taşınabilir MangaX yedeği</strong><span id="backup-library-summary">Yedek özeti hazırlanıyor…</span></div>
+</div>
+<div class="backup-actions-grid">
+<button class="btn btn-primary" id="backup-export-btn" onclick="exportMangaXBackup()" type="button"><i class="fa-solid fa-file-export"></i> JSON Dışa Aktar</button>
+<button class="btn btn-secondary" onclick="chooseMangaXBackupFile()" type="button"><i class="fa-solid fa-file-import"></i> JSON İçe Aktar</button>
+<input accept="application/json,.json" class="hidden" id="backup-import-file" onchange="handleMangaXBackupFile(this)" type="file"/>
+</div>
+
+<section aria-labelledby="local-backup-title" class="local-backup-panel">
+<div class="local-backup-heading">
+<div>
+<span>YEREL KORUMA</span>
+<strong id="local-backup-title">Otomatik yedekleme</strong>
+<small id="local-backup-status">Yerel yedekler hazırlanıyor…</small>
+</div>
+<label class="toggle-switch" title="Otomatik yerel yedeklemeyi aç veya kapat">
+<input id="local-backup-enabled" onchange="updateLocalBackupSettings()" type="checkbox"/>
+<span class="toggle-slider"></span>
+</label>
+</div>
+<div class="local-backup-controls" id="local-backup-controls">
+<label>
+<span>Yedekleme aralığı</span>
+<select class="settings-input settings-select" id="local-backup-interval" onchange="updateLocalBackupSettings()">
+<option value="15">15 dakikada bir</option>
+<option value="30">30 dakikada bir</option>
+<option value="60">Saatte bir</option>
+<option value="180">3 saatte bir</option>
+</select>
+</label>
+<label>
+<span>Saklanacak yedek</span>
+<select class="settings-input settings-select" id="local-backup-retention" onchange="updateLocalBackupSettings()">
+<option value="5">Son 5 yedek</option>
+<option value="10">Son 10 yedek</option>
+</select>
+</label>
+<button class="btn btn-secondary" id="local-backup-now" onclick="createLocalBackupNow()" type="button"><i class="fa-solid fa-clock-rotate-left"></i> Şimdi Yedekle</button>
+</div>
+<div class="local-backup-list-heading"><strong>Önceki yedekler</strong><span>Geri yüklemeden önce güvenlik yedeği alınır.</span></div>
+<div class="local-backup-list" id="local-backup-list">
+<div class="local-backup-empty"><i class="fa-solid fa-spinner fa-spin"></i> Yedekler yükleniyor…</div>
+</div>
+</section>
+</div>
+
+
+<div class="settings-card settings-category-panel system-settings-card" data-settings-panel="system">
+<div class="settings-card-header">
+<i class="fa-solid fa-circle-info"></i>
+<h2>Sistem ve Hakkında</h2>
+</div>
+<div class="about-info">
+<div class="about-row"><span>Uygulama</span><span>MangaX</span></div>
+<div class="about-row"><span>Versiyon</span><span>v0.11.60</span></div>
+
+</div>
+<button class="btn btn-secondary settings-onboarding-btn" onclick="openOnboarding()" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Başlangıç Sihirbazını Aç</button>
+<section class="recovery-settings-panel">
+<h3><i class="fa-solid fa-life-ring"></i> Kurtarma ve Güvenli Mod</h3>
+
+<div class="settings-danger-actions"><button class="btn btn-secondary" onclick="resetAllPreferences()" type="button"><i class="fa-solid fa-rotate-left"></i> Ayarları Varsayılana Döndür</button><button class="btn btn-secondary" onclick="switchSettingsCategory('backup')" type="button"><i class="fa-solid fa-clock-rotate-left"></i> Önceki Yedeğe Dön</button></div>
+</section>
+<section aria-labelledby="system-check-title" class="system-check-panel">
+<div class="system-check-heading">
+<span class="system-check-heading-icon"><i class="fa-solid fa-stethoscope"></i></span>
+<div>
+<span>SİSTEM VE TANILAMA</span>
+<strong id="system-check-title">MangaX Sistem Kontrolü</strong>
+<small>Veritabanı, depolama ve yedekleri tek ekranda sınayın.</small>
+</div>
+</div>
+<div class="system-check-actions">
+<button class="btn btn-primary" id="system-check-quick-btn" onclick="runSystemCheck('quick')" type="button"><i class="fa-solid fa-bolt"></i> Hızlı Kontrol</button>
+
+</div>
+
+<div aria-live="polite" class="system-check-progress hidden" id="system-check-progress" role="status">
+<div><span id="system-check-progress-label">Kontrol hazırlanıyor…</span><strong id="system-check-progress-value">0%</strong></div>
+<div class="system-check-progress-track"><span id="system-check-progress-bar"></span></div>
+</div>
+<div class="system-check-summary hidden" id="system-check-summary"></div>
+<div class="system-check-results" id="system-check-results">
+<div class="system-check-empty"><i class="fa-solid fa-shield-heart"></i><strong>Henüz tarama yapılmadı</strong><span>Hızlı veya tam kontrolü başlatarak MangaX bileşenlerini sınayın.</span></div>
+</div>
+<div class="system-check-report-actions">
+<button class="btn btn-secondary" disabled="" id="system-check-report-btn" onclick="saveSystemCheckReport()" type="button"><i class="fa-solid fa-file-lines"></i> Raporu Kaydet</button>
+<span class="system-check-report-path hidden" id="system-check-report-path"></span>
+</div>
+</section>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+
+</main>
+</div>
+
+<div class="details-modal" id="details-modal">
+<div class="details-modal-bg" id="modal-bg"></div>
+<div class="details-modal-content">
+<button class="modal-close" onclick="closeDetailsModal()">
+<i class="fa-solid fa-xmark"></i>
+</button>
+<div class="manga-detail-banner" id="manga-detail-banner"></div>
+<div class="manga-detail-info">
+<img alt="Manga Cover" class="manga-detail-cover" id="manga-detail-cover" src=""/>
+<div class="manga-detail-text">
+<h2 class="manga-detail-title" id="manga-detail-title">Manga Başlığı</h2>
+<div class="manga-detail-meta">
+<span class="manga-status-badge" id="manga-detail-status">Devam Ediyor</span>
+<span class="manga-year" id="manga-detail-year">2023</span>
+</div>
+<div class="manga-tags" id="manga-detail-tags">
+
+</div>
+<p class="manga-detail-desc" id="manga-detail-desc">Manga açıklaması...</p>
+<div aria-hidden="true" aria-live="polite" class="hidden" id="manga-sources-loading-status" role="status"></div>
+<div aria-hidden="true" class="hidden" id="manga-source-selector-wrapper"></div>
+</div>
+</div>
+<div class="manga-chapters-section">
+<div class="chapters-header">
+<h3>Bölüm Listesi</h3>
+<div style="display: flex; align-items: center; gap: 20px;">
+
+<div aria-hidden="true" class="hidden" id="online-mode-wrapper" style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-color);"></div>
+
+<div class="lang-selector">
+<button class="lang-tab active" data-lang="tr" onclick="filterChaptersByLang('tr')">Türkçe</button>
+<button class="lang-tab" data-lang="en" onclick="filterChaptersByLang('en')">English</button>
+</div>
+</div>
+</div>
+
+<div class="chapters-controls">
+<div class="chapter-search-wrapper">
+<i class="fa-solid fa-magnifying-glass"></i>
+<input id="chapter-search-input" oninput="handleChapterSearch()" placeholder="Bölüm ara (örn: 10 veya Başlık)..." type="text"/>
+</div>
+<div class="chapter-group-wrapper">
+<i class="fa-solid fa-users"></i>
+<select id="chapter-group-select" onchange="handleChapterGroupFilter()">
+<option value="">Tüm Gruplar</option>
+</select>
+</div>
+<button class="btn btn-secondary btn-sort" id="chapter-sort-btn" onclick="toggleChapterSort()">
+<i class="fa-solid fa-sort-numeric-down"></i>
+<span id="sort-btn-text">Eskiden Yeniye</span>
+</button>
+
+</div>
+<div class="chapters-loading" id="chapters-loader">
+<div class="loading-spinner"></div>
+</div>
+<div class="chapters-table-wrapper">
+<table class="chapters-table">
+<thead>
+<tr>
+<th>Bölüm</th>
+<th>Başlık</th>
+<th>Grup</th>
+<th style="text-align: right;">Eylemler</th>
+</tr>
+</thead>
+<tbody id="chapters-list-body">
+
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+
+<div aria-hidden="true" class="library-editor" id="library-editor">
+<button aria-label="Düzenleyiciyi kapat" class="library-editor-backdrop" onclick="closeLibraryEditor()" type="button"></button>
+<form aria-labelledby="library-editor-title" aria-modal="true" class="library-editor-panel" onsubmit="saveLibraryMetadata(event)" role="dialog">
+<div class="library-editor-heading">
+<div><span>KİŞİSEL KİTAPLIK</span><h2 id="library-editor-title">Seriyi düzenle</h2></div>
+<button aria-label="Kapat" onclick="closeLibraryEditor()" type="button"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<label>Okuma durumu
+                <select id="library-editor-status">
+<option value="reading">Okunuyor</option>
+<option value="completed">Tamamlandı</option>
+<option value="on_hold">Beklemede</option>
+<option value="dropped">Bırakıldı</option>
+</select>
+</label>
+<label>Puanın <span id="library-editor-rating-value">0 / 10</span>
+<input id="library-editor-rating" max="10" min="0" oninput="document.getElementById('library-editor-rating-value').textContent = `${this.value} / 10`" step="1" type="range" value="0"/>
+</label>
+<label>Koleksiyonlar <small>Virgülle ayırın</small>
+<input id="library-editor-collections" maxlength="840" placeholder="Favoriler, Hafta sonu…" type="text"/>
+</label>
+<label>Kişisel not
+                <textarea id="library-editor-note" maxlength="4000" placeholder="Bu seriyle ilgili notların…" rows="5"></textarea>
+</label>
+
+<div class="library-editor-actions">
+<button class="btn btn-secondary" onclick="closeLibraryEditor()" type="button">Vazgeç</button>
+<button class="btn btn-primary" id="library-editor-save" type="submit">Kaydet</button>
+</div>
+</form>
+</div>
+
+<div aria-hidden="true" class="onboarding-overlay" id="onboarding-overlay">
+<div aria-labelledby="onboarding-title" aria-modal="true" class="onboarding-shell" role="dialog">
+<header class="onboarding-header">
+<div class="onboarding-brand"><span>Manga</span><strong>X</strong></div>
+<div aria-label="Başlangıç ilerlemesi" class="onboarding-progress">
+<span class="onboarding-progress-dot active" data-step="1"></span>
+<span class="onboarding-progress-dot" data-step="2"></span>
+<span class="onboarding-progress-dot" data-step="3"></span>
+<span class="onboarding-progress-dot" data-step="4"></span>
+</div>
+<span class="onboarding-step-counter" id="onboarding-step-counter">1 / 4</span>
+</header>
+<main class="onboarding-content">
+<section class="onboarding-step active" data-step="1">
+<div class="onboarding-hero-icon"><i class="fa-solid fa-book-open-reader"></i></div>
+<span class="onboarding-eyebrow">YEREL MANGA OKUYUCU</span>
+<h2 id="onboarding-title" tabindex="-1">MangaX Reader’a hoş geldin</h2>
+<p>Mangalarını bilgisayarından ekle, kütüphaneni düzenle ve internet bağlantısına ihtiyaç duymadan okumaya devam et.</p>
+<div class="onboarding-feature-row">
+<span><i class="fa-solid fa-folder-open"></i> Dosyalarını ekle</span>
+<span><i class="fa-solid fa-bookmark"></i> Kütüphaneni düzenle</span>
+<span><i class="fa-solid fa-book-open"></i> Rahatça oku</span>
+</div>
+<div class="onboarding-actions centered">
+<button class="btn btn-primary onboarding-primary" onclick="setReaderOnboardingStep(2)" type="button">Başlayalım <i class="fa-solid fa-arrow-right"></i></button>
+<button class="onboarding-skip" onclick="skipReaderOnboarding()" type="button">Şimdilik geç</button>
+</div>
+</section>
+<section class="onboarding-step" data-step="2">
+<div class="onboarding-hero-icon compact"><i class="fa-solid fa-file-arrow-up"></i></div>
+<span class="onboarding-eyebrow">MANGALARINI EKLE</span>
+<h2 tabindex="-1">Arşivini yanında getir</h2>
+<p>Klasörleri, ZIP ve CBZ arşivlerini ya da JPG, PNG ve WebP sayfalarını MangaX’e aktarabilirsin. Bölümler ve kapak otomatik hazırlanır.</p>
+<div class="onboarding-feature-row">
+<span><i class="fa-solid fa-folder-tree"></i> Klasör yapısı</span>
+<span><i class="fa-solid fa-file-zipper"></i> ZIP ve CBZ</span>
+<span><i class="fa-regular fa-image"></i> Görsel sayfalar</span>
+</div>
+<div class="onboarding-actions">
+<button class="btn btn-secondary" onclick="setReaderOnboardingStep(1)" type="button"><i class="fa-solid fa-arrow-left"></i> Geri</button>
+<button class="btn btn-primary onboarding-primary" onclick="setReaderOnboardingStep(3)" type="button">Devam Et <i class="fa-solid fa-arrow-right"></i></button>
+</div>
+</section>
+<section class="onboarding-step" data-step="3">
+<div class="onboarding-hero-icon compact"><i class="fa-solid fa-sliders"></i></div>
+<span class="onboarding-eyebrow">SANA GÖRE OKUMA</span>
+<h2 tabindex="-1">Okuyucuyu kendine göre ayarla</h2>
+<p>Sayfa ve webtoon görünümü, yakınlaştırma, sığdırma, parlaklık, arka plan ve çift sayfa seçeneklerini dilediğin gibi düzenle.</p>
+<div class="onboarding-feature-row">
+<span><i class="fa-solid fa-book-open"></i> Sayfa düzenleri</span>
+<span><i class="fa-solid fa-magnifying-glass-plus"></i> Yakınlaştırma</span>
+<span><i class="fa-regular fa-keyboard"></i> Klavye kısayolları</span>
+</div>
+<div class="onboarding-actions">
+<button class="btn btn-secondary" onclick="setReaderOnboardingStep(2)" type="button"><i class="fa-solid fa-arrow-left"></i> Geri</button>
+<button class="btn btn-primary onboarding-primary" onclick="setReaderOnboardingStep(4)" type="button">Devam Et <i class="fa-solid fa-arrow-right"></i></button>
+</div>
+</section>
+<section class="onboarding-step reader-onboarding-final" data-step="4">
+<div class="onboarding-success-orbit"><i class="fa-solid fa-shield-heart"></i></div>
+<span class="onboarding-eyebrow">OKUYUCUN HAZIR</span>
+<h2 tabindex="-1">Kaldığın yer hep hatırlanır</h2>
+<p>Okuma ilerlemen, koleksiyonların, puanların ve notların yerel olarak saklanır. JSON yedekleriyle kütüphaneni güvenle taşıyabilirsin.</p>
+<div class="onboarding-ready-card"><i class="fa-solid fa-clock-rotate-left"></i><div><strong>Yerel ve taşınabilir</strong><small>İlerlemeni otomatik kaydet, yedekle ve gerektiğinde geri yükle.</small></div></div>
+<div class="onboarding-actions centered">
+<button class="btn btn-secondary" onclick="finishReaderOnboarding()" type="button"><i class="fa-solid fa-bookmark"></i> Kütüphaneye Geç</button>
+<button class="btn btn-primary onboarding-primary" onclick="finishReaderOnboarding({ openImporter: true })" type="button"><i class="fa-solid fa-plus"></i> İlk Manganı Ekle</button>
+</div>
+</section>
+</main>
+</div>
+</div>
+
+<div class="reader-overlay" id="reader-overlay">
+
+<header class="reader-header" id="reader-header">
+<div class="reader-header-left">
+<button class="reader-btn" id="reader-close-btn" onclick="exitReader()">
+<i class="fa-solid fa-arrow-left"></i>
+<span>Çıkış</span>
+</button>
+<div class="reader-manga-info">
+<h4 id="reader-manga-title">Manga Adı</h4>
+<span id="reader-chapter-title">Bölüm X - Başlık</span>
+</div>
+</div>
+<div class="reader-header-right">
+
+<div class="mode-select-wrapper">
+<i class="fa-solid fa-book-open"></i>
+<select id="reader-mode" onchange="changeReaderMode(this.value)">
+<option value="webtoon">Webtoon (Dikey Kaydırma)</option>
+<option value="classic">Klasik (Sayfa Sayfa)</option>
+</select>
+</div>
+<button aria-label="Okuyucu ayarlarını aç" class="reader-btn reader-icon-btn" onclick="toggleReaderSettings()" title="Okuyucu ayarları" type="button">
+<i class="fa-solid fa-sliders"></i>
+</button>
+<button aria-label="Klavye kısayollarını göster" class="reader-btn reader-icon-btn" onclick="openReaderShortcuts()" title="Klavye kısayolları" type="button">
+<i class="fa-regular fa-keyboard"></i>
+</button>
+<div aria-label="Bölüm gezinme kontrolleri" class="reader-chapter-nav">
+<button class="reader-btn" id="reader-prev-chap" onclick="prevChapter()" title="Önceki bölüme git">
+<i class="fa-solid fa-chevron-left"></i>
+<span>Önceki Bölüm</span>
+</button>
+<button class="reader-btn" id="reader-next-chap" onclick="nextChapter()" title="Sonraki bölüme git">
+<span>Sonraki Bölüm</span>
+<i class="fa-solid fa-chevron-right"></i>
+</button>
+</div>
+</div>
+</header>
+<aside aria-hidden="true" aria-label="Okuyucu ayarları" class="reader-settings-panel" id="reader-settings-panel">
+<div class="reader-settings-heading">
+<div><span>OKUYUCU PROFİLİ</span><h3>Görünüm ayarları</h3></div>
+<button aria-label="Ayarları kapat" class="reader-panel-close" onclick="toggleReaderSettings(false)" type="button"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<div class="reader-setting-row classic-only-setting">
+<label for="reader-spread">Sayfa düzeni</label>
+<select id="reader-spread" onchange="setReaderPreference('spread', this.value)"><option value="single">Tek sayfa</option><option value="double">Çift sayfa</option></select>
+</div>
+<div class="reader-setting-row">
+<label for="reader-fit">Görsel yerleşimi</label>
+<select id="reader-fit" onchange="setReaderPreference('fit', this.value)"><option value="page">Sayfaya sığdır</option><option value="width">Genişliğe sığdır</option></select>
+</div>
+<div class="reader-setting-slider">
+<div><label for="reader-zoom">Yakınlaştırma</label><output id="reader-zoom-value">%100</output></div>
+<input id="reader-zoom" max="250" min="50" oninput="setReaderPreference('zoom', this.value)" step="10" type="range" value="100"/>
+</div>
+<div class="reader-setting-slider">
+<div><label for="reader-brightness">Parlaklık</label><output id="reader-brightness-value">%100</output></div>
+<input id="reader-brightness" max="140" min="35" oninput="setReaderPreference('brightness', this.value)" step="5" type="range" value="100"/>
+</div>
+<div class="reader-setting-row reader-background-setting">
+<span>Arka plan</span>
+<div aria-label="Okuyucu arka planı" class="reader-background-options" role="group">
+<button data-reader-background="black" onclick="setReaderPreference('background', 'black')" title="Siyah" type="button"></button>
+<button data-reader-background="charcoal" onclick="setReaderPreference('background', 'charcoal')" title="Koyu gri" type="button"></button>
+<button data-reader-background="sepia" onclick="setReaderPreference('background', 'sepia')" title="Sepya" type="button"></button>
+</div>
+</div>
+<label class="reader-toggle-row" for="reader-auto-next">
+<span><strong>Otomatik sonraki bölüm</strong><small>Bölüm sonunda 5 saniye bekler</small></span>
+<input id="reader-auto-next" onchange="setReaderPreference('autoNext', this.checked)" type="checkbox"/>
+</label>
+<button class="reader-reset-btn" onclick="resetReaderPreferences()" type="button"><i class="fa-solid fa-rotate-left"></i> Görünümü sıfırla</button>
+</aside>
+<div aria-hidden="true" class="reader-shortcuts-modal" id="reader-shortcuts-modal">
+<button aria-label="Kısayolları kapat" class="reader-shortcuts-backdrop" onclick="closeReaderShortcuts()" type="button"></button>
+<section aria-labelledby="reader-shortcuts-title" aria-modal="true" class="reader-shortcuts-card" role="dialog">
+<div class="reader-settings-heading">
+<div><span>KLAVYE</span><h3 id="reader-shortcuts-title">Okuyucu kısayolları</h3></div>
+<button aria-label="Kısayolları kapat" class="reader-panel-close" onclick="closeReaderShortcuts()" type="button"><i class="fa-solid fa-xmark"></i></button>
+</div>
+<div class="reader-shortcuts-grid">
+<span><kbd>←</kbd><kbd>→</kbd> Sayfa değiştir</span><span><kbd>↑</kbd><kbd>↓</kbd> Dikey kaydır</span>
+<span><kbd>M</kbd> Okuma modu</span><span><kbd>F</kbd> Sığdırma biçimi</span>
+<span><kbd>+</kbd><kbd>−</kbd> Yakınlaştır</span><span><kbd>0</kbd> Yakınlaştırmayı sıfırla</span>
+<span><kbd>P</kbd> Ayar paneli</span><span><kbd>?</kbd> Bu yardım ekranı</span>
+<span><kbd>Esc</kbd> Kapat / okuyucudan çık</span>
+</div>
+</section>
+</div>
+
+<div class="reader-loading hidden" id="reader-loader">
+<div class="loading-spinner"></div>
+<p>Sayfalar Yükleniyor...</p>
+</div>
+
+<div class="reader-viewport webtoon-mode" id="reader-viewport">
+<div class="pages-wrapper" id="pages-wrapper">
+
+</div>
+
+<div class="end-chapter-card hidden" id="end-chapter-card">
+<h3>Bölüm Bitti!</h3>
+<p id="end-chapter-message">Bu bölümün sonuna geldiniz.</p>
+<div class="end-card-buttons">
+<button class="btn btn-primary" id="end-card-next-btn" onclick="nextChapter()">Sonraki Bölüm</button>
+<button class="btn btn-secondary" onclick="exitReader()">Kütüphaneye Dön</button>
+</div>
+</div>
+</div>
+
+<div class="classic-hitbox left" id="classic-left-hitbox" onclick="classicLeftAction()">
+<div class="classic-arrow"><i class="fa-solid fa-chevron-left"></i></div>
+</div>
+<div class="classic-hitbox right" id="classic-right-hitbox" onclick="classicRightAction()">
+<div class="classic-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+</div>
+
+<footer class="reader-footer" id="reader-footer">
+<div class="reader-footer-content">
+<span class="page-indicator" id="reader-page-indicator">0 / 0</span>
+<input id="reader-page-range" max="1" min="0" oninput="jumpToPage(Number(this.value))" type="range" value="0"/>
+</div>
+</footer>
+</div>
+
+<div aria-hidden="true" class="local-import-dialog hidden" id="local-import-dialog">
+<button aria-label="Pencereyi kapat" class="local-import-backdrop" onclick="closeLocalImportDialog()" type="button"></button>
+<section aria-labelledby="local-import-title" aria-modal="true" class="local-import-panel" role="dialog">
+<button aria-label="Kapat" class="local-import-close" onclick="closeLocalImportDialog()" type="button"><i class="fa-solid fa-xmark"></i></button>
+<span class="local-import-kicker">YEREL KÜTÜPHANE</span>
+<h2 id="local-import-title">Manga Ekle</h2>
+<p>Sayfaları bir klasörden veya ZIP/CBZ dosyasından MangaX'e aktarın.</p>
+<div class="local-import-options">
+<button onclick="startLocalMangaImport('folder')" type="button">
+<i class="fa-solid fa-folder-open"></i><span><strong>Klasör Seç</strong><small>Alt klasörler bölüm olarak eklenir.</small></span>
+</button>
+<button onclick="startLocalMangaImport('file')" type="button">
+<i class="fa-solid fa-file-zipper"></i><span><strong>Dosya Seç</strong><small>ZIP, CBZ, JPG, PNG veya WebP</small></span>
+</button>
+</div>
+<div class="local-import-progress hidden" id="local-import-progress">
+<div><span id="local-import-progress-message">Manga hazırlanıyor…</span><strong id="local-import-progress-percent">0%</strong></div>
+<div class="local-import-progress-track"><span id="local-import-progress-bar"></span></div>
+<button class="btn btn-secondary" onclick="cancelLocalMangaImport()" type="button">İptal Et</button>
+</div>
+</section>
+</div>
+<div aria-hidden="true" class="edition-gate-modal hidden" id="edition-secret-modal">
+<button aria-label="Pencereyi kapat" class="edition-gate-backdrop" data-edition-gate-close="secret" tabindex="-1" type="button"></button>
+<section aria-labelledby="edition-secret-title" aria-modal="true" class="edition-gate-panel edition-secret-panel" role="dialog">
+<button aria-label="Kapat" class="edition-gate-close" data-edition-gate-close="secret" type="button"><i class="fa-solid fa-xmark"></i></button>
+<h2 id="edition-secret-title">Doğrulama</h2>
+<p>Devam etmek için parolayı girin.</p>
+<form id="edition-secret-form">
+<label for="edition-secret-input">Parola</label>
+<input autocomplete="off" id="edition-secret-input" required="" spellcheck="false" type="password"/>
+<p aria-live="polite" class="edition-gate-error" id="edition-secret-error" role="alert"></p>
+<button class="btn btn-primary" id="edition-secret-submit" type="submit">Devam Et</button>
+</form>
+</section>
+</div>
+<div aria-hidden="true" class="edition-gate-modal hidden" id="edition-access-modal">
+<button aria-label="Pencereyi kapat" class="edition-gate-backdrop" data-edition-gate-close="access" tabindex="-1" type="button"></button>
+<section aria-labelledby="edition-access-title" aria-modal="true" class="edition-gate-panel" role="dialog">
+<button aria-label="Kapat" class="edition-gate-close" data-edition-gate-close="access" type="button"><i class="fa-solid fa-xmark"></i></button>
+<h2 id="edition-access-title"></h2>
+<div aria-live="polite" id="edition-access-content"></div>
+</section>
+</div>
+
+<div aria-hidden="true" class="app-confirm" id="app-confirm">
+<button aria-label="Onayı kapat" class="app-confirm-backdrop" onclick="resolveAppConfirm(false)" type="button"></button>
+<div aria-describedby="app-confirm-message" aria-labelledby="app-confirm-title" aria-modal="true" class="app-confirm-panel" role="alertdialog">
+<div aria-hidden="true" class="app-confirm-icon" id="app-confirm-icon">
+<i class="fa-solid fa-circle-question"></i>
+</div>
+<div class="app-confirm-copy">
+<h3 id="app-confirm-title">İşlemi Onayla</h3>
+<p id="app-confirm-message"></p>
+</div>
+<div class="app-confirm-actions">
+<button class="btn app-confirm-cancel" id="app-confirm-cancel" onclick="resolveAppConfirm(false)" type="button">Vazgeç</button>
+<button class="btn app-confirm-accept" id="app-confirm-accept" onclick="resolveAppConfirm(true)" type="button">Onayla</button>
+</div>
+</div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/static/js/app.js?v=20260718r"></script>
+<script src="/static/js/edition-gate.js?v=20260718f"></script>
+<script src="/static/js/library.js?v=20260718r"></script>
+<script src="/static/js/local-import.js?v=20260718b"></script>
+
+<script src="/static/js/manga-detail.js?v=20260718q"></script>
+
+<script src="/static/js/settings.js?v=20260718s"></script>
+
+<script src="/static/js/reader.js?v=20260718u"></script>
+
+
+
+<script src="/static/js/backup.js?v=20260718n"></script>
+<script src="/static/js/diagnostics.js?v=20260718b"></script>
+<script src="/static/js/reader-onboarding.js?v=20260718a"></script></body>
+</html>

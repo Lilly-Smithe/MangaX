@@ -1,0 +1,235 @@
+{
+  "schema_version": 1,
+  "edition": "reader",
+  "source_policy": "allowlist",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "2a64b3a54824ec6b44a2e1e2c9939e2c154e2d13944a9a2a2a8b62239c8e713e"
+    },
+    {
+      "path": "README.md",
+      "sha256": "ca79d3064f73ce265e39eb8fb0632f30bda49f1c11ea74f299c1d1b94b6e3a67"
+    },
+    {
+      "path": "app_gui.py",
+      "sha256": "ce597f09c07a3c0f5821dbe32056101397e859e6fc48072570bcb54b76005b3a"
+    },
+    {
+      "path": "backup_service.py",
+      "sha256": "c2364eaf353784e47e1bd301d9a3c35b0b3468e58733a8688e0cfd1571599b6d"
+    },
+    {
+      "path": "build_reader.bat",
+      "sha256": "0944de4f11d514ea8afced9d2a1308a44dcb0d98f4c23244a99b4dfd97119130"
+    },
+    {
+      "path": "config.py",
+      "sha256": "89c94ebb1195a15d8eae134e433f57de3aa2616c03fa28dbc4eac84873b6b650"
+    },
+    {
+      "path": "core_dependencies.py",
+      "sha256": "69bd919f384d2cc8ee12f29b1f5bca92e8dbe8ddb54ebff0c6c5e401a5f0e3b6"
+    },
+    {
+      "path": "database.py",
+      "sha256": "f58c6e0caa0453144385e256d98598658bc1e003b5e06f95f6055c36eec10fe8"
+    },
+    {
+      "path": "edition_runtime.py",
+      "sha256": "a4e4548689942391ec7c515405e19f140b30f7a5c5c51596b61dae65340ae111"
+    },
+    {
+      "path": "full_release.py",
+      "sha256": "d59844c79e3598adf4e4585c8fcb9484d203b72dd7e6a0041cf397ceaae5c48f"
+    },
+    {
+      "path": "github_integration.py",
+      "sha256": "e4fbb2d48260bcdcce46d5759337af6b6dcb852262dca5f7de2b1547d89687a1"
+    },
+    {
+      "path": "library.py",
+      "sha256": "2d08b9ebd0868639d86d32702054b1640209fa5725c83a92b6b7a92f268f21c8"
+    },
+    {
+      "path": "local_import_jobs.py",
+      "sha256": "9dcddb7c69956005eea32c1cce41432cc0ec02689dc59df97bc74f3e7672741d"
+    },
+    {
+      "path": "local_importer.py",
+      "sha256": "2ec04dafbe39937e284402e374366802589878cdcc262efdaa34ce5a4e48a160"
+    },
+    {
+      "path": "main.py",
+      "sha256": "a9a9bee8185560344122238164455620fc4ed06a9cff152b1b087f40ebbe0ae0"
+    },
+    {
+      "path": "mangax_reader.spec",
+      "sha256": "d541862c3631c3b263f4e6a88093a8f1b613ab851e4200256edc94b894e702ee"
+    },
+    {
+      "path": "migrate_folders.py",
+      "sha256": "2f165fbf2cb0597ef993c3911282b10affe5127791e234e73cde9eec4f29cf4d"
+    },
+    {
+      "path": "models.py",
+      "sha256": "b3097877a4cf807dce37be600e7b44ac8382e6d3bd2c0076f0d1d59af5a89b7f"
+    },
+    {
+      "path": "packaging/runtime_reader.py",
+      "sha256": "cbb80a9c1e58d38ee4bb8386d6890edd152ca03b9a49e2fbe512c2a86ff1b9f8"
+    },
+    {
+      "path": "preferences_manager.py",
+      "sha256": "c353904205299f8839052bab3aee2a2a50f5ca6543280d42c9c2bb7d5c60919f"
+    },
+    {
+      "path": "requirements-build.txt",
+      "sha256": "a960d9a8d951361f67defb6382fe5024c3a375b5a60fdc552e7c39137ca0c2ec"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "1297448f2767706d040a51e88486c21db4a244cc6c8fac0186ae2d105f89dbba"
+    },
+    {
+      "path": "router_registry.py",
+      "sha256": "00f640eacf1e84588970f53ba07ef6471202405c58f228800ed2292016a9c8f1"
+    },
+    {
+      "path": "routers/backup.py",
+      "sha256": "cae07004a62730a27377d59e5a674f9f103a5ff3313e21aef98e96def0dd6c45"
+    },
+    {
+      "path": "routers/diagnostics.py",
+      "sha256": "a60203ef604477c339ce633c0dff73c1e125a57d61480dff587dc15b43efd759"
+    },
+    {
+      "path": "routers/frontend.py",
+      "sha256": "918ddd137eee46ec6461e25f06fc4d2d30818b0af8856c8f73e5504e2970f3a0"
+    },
+    {
+      "path": "routers/full_release.py",
+      "sha256": "2c81d261956748af71ac3e240689b4730e3869ed1e97aa0e06ae87f11588c8ee"
+    },
+    {
+      "path": "routers/github_auth.py",
+      "sha256": "fb3d51bb6c43c76724daf9d3838e5e470a02c4ac5779525070ec5b9cbcf84233"
+    },
+    {
+      "path": "routers/library.py",
+      "sha256": "f024591cfe05285818d640f404924ee88f71973a6d5e84a9ed3d33cb451f8245"
+    },
+    {
+      "path": "routers/local_reader.py",
+      "sha256": "efb8a2c8b60de322744eda7b3ad39ecc6391966469f17d10549681fb85a88d57"
+    },
+    {
+      "path": "routers/preferences.py",
+      "sha256": "011b2c15e879a9f4ae8e9fd5cc48c714aa43386dd18adb8a57749ce4056b77ea"
+    },
+    {
+      "path": "secure_store.py",
+      "sha256": "bdbcd76da3fb7bb133c27f087628975f5f33f78367cc59ce0055adb8d292438e"
+    },
+    {
+      "path": "shared_data_migration.py",
+      "sha256": "76e482e2895734878c5a72d6af0125a6f3ef80d953988f2a6ed8e2504d50b589"
+    },
+    {
+      "path": "start_reader.bat",
+      "sha256": "94b04ca8e54364e7ec47d60993c15dcec75582e7288b24662a556afae4765e73"
+    },
+    {
+      "path": "static/css/modules/base.css",
+      "sha256": "2841c8e81b4ece70faca14fa5f5099fd1eeff8e688c6b52cdfb0d98ee7ee7dad"
+    },
+    {
+      "path": "static/css/modules/components.css",
+      "sha256": "2a375c8c222f61e64ef1dbda0ad6b8752e19984a1a08948c4163534b02a6d789"
+    },
+    {
+      "path": "static/css/modules/manga-detail.css",
+      "sha256": "3ded31e982ddc932fcb1f8854d56558d6ea3799c0091763128372765354b4efa"
+    },
+    {
+      "path": "static/css/modules/onboarding.css",
+      "sha256": "7df69e15a59ada0ac7eae4336b8477ee404a3850f1443929afb4c4a6e6a86965"
+    },
+    {
+      "path": "static/css/modules/reader.css",
+      "sha256": "f8ccb1cccb7cd5fe93afd1c2560ac2a0dd7df9ac50c1054845b95da97397b96d"
+    },
+    {
+      "path": "static/css/modules/settings-workspace.css",
+      "sha256": "c03baf244ded126504e69a467e7cb1f435c3da5fc561f9e4ee3924ed36192a54"
+    },
+    {
+      "path": "static/css/modules/settings.css",
+      "sha256": "43ae4589b73bad3cf15436dedfd22e2c0f1a73f5370fd97ace349e28c28a830a"
+    },
+    {
+      "path": "static/css/styles.css",
+      "sha256": "90be32c787726482fa5490507c91cc6384708a0069efa72a5e7f5e442bf93fbb"
+    },
+    {
+      "path": "static/img/no-cover.jpg",
+      "sha256": "92716993105de1ecaefcd086bf898a201ab94983354c79fd40652145e309f7a2"
+    },
+    {
+      "path": "static/img/no-page.jpg",
+      "sha256": "82deeab9b9b457ce63305bea644c3f696c4a050880cde8556c6aafca1c53f2d0"
+    },
+    {
+      "path": "static/index.html",
+      "sha256": "53e85f8c698dc8f5913e22cabb77762919eb71cdd2492684655bd99dd81dc47c"
+    },
+    {
+      "path": "static/js/app.js",
+      "sha256": "676a148cf10aeab5730408aac91c58f0888902aa969347bfc328fd18e2cee1c9"
+    },
+    {
+      "path": "static/js/backup.js",
+      "sha256": "3053c411869ff2e39031acc4d1f89679ae96c574162f9ce6144ac90fb549f85d"
+    },
+    {
+      "path": "static/js/diagnostics.js",
+      "sha256": "847038b0af30bbbed5ae13d46eb0fa6c00f5eb17323e3167bc18e7f109a59cc0"
+    },
+    {
+      "path": "static/js/edition-gate.js",
+      "sha256": "6359dd12e433d40508b083d2086e1d2b7ac0c4cc9395ae5b61492559e6be0f10"
+    },
+    {
+      "path": "static/js/library.js",
+      "sha256": "f92c135d48a2903c94c301492332009a549a0fc6a462699b4a567c354244f355"
+    },
+    {
+      "path": "static/js/local-import.js",
+      "sha256": "9f20dc7db2d53a802609697b2767dcfb2340ebf5e2297a6bc0cbfa636f2aa530"
+    },
+    {
+      "path": "static/js/manga-detail.js",
+      "sha256": "ead1bb550a6e772b08bee31f7109986ea5f51306e3ab8795b57d72b9bedef7a2"
+    },
+    {
+      "path": "static/js/reader-onboarding.js",
+      "sha256": "21d47547d5a5cbb2cd4ca001afd74d049cf9763e5bde9e2c54703e84627d0599"
+    },
+    {
+      "path": "static/js/reader.js",
+      "sha256": "bf3657fb0c44442722398ca4a2c14cfabed82cc31243e22578ff9c827044daea"
+    },
+    {
+      "path": "static/js/settings.js",
+      "sha256": "3127117dfe4d7df866fc2a5bfda22404ccfc281d3a0df001b54fec5b18781574"
+    },
+    {
+      "path": "tests/test_public_reader_export.py",
+      "sha256": "150097e45df94db171c8813e8605603588ba19eee62a74dece79c192bfa51df5"
+    },
+    {
+      "path": "tools/audit_public_reader.py",
+      "sha256": "bded231dbd674a9770d33c93e4367f2f88cfeaa0d0ae563119c27195160573b9"
+    }
+  ]
+}
