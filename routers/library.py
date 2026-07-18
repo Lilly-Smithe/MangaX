@@ -2,14 +2,14 @@
 # Kütüphane endpoint'leri
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
-from models import (
+from mangax.core.models import (
     DeleteRequest,
     KnownChaptersRequest,
     LibraryBulkUpdateRequest,
     LibraryMetadataRequest,
     ProgressRequest,
 )
-from core_dependencies import library_manager
+from mangax.core.dependencies import library_manager
 
 router = APIRouter(prefix="/api", tags=["Library"])
 

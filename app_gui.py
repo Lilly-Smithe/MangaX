@@ -60,8 +60,8 @@ if getattr(sys, "frozen", False):
 
 
 # ── Config ───────────────────────────────────────────────────────────────────
-from config import HOST, PORT, APP_URL, DOWNLOADS_DIR, LOCAL_MANGA_DIR, STATIC_DIR, BASE_DIR
-from shared_data_migration import migrate_shared_user_data
+from mangax.core.config import HOST, PORT, APP_URL, DOWNLOADS_DIR, LOCAL_MANGA_DIR, STATIC_DIR, BASE_DIR
+from mangax.runtime.shared_data_migration import migrate_shared_user_data
 
 try:
     migrate_shared_user_data()
@@ -69,16 +69,16 @@ except Exception as _migration_error:
     print(f"[MangaX] Ortak veri geçişi atlandı: {_migration_error}", flush=True)
     traceback.print_exc()
 
-from edition_runtime import start_services, close_services
-from backup_service import local_backup_manager
-from migrate_folders import migrate_downloads
+from mangax.runtime.edition_runtime import start_services, close_services
+from mangax.core.backup_service import local_backup_manager
+from mangax.core.migrate_folders import migrate_downloads
 
 print(f"[MangaX DEBUG] sys.frozen: {getattr(sys, 'frozen', False)}", flush=True)
 print(f"[MangaX DEBUG] sys.executable: {sys.executable}", flush=True)
 print(f"[MangaX DEBUG] config.BASE_DIR: {BASE_DIR}", flush=True)
 print(f"[MangaX DEBUG] config.DOWNLOADS_DIR: {DOWNLOADS_DIR}", flush=True)
 
-from router_registry import register_edition_routers
+from mangax.runtime.router_registry import register_edition_routers
 
 
 class MangaXDesktopBridge:
@@ -89,9 +89,9 @@ class MangaXDesktopBridge:
         # Window gibi native nesneler bu yüzden mutlaka private tutulmalıdır.
         self._window = None
         self._full_installer_started = False
-        from local_import_jobs import LocalImportJobManager
+        from mangax.reader.local_import_jobs import LocalImportJobManager
         self._local_imports = LocalImportJobManager()
-        from full_release import full_release_manager
+        from mangax.integrations.full_release import full_release_manager
         full_release_manager.set_installer_launcher(self._launch_full_installer)
 
     def _attach_window(self, window) -> None:

@@ -13,75 +13,107 @@
     },
     {
       "path": "app_gui.py",
-      "sha256": "ce597f09c07a3c0f5821dbe32056101397e859e6fc48072570bcb54b76005b3a"
-    },
-    {
-      "path": "backup_service.py",
-      "sha256": "c2364eaf353784e47e1bd301d9a3c35b0b3468e58733a8688e0cfd1571599b6d"
+      "sha256": "505d93e40fa4702edcb6c46e786ef5e2325835378947ef3a15a0e606f5a6e405"
     },
     {
       "path": "build_reader.bat",
-      "sha256": "0944de4f11d514ea8afced9d2a1308a44dcb0d98f4c23244a99b4dfd97119130"
-    },
-    {
-      "path": "config.py",
-      "sha256": "89c94ebb1195a15d8eae134e433f57de3aa2616c03fa28dbc4eac84873b6b650"
-    },
-    {
-      "path": "core_dependencies.py",
-      "sha256": "69bd919f384d2cc8ee12f29b1f5bca92e8dbe8ddb54ebff0c6c5e401a5f0e3b6"
-    },
-    {
-      "path": "database.py",
-      "sha256": "f58c6e0caa0453144385e256d98598658bc1e003b5e06f95f6055c36eec10fe8"
-    },
-    {
-      "path": "edition_runtime.py",
-      "sha256": "a4e4548689942391ec7c515405e19f140b30f7a5c5c51596b61dae65340ae111"
-    },
-    {
-      "path": "full_release.py",
-      "sha256": "d59844c79e3598adf4e4585c8fcb9484d203b72dd7e6a0041cf397ceaae5c48f"
-    },
-    {
-      "path": "github_integration.py",
-      "sha256": "e4fbb2d48260bcdcce46d5759337af6b6dcb852262dca5f7de2b1547d89687a1"
-    },
-    {
-      "path": "library.py",
-      "sha256": "2d08b9ebd0868639d86d32702054b1640209fa5725c83a92b6b7a92f268f21c8"
-    },
-    {
-      "path": "local_import_jobs.py",
-      "sha256": "9dcddb7c69956005eea32c1cce41432cc0ec02689dc59df97bc74f3e7672741d"
-    },
-    {
-      "path": "local_importer.py",
-      "sha256": "2ec04dafbe39937e284402e374366802589878cdcc262efdaa34ce5a4e48a160"
+      "sha256": "99e41478e8ed61729395d7eaad5a8e823dde21c12448bb36205dae347f4417cb"
     },
     {
       "path": "main.py",
-      "sha256": "a9a9bee8185560344122238164455620fc4ed06a9cff152b1b087f40ebbe0ae0"
+      "sha256": "247d0d1d70fc0508b4707a8b97693b113b8dd4883805e07cde4ee84e9136514d"
     },
     {
-      "path": "mangax_reader.spec",
-      "sha256": "d541862c3631c3b263f4e6a88093a8f1b613ab851e4200256edc94b894e702ee"
+      "path": "mangax/__init__.py",
+      "sha256": "e5b3f48ba031010ef3cab94c190c2e1402ea2a8039da3da7b406b1d9ff5f3078"
     },
     {
-      "path": "migrate_folders.py",
-      "sha256": "2f165fbf2cb0597ef993c3911282b10affe5127791e234e73cde9eec4f29cf4d"
+      "path": "mangax/core/__init__.py",
+      "sha256": "9d2926fed8040724c38c6c0b4441894e80c570fd8cfce9a44561763b65197edb"
     },
     {
-      "path": "models.py",
-      "sha256": "b3097877a4cf807dce37be600e7b44ac8382e6d3bd2c0076f0d1d59af5a89b7f"
+      "path": "mangax/core/backup_service.py",
+      "sha256": "af166eb4efe328e85bea733bf37baa2b5722e27ffb71db130badb9773afec495"
+    },
+    {
+      "path": "mangax/core/config.py",
+      "sha256": "93ea981acd0ad6826687004886422aee6d059097d0c0efdbd276f6919f28dd67"
+    },
+    {
+      "path": "mangax/core/database.py",
+      "sha256": "ddff119035a7493667b6d11149108ede1d266cd9b30cbfeabb9e2a3729c94401"
+    },
+    {
+      "path": "mangax/core/dependencies.py",
+      "sha256": "f060d61a3506f9ba0b8faeb0a4445fbfc2d89115cb15479bcdd2f4a0171e7ecf"
+    },
+    {
+      "path": "mangax/core/library.py",
+      "sha256": "48958a88473d30026752457970ead0944572f62e37c9ef6c82a948e64159a670"
+    },
+    {
+      "path": "mangax/core/migrate_folders.py",
+      "sha256": "9395ac7044c5f15c4d3154956d099bb3970eb5647513ccf926b12ecb5127c462"
+    },
+    {
+      "path": "mangax/core/models.py",
+      "sha256": "0059bd4c9d0fefad197daa1f68dfc42ac436333bc5cb6317906d9222220b5028"
+    },
+    {
+      "path": "mangax/core/preferences_manager.py",
+      "sha256": "aec53dd69790859b036a10b139cfb6903ef6669fb7839518845b25fe7f6fe2a1"
+    },
+    {
+      "path": "mangax/integrations/__init__.py",
+      "sha256": "b69dddfc8a082a05c6ef3f2bde63e7cfc7c286ce03801380ddbef51c8e76b3b8"
+    },
+    {
+      "path": "mangax/integrations/full_release.py",
+      "sha256": "2e5daa4b4fb2c960edafd0af6dec51b143c60e13b2a6c75586a30f9c7b62d320"
+    },
+    {
+      "path": "mangax/integrations/github_integration.py",
+      "sha256": "6e5591066e0a8b4da6065501f470f227a2f38b6044f216fc7bde8fced502b721"
+    },
+    {
+      "path": "mangax/integrations/secure_store.py",
+      "sha256": "bdbcd76da3fb7bb133c27f087628975f5f33f78367cc59ce0055adb8d292438e"
+    },
+    {
+      "path": "mangax/reader/__init__.py",
+      "sha256": "276f452990de19ed435e348805ca78cd9e322808111f4c0e6a369a6b30369558"
+    },
+    {
+      "path": "mangax/reader/local_import_jobs.py",
+      "sha256": "9ca3128f5896333ac1a1bdca25ee6fa7f8c9a5376e52b371b125bd22aa8e2065"
+    },
+    {
+      "path": "mangax/reader/local_importer.py",
+      "sha256": "c4183057485a188f71f411fe22e710c7ed5e82465b9e33b68ae324ad7dc74c0f"
+    },
+    {
+      "path": "mangax/runtime/__init__.py",
+      "sha256": "064c8e6bbb677e0c10926966ded472a45bb7ef9b7c4da13ec7fc64ffff522cad"
+    },
+    {
+      "path": "mangax/runtime/edition_runtime.py",
+      "sha256": "56e86a3a681b1ae897d4220697699bfb082b27ab7ddfcf9fbfb6c75400efc5bc"
+    },
+    {
+      "path": "mangax/runtime/router_registry.py",
+      "sha256": "00f640eacf1e84588970f53ba07ef6471202405c58f228800ed2292016a9c8f1"
+    },
+    {
+      "path": "mangax/runtime/shared_data_migration.py",
+      "sha256": "3fbd6d8b2062f3b80ae3736a8758c478e467ab2160ccbc48262433b353bf3b66"
     },
     {
       "path": "packaging/runtime_reader.py",
       "sha256": "cbb80a9c1e58d38ee4bb8386d6890edd152ca03b9a49e2fbe512c2a86ff1b9f8"
     },
     {
-      "path": "preferences_manager.py",
-      "sha256": "c353904205299f8839052bab3aee2a2a50f5ca6543280d42c9c2bb7d5c60919f"
+      "path": "packaging/windows/mangax_reader.spec",
+      "sha256": "fc8e8c96d450ab51b3ec532141a0d68c7367510bd14176a2200850377da6e82b"
     },
     {
       "path": "requirements-build.txt",
@@ -92,48 +124,36 @@
       "sha256": "1297448f2767706d040a51e88486c21db4a244cc6c8fac0186ae2d105f89dbba"
     },
     {
-      "path": "router_registry.py",
-      "sha256": "00f640eacf1e84588970f53ba07ef6471202405c58f228800ed2292016a9c8f1"
-    },
-    {
       "path": "routers/backup.py",
-      "sha256": "cae07004a62730a27377d59e5a674f9f103a5ff3313e21aef98e96def0dd6c45"
+      "sha256": "08359aad358eac2126c682c06e8a4aad6599dd501e0d535abf22772badb82416"
     },
     {
       "path": "routers/diagnostics.py",
-      "sha256": "a60203ef604477c339ce633c0dff73c1e125a57d61480dff587dc15b43efd759"
+      "sha256": "67a06c725da39cf20b305d63cd818d8d7519a50a897a7545553bcb9c74fb9f64"
     },
     {
       "path": "routers/frontend.py",
-      "sha256": "918ddd137eee46ec6461e25f06fc4d2d30818b0af8856c8f73e5504e2970f3a0"
+      "sha256": "693238dce5f21f3dbb7e7ea33d823dbaf2083b2ddfa6f40f08194da20d901206"
     },
     {
       "path": "routers/full_release.py",
-      "sha256": "2c81d261956748af71ac3e240689b4730e3869ed1e97aa0e06ae87f11588c8ee"
+      "sha256": "d9e127fe57f869624ee1d25c693cf1cbd664137eb98bcad7c6a05be2d7d02c7a"
     },
     {
       "path": "routers/github_auth.py",
-      "sha256": "fb3d51bb6c43c76724daf9d3838e5e470a02c4ac5779525070ec5b9cbcf84233"
+      "sha256": "19c7882ec4be8f864be7475a6c95c2f8301c7b6e2c9514873e143567e830bf8d"
     },
     {
       "path": "routers/library.py",
-      "sha256": "f024591cfe05285818d640f404924ee88f71973a6d5e84a9ed3d33cb451f8245"
+      "sha256": "8242ca423fc903eb88db37f8fc8cbca744c061a4e8c84992cb3c4df178449b59"
     },
     {
       "path": "routers/local_reader.py",
-      "sha256": "efb8a2c8b60de322744eda7b3ad39ecc6391966469f17d10549681fb85a88d57"
+      "sha256": "a02259149a48ae1d1ad146199d7c652c28d612d17c4585478a339c33be7ff1a4"
     },
     {
       "path": "routers/preferences.py",
-      "sha256": "011b2c15e879a9f4ae8e9fd5cc48c714aa43386dd18adb8a57749ce4056b77ea"
-    },
-    {
-      "path": "secure_store.py",
-      "sha256": "bdbcd76da3fb7bb133c27f087628975f5f33f78367cc59ce0055adb8d292438e"
-    },
-    {
-      "path": "shared_data_migration.py",
-      "sha256": "76e482e2895734878c5a72d6af0125a6f3ef80d953988f2a6ed8e2504d50b589"
+      "sha256": "22aa6e177c94cfc2d441a17d32d40151de13156e60dfa1a8d7bcfa27200f9414"
     },
     {
       "path": "start_reader.bat",
@@ -181,7 +201,7 @@
     },
     {
       "path": "static/index.html",
-      "sha256": "53e85f8c698dc8f5913e22cabb77762919eb71cdd2492684655bd99dd81dc47c"
+      "sha256": "d87439cd29e9ca6e28b4a83577e4e6a61e3c784ebb30d01974b02be853243811"
     },
     {
       "path": "static/js/app.js",
@@ -229,7 +249,7 @@
     },
     {
       "path": "tools/audit_public_reader.py",
-      "sha256": "bded231dbd674a9770d33c93e4367f2f88cfeaa0d0ae563119c27195160573b9"
+      "sha256": "f126a76b9fb2fde3760d1a2570969a0dbc0e901ad0a4beef2706b308e552f577"
     }
   ]
 }

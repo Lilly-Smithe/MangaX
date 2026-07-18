@@ -5,7 +5,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from config import DATA_DIR, LEGACY_DATA_DIR
+from mangax.core.config import DATA_DIR, LEGACY_DATA_DIR
 
 
 def migrate_shared_user_data(

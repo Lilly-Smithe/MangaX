@@ -1,9 +1,11 @@
+"""MangaX ortak veritabanı katmanı."""
+
 import sqlite3
 import json
 import os
 import time
 from contextlib import contextmanager
-from config import DATA_DIR
+from mangax.core.config import DATA_DIR
 from typing import Dict, Any, List, Optional
 
 DB_PATH = os.path.join(DATA_DIR, "library.db")

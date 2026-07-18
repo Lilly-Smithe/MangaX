@@ -7,7 +7,7 @@ import time
 import uuid
 from pathlib import Path
 
-from local_importer import ImportCancelled, import_local_manga
+from mangax.reader.local_importer import ImportCancelled, import_local_manga
 
 
 class LocalImportJobManager:

@@ -1,6 +1,6 @@
 import os
 import sys
-APP_VERSION = 'v0.11.60'
+APP_VERSION = 'v0.11.61'
 SUPPORTED_EDITIONS = {'reader'}
 APP_EDITION = os.getenv('MANGAX_EDITION', 'reader').strip().lower() or 'full'
 if APP_EDITION not in SUPPORTED_EDITIONS:
@@ -8,14 +8,14 @@ if APP_EDITION not in SUPPORTED_EDITIONS:
 IS_READER_EDITION = APP_EDITION == 'reader'
 IS_FULL_EDITION = APP_EDITION == 'full'
 current_file_path = os.path.abspath(__file__)
-if '_internal' in current_file_path:
-    BASE_DIR = os.path.dirname(os.path.dirname(current_file_path))
-    BUNDLE_DIR = os.path.dirname(current_file_path)
-elif getattr(sys, 'frozen', False):
-    BASE_DIR = os.path.dirname(sys._MEIPASS)
-    BUNDLE_DIR = sys._MEIPASS
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(os.path.abspath(sys.executable))
+    BUNDLE_DIR = os.path.abspath(getattr(sys, '_MEIPASS', BASE_DIR))
+elif '_internal' in current_file_path:
+    BUNDLE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
+    BASE_DIR = os.path.dirname(BUNDLE_DIR)
 else:
-    BASE_DIR = os.path.dirname(current_file_path)
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))
     BUNDLE_DIR = BASE_DIR
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 LEGACY_DATA_DIR = os.path.join(BASE_DIR, 'data')

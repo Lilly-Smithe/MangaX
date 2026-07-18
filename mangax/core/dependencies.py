@@ -1,6 +1,6 @@
 """Reader ve Full sürümlerinin paylaştığı hafif çalışma zamanı bağımlılıkları."""
 
-from library import LibraryManager
+from mangax.core.library import LibraryManager
 
 
 library_manager = LibraryManager()

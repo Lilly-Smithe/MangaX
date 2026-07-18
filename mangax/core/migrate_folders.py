@@ -1,4 +1,4 @@
-# migrate_folders.py
+# MangaX eski klasör yerleşimlerini güncel veri alanına taşır.
 # Eski UUID adlı downloads klasörlerini manga başlığına göre yeniden adlandırır
 # main.py startup'ta otomatik çağrılır
 
@@ -8,7 +8,7 @@ import json
 import shutil
 
 
-from config import BASE_DIR, DATA_DIR, DOWNLOADS_DIR
+from mangax.core.config import BASE_DIR, DATA_DIR, DOWNLOADS_DIR
 LIBRARY_FILE = os.path.join(DATA_DIR, "library.json")
 
 

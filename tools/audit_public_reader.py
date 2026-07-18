@@ -25,16 +25,16 @@ FORBIDDEN_TOP_LEVEL = {
     ".codex",
 }
 FORBIDDEN_FILES = {
-    "anilist.py",
-    "chapter_tracker.py",
-    "dependencies.py",
-    "downloader.py",
-    "extension_manager.py",
-    "image_optimizer.py",
-    "mal_integration.py",
-    "manga_matcher.py",
-    "site_analyzer.py",
-    "sources_manager.py",
+    "mangax/full/anilist.py",
+    "mangax/full/chapter_tracker.py",
+    "mangax/full/dependencies.py",
+    "mangax/full/downloader.py",
+    "mangax/full/extension_manager.py",
+    "mangax/full/image_optimizer.py",
+    "mangax/full/mal_integration.py",
+    "mangax/full/manga_matcher.py",
+    "mangax/full/site_analyzer.py",
+    "mangax/full/sources_manager.py",
     "routers/downloads.py",
     "routers/extensions.py",
     "routers/github.py",
@@ -145,12 +145,11 @@ def _scan_tree(root: Path, files: list[str]) -> tuple[list[str], list[str]]:
         if any(prefix in text for prefix in FORBIDDEN_ENDPOINT_PREFIXES):
             endpoint_locations.append(relative)
         if path.suffix.lower() == ".py" and any(marker in text for marker in (
-            "from dependencies import", "import dependencies", "from scrapers", "import scrapers",
-            "from extension_manager", "import extension_manager", "from sources_manager", "import sources_manager",
+            "from mangax.full", "import mangax.full", "from scrapers", "import scrapers",
         )):
             private_runtime_locations.append(relative)
 
-    if private_reference_locations not in ([], ["config.py"]):
+    if private_reference_locations not in ([], ["mangax/core/config.py"]):
         errors.append("Private repo referansı merkezi config dışında: " + ", ".join(private_reference_locations))
     if extension_reference_locations:
         errors.append("Eklenti mağazası repo referansı bulundu: " + ", ".join(extension_reference_locations))
@@ -191,7 +190,7 @@ def collect_paths(routes):
     return paths
 paths = sorted(set(collect_paths(main.app.routes)))
 bad_paths = [path for path in paths if any(path.startswith(prefix) for prefix in forbidden)]
-bad_modules = sorted(name for name in sys.modules if name == 'scrapers' or name.startswith('scrapers.') or name in {'downloader', 'extension_manager', 'sources_manager', 'dependencies'})
+bad_modules = sorted(name for name in sys.modules if name == 'mangax.full' or name.startswith('mangax.full.') or name == 'scrapers' or name.startswith('scrapers.'))
 if bad_paths or bad_modules or '/' not in paths:
     raise SystemExit(json.dumps({'bad_paths': bad_paths, 'bad_modules': bad_modules, 'root_route': '/' in paths}))
 print(json.dumps({'edition': 'reader', 'route_count': len(paths), 'root_route': '/' in paths}))

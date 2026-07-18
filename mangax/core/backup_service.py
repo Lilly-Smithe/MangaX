@@ -1,3 +1,4 @@
+"""Reader ve Full için yerel yedekleme servisi."""
 import json
 import os
 import re
@@ -5,9 +6,9 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from config import APP_VERSION, BACKUPS_DIR, DATA_DIR, IS_FULL_EDITION
-from core_dependencies import library_manager
-from database import db
+from mangax.core.config import APP_VERSION, BACKUPS_DIR, DATA_DIR, IS_FULL_EDITION
+from mangax.core.dependencies import library_manager
+from mangax.core.database import db
 BACKUP_SCHEMA_VERSION = 1
 LOCAL_BACKUP_SETTINGS_FILE = Path(DATA_DIR) / 'backup_settings.json'
 LOCAL_BACKUP_FILENAME = re.compile('^mangax-auto-\\d{8}-\\d{6}-\\d{6}\\.json$')
@@ -64,7 +65,7 @@ def import_portable_library(library_manager, mangas: list[dict]) -> dict:
     return {'mangas_imported': imported, 'history_imported': history, 'skipped': skipped}
 
 def build_backup_payload(client_settings: dict | None=None) -> dict:
-    from preferences_manager import preferences_manager
+    from mangax.core.preferences_manager import preferences_manager
     extensions = []
     source_preferences = []
     custom_sources = []
@@ -114,7 +115,7 @@ def _local_backup_path(backup_id: str) -> Path:
 
 def _backup_filename(now: datetime | None=None) -> str:
     value = now or datetime.now(timezone.utc)
-    return f'mangax-auto-{value.strftime('%Y%m%d-%H%M%S-%f')}.json'
+    return f"mangax-auto-{value.strftime('%Y%m%d-%H%M%S-%f')}.json"
 
 def list_local_backups() -> list[dict]:
     backup_dir = Path(BACKUPS_DIR)

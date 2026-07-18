@@ -16,8 +16,8 @@ from urllib.parse import quote
 
 import httpx
 
-from config import GITHUB_ACCESS_REPOSITORY, GITHUB_FULL_RELEASE_MANIFEST_PATH
-from github_integration import GitHubIntegrationError, github_integration_manager
+from mangax.core.config import GITHUB_ACCESS_REPOSITORY, GITHUB_FULL_RELEASE_MANIFEST_PATH
+from mangax.integrations.github_integration import GitHubIntegrationError, github_integration_manager
 
 
 GITHUB_API_URL = "https://api.github.com"

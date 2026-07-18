@@ -2,10 +2,10 @@ import json
 from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from backup_service import build_backup_payload, create_local_backup, import_portable_library, list_local_backups, load_local_backup_settings, local_backup_manager, prune_local_backups, read_local_backup, validate_backup_payload
-from config import IS_FULL_EDITION
-from core_dependencies import library_manager
-from preferences_manager import preferences_manager
+from mangax.core.backup_service import build_backup_payload, create_local_backup, import_portable_library, list_local_backups, load_local_backup_settings, local_backup_manager, prune_local_backups, read_local_backup, validate_backup_payload
+from mangax.core.config import IS_FULL_EDITION
+from mangax.core.dependencies import library_manager
+from mangax.core.preferences_manager import preferences_manager
 router = APIRouter(prefix='/api/backup', tags=['Backup'])
 
 class BackupEnvelope(BaseModel):

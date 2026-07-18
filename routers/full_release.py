@@ -7,8 +7,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Path
 from pydantic import BaseModel
 
-from full_release import FullReleaseError, full_release_manager
-from github_integration import GitHubIntegrationError
+from mangax.integrations.full_release import FullReleaseError, full_release_manager
+from mangax.integrations.github_integration import GitHubIntegrationError
 
 
 router = APIRouter(prefix="/api/integrations/github/full-release", tags=["Full Release"])

@@ -4,7 +4,7 @@ import os
 from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
-ROOT = os.path.abspath(os.path.dirname(SPEC))
+ROOT = os.path.abspath(os.path.join(os.path.dirname(SPEC), '..', '..'))
 
 datas = []
 try:
@@ -52,24 +52,29 @@ hiddenimports = [
     'routers.backup',
     'routers.preferences',
     'routers.diagnostics',
-    'core_dependencies',
-    'edition_runtime',
-    'router_registry',
-    'library',
-    'local_importer',
-    'local_import_jobs',
-    'github_integration',
-    'full_release',
-    'shared_data_migration',
-    'secure_store',
+    'mangax',
+    'mangax.core',
+    'mangax.core.dependencies',
+    'mangax.core.library',
+    'mangax.reader',
+    'mangax.reader.local_importer',
+    'mangax.reader.local_import_jobs',
+    'mangax.integrations',
+    'mangax.integrations.github_integration',
+    'mangax.integrations.full_release',
+    'mangax.integrations.secure_store',
+    'mangax.runtime',
+    'mangax.runtime.edition_runtime',
+    'mangax.runtime.router_registry',
+    'mangax.runtime.shared_data_migration',
     'PIL',
     'PIL.Image',
     'PIL.ImageOps',
-    'database',
-    'backup_service',
-    'preferences_manager',
-    'models',
-    'config',
+    'mangax.core.database',
+    'mangax.core.backup_service',
+    'mangax.core.preferences_manager',
+    'mangax.core.models',
+    'mangax.core.config',
     'certifi',
     'ssl',
     'psutil',
@@ -77,16 +82,17 @@ hiddenimports = [
 ]
 
 reader_excludes = [
-    'anilist',
-    'chapter_tracker',
-    'downloader',
-    'extension_manager',
+    'mangax.full',
+    'mangax.full.anilist',
+    'mangax.full.chapter_tracker',
+    'mangax.full.downloader',
+    'mangax.full.extension_manager',
     'extension_store',
-    'image_optimizer',
-    'mal_integration',
-    'manga_matcher',
-    'site_analyzer',
-    'sources_manager',
+    'mangax.full.image_optimizer',
+    'mangax.full.mal_integration',
+    'mangax.full.manga_matcher',
+    'mangax.full.site_analyzer',
+    'mangax.full.sources_manager',
     'scrapers',
     'routers.search',
     'routers.manga',
@@ -117,7 +123,7 @@ reader_excludes = [
 ]
 
 a = Analysis(
-    ['app_gui.py'],
+    [os.path.join(ROOT, 'app_gui.py')],
     pathex=[ROOT],
     binaries=wv_binaries,
     datas=datas,

@@ -12,15 +12,15 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import STATIC_DIR, DOWNLOADS_DIR, LOCAL_MANGA_DIR, HOST, PORT, APP_URL
-from shared_data_migration import migrate_shared_user_data
+from mangax.core.config import STATIC_DIR, DOWNLOADS_DIR, LOCAL_MANGA_DIR, HOST, PORT, APP_URL
+from mangax.runtime.shared_data_migration import migrate_shared_user_data
 
 migrate_shared_user_data()
 
-from edition_runtime import start_services, close_services
-from backup_service import local_backup_manager
-from migrate_folders import migrate_downloads
-from router_registry import register_edition_routers
+from mangax.runtime.edition_runtime import start_services, close_services
+from mangax.core.backup_service import local_backup_manager
+from mangax.core.migrate_folders import migrate_downloads
+from mangax.runtime.router_registry import register_edition_routers
 
 
 # ============================================

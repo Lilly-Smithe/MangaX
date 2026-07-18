@@ -1,6 +1,6 @@
 """Public Reader çekirdek servis yaşam döngüsü."""
 
-from core_dependencies import close_core_services, start_core_services
+from mangax.core.dependencies import close_core_services, start_core_services
 
 def start_services() -> None:
     start_core_services()

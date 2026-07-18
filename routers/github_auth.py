@@ -8,7 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Path, Query
 
-from github_integration import GitHubIntegrationError, github_integration_manager
+from mangax.integrations.github_integration import GitHubIntegrationError, github_integration_manager
 
 
 router = APIRouter(prefix="/api/integrations/github", tags=["GitHub Auth"])

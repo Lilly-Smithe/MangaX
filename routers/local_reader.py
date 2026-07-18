@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException
 
-from core_dependencies import library_manager
+from mangax.core.dependencies import library_manager
 
 
 router = APIRouter(prefix="/api/local", tags=["Local Reader"])

@@ -13,8 +13,8 @@ from typing import Callable, Iterable
 
 from PIL import Image, ImageOps
 
-from config import LOCAL_MANGA_DIR
-from core_dependencies import library_manager
+from mangax.core.config import LOCAL_MANGA_DIR
+from mangax.core.dependencies import library_manager
 
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}

@@ -1,10 +1,12 @@
+"""Reader ve Full ortak kullanıcı tercihleri."""
+
 import json
 import os
 from pathlib import Path
 from threading import RLock
 from typing import Any
 
-from config import DATA_DIR, DOWNLOADS_DIR, DEFAULT_DOWNLOADS_DIR
+from mangax.core.config import DATA_DIR, DOWNLOADS_DIR, DEFAULT_DOWNLOADS_DIR
 
 PREFERENCES_PATH = Path(DATA_DIR) / "app_preferences.json"
 DEFAULT_PREFERENCES = {

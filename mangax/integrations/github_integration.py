@@ -10,8 +10,8 @@ from typing import Any
 
 import httpx
 
-from config import DATA_DIR, GITHUB_ACCESS_REPOSITORY, GITHUB_OAUTH_CLIENT_ID
-from secure_store import SecureStoreError, WindowsDpapiJsonStore
+from mangax.core.config import DATA_DIR, GITHUB_ACCESS_REPOSITORY, GITHUB_OAUTH_CLIENT_ID
+from mangax.integrations.secure_store import SecureStoreError, WindowsDpapiJsonStore
 
 
 GITHUB_DEVICE_CODE_URL = "https://github.com/login/device/code"

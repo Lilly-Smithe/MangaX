@@ -3,9 +3,9 @@ from typing import Any
 import time
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from config import DATA_DIR, DOWNLOADS_DIR, IS_FULL_EDITION
-from core_dependencies import library_manager
-from preferences_manager import preferences_manager
+from mangax.core.config import DATA_DIR, DOWNLOADS_DIR, IS_FULL_EDITION
+from mangax.core.dependencies import library_manager
+from mangax.core.preferences_manager import preferences_manager
 router = APIRouter(prefix='/api/preferences', tags=['Preferences'])
 
 class PreferencesUpdate(BaseModel):

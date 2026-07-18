@@ -1,4 +1,4 @@
-# models.py
+# Reader ve Full ortak API modelleri.
 # API request/response modelleri
 
 from typing import Literal, Optional

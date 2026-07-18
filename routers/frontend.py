@@ -4,7 +4,7 @@
 import os
 from fastapi import APIRouter
 from fastapi.responses import FileResponse, JSONResponse
-from config import STATIC_DIR
+from mangax.core.config import STATIC_DIR
 
 router = APIRouter(tags=["Frontend"])
 
