@@ -1,21 +1,33 @@
 # MangaX Reader
 
-+MangaX Reader, klasör, ZIP, CBZ, JPG, PNG ve WebP biçimindeki yerel mangaları çevrimdışı okumak için hazırlanmış kaynak paketidir. Keşfet, scraper, çevrimiçi manga kaynağı, eklenti mağazası ve çevrimiçi bölüm indirme kodu içermez.
-+
-+## Kaynaktan çalıştırma
-+
-+```powershell
-+python -m venv .venv
-+.\.venv\Scripts\python -m pip install -r requirements.txt
-+.\.venv\Scripts\python app_gui.py
-+```
-+
-+Güvenlik denetimi:
-+
-+```powershell
-+python tools\audit_public_reader.py .
-+python -m unittest discover -s tests
-+```
-+
-+Bu depo kullanıcı verisi, kimlik bilgisi, token, scraper veya MangaX Full kaynak kodu içermez.
-+
+MangaX Reader, yerel manga arşivlerini düzenlemek ve internet bağlantısı olmadan okumak için hazırlanmış bir Windows masaüstü uygulamasıdır.
+
+## Özellikler
+
+- Klasör, ZIP ve CBZ arşivlerinden manga içe aktarma
+- JPG, PNG ve WebP sayfa desteği
+- Tamamen çevrimdışı okuma
+- Okuma ilerlemesini ve son kalınan sayfayı hatırlama
+- Koleksiyonlar, okuma durumları, kişisel puanlar ve notlar
+- Webtoon, tek sayfa ve çift sayfa okuyucu görünümleri
+- Yakınlaştırma, sayfaya veya genişliğe sığdırma, parlaklık ve arka plan ayarları
+- Klavye kısayolları ve otomatik sonraki bölüme geçiş
+- Yerel yedekleme ile kütüphane ve ayarları dışa/içe aktarma
+
+## İndirme
+
+Hazır Windows kurulum dosyasını [Releases](https://github.com/Lilly-Smithe/MangaX/releases) sayfasından indirebilirsiniz.
+
+## Kaynaktan çalıştırma
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python -m pip install -r requirements.txt
+.\.venv\Scripts\python app_gui.py
+```
+
+## Kaynaktan build alma
+
+```powershell
+.\build_reader.bat
+```
