@@ -1,6 +1,6 @@
 import os
 import sys
-APP_VERSION = 'v0.13.1'
+APP_VERSION = 'v0.13.2'
 SUPPORTED_EDITIONS = {'reader'}
 APP_EDITION = os.getenv('MANGAX_EDITION', 'reader').strip().lower() or 'full'
 if APP_EDITION not in SUPPORTED_EDITIONS:

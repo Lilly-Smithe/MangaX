@@ -231,7 +231,7 @@ class MalSyncService:
                     seen_mal_ids.add(mal_id)
 
                     manga = entry.get("manga") if isinstance(entry.get("manga"), dict) else None
-                    if existing is None and (not entry.get("matched") or manga is None):
+                    if existing is None and manga is None:
                         result["unmatched"] += 1
                         continue
                     manga = manga or {

@@ -37,7 +37,7 @@
     },
     {
       "path": "mangax/core/config.py",
-      "sha256": "3e23c96fb08c88eaccf3f0e7b460c76aaa61518e0765251a07a37308e9b0b18c"
+      "sha256": "b98e94af22cdd98b6d843e2ff7ca36577a27f70dfbd30c502f22f48a14c4e8a8"
     },
     {
       "path": "mangax/core/database.py",
@@ -65,7 +65,7 @@
     },
     {
       "path": "mangax/core/release_notes.py",
-      "sha256": "d3c23e80f424e4b7c2044e201ef2c53397e418fd02a212a2e4e5d887c9b3e2fc"
+      "sha256": "083f3e1c116a7a8878d52b31f2a4b1ccb6f96a3774ca372d64d62cb514b3d6c7"
     },
     {
       "path": "mangax/integrations/__init__.py",
@@ -85,7 +85,7 @@
     },
     {
       "path": "mangax/integrations/mal_integration.py",
-      "sha256": "1945c6e40ab56e68044ec58e7b3ad1af6b7fe2f310bfa3fee6f7692549b5ae6b"
+      "sha256": "401db7beface246a393c0a86987ff285a6480178cb49e3b8a073e0d9b10bcd5e"
     },
     {
       "path": "mangax/integrations/mal_outbound.py",
@@ -93,11 +93,11 @@
     },
     {
       "path": "mangax/integrations/mal_sync.py",
-      "sha256": "a517cf5064eba02b640add73f8f731c537a2e73e67b22426811e522d6bae4ffb"
+      "sha256": "a643296deae4a037e04bd7514bbd3b4335ef514b6cfd36db34771f87d9bcebc5"
     },
     {
       "path": "mangax/integrations/mal_sync_jobs.py",
-      "sha256": "5007dc6915f62b9217c1db4518e117aa549bb2b2f001b1635960644426a412a8"
+      "sha256": "1e53a3e8992c8b7010bd4ecaacc1c9f009f19c75ccaad546e5cd9132cd017305"
     },
     {
       "path": "mangax/integrations/mal_sync_scheduler.py",
@@ -145,7 +145,7 @@
     },
     {
       "path": "packaging/windows/mangax_reader_installer.iss",
-      "sha256": "575f27b312b19fe73b2c231f5da2af3f7b89c9d583d7fb4afbea3cdfe48f2a66"
+      "sha256": "b17bb05ac710852db87fbb083051997001d94a6dc87dfd393e344339aba21b71"
     },
     {
       "path": "requirements-build.txt",
@@ -245,7 +245,7 @@
     },
     {
       "path": "static/index.html",
-      "sha256": "191e59b4decc5a5a699b3397923e454c1c6446544b94c26233d56af75f283ae4"
+      "sha256": "524d2ae73f9cf1b45174f98f51a3700d7671b062071fe1caffe0bbc20e038e28"
     },
     {
       "path": "static/js/app-update.js",

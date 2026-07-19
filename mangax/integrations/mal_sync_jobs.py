@@ -10,6 +10,7 @@ from typing import Any
 from mangax.integrations.mal_integration import (
     MalIntegrationError,
     MalIntegrationManager,
+    MalRateLimitError,
     mal_integration_manager,
 )
 from mangax.integrations.mal_sync import (
@@ -168,12 +169,30 @@ class MalSyncJobManager:
                 "retryable": False,
                 "completed_at": int(time.time()),
             })
+        except MalRateLimitError:
+            self._finish(job_id, {
+                "job_id": job_id,
+                "status": "failed",
+                "message": "MyAnimeList senkronizasyonu istek sınırında durdu.",
+                "error": "MyAnimeList istek sınırına ulaşıldı. Eşitleme kısa bir beklemeden sonra yeniden denenecek.",
+                "retryable": True,
+                "completed_at": int(time.time()),
+            })
         except MalIntegrationError:
+            stage = str(self.status().get("status") or "")
+            stage_errors = {
+                "fetching": "MyAnimeList manga listesi alınırken bağlantı hatası oluştu.",
+                "matching": "Manga kimlikleri eşleştirilirken bağlantı hatası oluştu.",
+                "importing": "MyAnimeList kayıtları kütüphaneye aktarılırken işlem tamamlanamadı.",
+            }
             self._finish(job_id, {
                 "job_id": job_id,
                 "status": "failed",
                 "message": "MyAnimeList senkronizasyonu tamamlanamadı.",
-                "error": "MyAnimeList hizmetine şu anda ulaşılamıyor.",
+                "error": stage_errors.get(
+                    stage,
+                    "MyAnimeList hizmetine şu anda ulaşılamıyor.",
+                ),
                 "retryable": True,
                 "completed_at": int(time.time()),
             })

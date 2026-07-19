@@ -449,21 +449,38 @@ class MalIntegrationManager:
         progress("matching", 0, len(valid_ids))
         with self._lock:
             matcher = self._manga_matcher
-        matches = matcher(valid_ids) if matcher else {
-            self._safe_nonnegative_int(self._mapping(item.get("node")).get("id")): self._reader_manga(
-                self._mapping(item.get("node")),
-                self._safe_nonnegative_int(self._mapping(item.get("node")).get("id")),
-            )
-            for item in raw_entries
-            if self._safe_nonnegative_int(self._mapping(item.get("node")).get("id")) > 0
-        }
+        if matcher:
+            try:
+                matched_value = matcher(valid_ids)
+                matches = matched_value if isinstance(matched_value, dict) else {}
+            except Exception:
+                # Full edition'daki AniList zenginleştirmesi ikincil bir ağ servisidir.
+                # Bu servis bozulduğunda MAL listesindeki güvenilir kimlikler kaybolmamalı;
+                # kayıtlar aşağıda kararlı mal_<id> kimliğiyle içe alınabilir.
+                matches = {}
+        else:
+            matches = {
+                self._safe_nonnegative_int(self._mapping(item.get("node")).get("id")): self._reader_manga(
+                    self._mapping(item.get("node")),
+                    self._safe_nonnegative_int(self._mapping(item.get("node")).get("id")),
+                )
+                for item in raw_entries
+                if self._safe_nonnegative_int(self._mapping(item.get("node")).get("id")) > 0
+            }
         progress("matching", len(valid_ids), len(valid_ids))
         entries = []
         for item in raw_entries:
             node = self._mapping(item.get("node"))
             list_status = self._mapping(item.get("list_status"))
             mal_id = self._safe_nonnegative_int(node.get("id"))
-            match = matches.get(mal_id)
+            exact_value = matches.get(mal_id)
+            exact_match = exact_value if isinstance(exact_value, dict) else None
+            fallback_match = (
+                self._reader_manga(node, mal_id)
+                if matcher and mal_id > 0 and exact_match is None
+                else None
+            )
+            match = exact_match or fallback_match
             picture = node.get("main_picture") if isinstance(node.get("main_picture"), dict) else {}
             entries.append({
                 "mal_id": mal_id,
@@ -474,7 +491,10 @@ class MalIntegrationManager:
                 "num_chapters_read": self._safe_nonnegative_int(list_status.get("num_chapters_read")),
                 "num_volumes_read": self._safe_nonnegative_int(list_status.get("num_volumes_read")),
                 "remote_updated_at": str(list_status.get("updated_at") or "")[:80],
-                "matched": bool(match),
+                # `matched` gelişmiş/seçmeli arayüzde kesin AniList eşleşmesini anlatır.
+                # Otomatik senkron `fallback` kaydını da güvenli MAL kimliğiyle aktarır.
+                "matched": bool(exact_match),
+                "fallback": bool(fallback_match),
                 "manga": match,
             })
         with self._lock:
