@@ -16,6 +16,7 @@ from mangax.integrations.mal_outbound import mal_outbound_service
 
 
 router = APIRouter(prefix="/api/integrations/mal", tags=["MyAnimeList"])
+MAL_OAUTH_CODE_MAX_LENGTH = 4096
 
 
 class MalConfigureRequest(BaseModel):
@@ -83,7 +84,7 @@ def connect_mal() -> dict[str, Any]:
 @router.get("/callback", response_class=HTMLResponse)
 def mal_callback(
     state: str = Query(default="", max_length=200),
-    code: str = Query(default="", max_length=1000),
+    code: str = Query(default="", max_length=MAL_OAUTH_CODE_MAX_LENGTH),
     error: str = Query(default="", max_length=200),
 ) -> HTMLResponse:
     if error:

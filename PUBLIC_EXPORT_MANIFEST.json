@@ -37,7 +37,7 @@
     },
     {
       "path": "mangax/core/config.py",
-      "sha256": "a23795066968ca945509524e5c7dd12224515ab2aff4566cedbe30b37ab0129e"
+      "sha256": "3e23c96fb08c88eaccf3f0e7b460c76aaa61518e0765251a07a37308e9b0b18c"
     },
     {
       "path": "mangax/core/database.py",
@@ -65,7 +65,7 @@
     },
     {
       "path": "mangax/core/release_notes.py",
-      "sha256": "1e02d2adc521a58fde5436d4477a5db9b4eb41258d569878bd35a79e6e671156"
+      "sha256": "d3c23e80f424e4b7c2044e201ef2c53397e418fd02a212a2e4e5d887c9b3e2fc"
     },
     {
       "path": "mangax/integrations/__init__.py",
@@ -145,7 +145,7 @@
     },
     {
       "path": "packaging/windows/mangax_reader_installer.iss",
-      "sha256": "e1b82898aef4f11fbc229be3259014ad1f39bcbca7bd0026fe23f3be204d4ce9"
+      "sha256": "575f27b312b19fe73b2c231f5da2af3f7b89c9d583d7fb4afbea3cdfe48f2a66"
     },
     {
       "path": "requirements-build.txt",
@@ -185,7 +185,7 @@
     },
     {
       "path": "routers/mal.py",
-      "sha256": "835fc8b03b6b2ab997111ac5c3a4ffcfb787f79a7a5011bd899f83e084ad39f9"
+      "sha256": "b47c046d569a43620cf684aa0b4bccacc1a01500ebc5d7dfe746b7a85b58d966"
     },
     {
       "path": "routers/preferences.py",
@@ -245,7 +245,7 @@
     },
     {
       "path": "static/index.html",
-      "sha256": "e7e4bf3d00bd6e9d44e60ef54684a1ca2f916a40272bc93db1fbcef17accf920"
+      "sha256": "191e59b4decc5a5a699b3397923e454c1c6446544b94c26233d56af75f283ae4"
     },
     {
       "path": "static/js/app-update.js",
