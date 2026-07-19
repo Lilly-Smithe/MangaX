@@ -20,6 +20,9 @@ DEFAULT_PREFERENCES = {
     "backup_before_extension_update": True,
     "fallback_mode": "ask",
     "automatic_update_checks": True,
+    "onboarding_completed": None,
+    "last_seen_release_notes_version": "",
+    "last_run_version": "",
 }
 
 
@@ -27,6 +30,7 @@ class PreferencesManager:
     def __init__(self, path: Path = PREFERENCES_PATH):
         self.path = path
         self._lock = RLock()
+        self.existed_at_startup = self.path.is_file()
         self.data = self._load()
 
     def _load(self) -> dict[str, Any]:
@@ -74,6 +78,67 @@ class PreferencesManager:
     def reset(self) -> dict[str, Any]:
         with self._lock:
             self.data = dict(DEFAULT_PREFERENCES)
+            self._save()
+            return dict(self.data)
+
+    def startup_experience(
+        self,
+        *,
+        current_version: str,
+        edition: str,
+        has_existing_data: bool = False,
+        legacy_completed: bool = False,
+    ) -> dict[str, Any]:
+        from mangax.core.release_notes import release_notes_for
+
+        with self._lock:
+            existing_install = bool(self.existed_at_startup or has_existing_data or legacy_completed)
+            completed_value = self.data.get("onboarding_completed")
+            changed = False
+            if not isinstance(completed_value, bool):
+                completed_value = existing_install
+                self.data["onboarding_completed"] = completed_value
+                changed = True
+            previous_version = str(self.data.get("last_run_version") or "")
+            last_seen = str(self.data.get("last_seen_release_notes_version") or "")
+            notes = release_notes_for(current_version, edition)
+            show_release_notes = bool(
+                completed_value
+                and existing_install
+                and notes
+                and previous_version
+                and previous_version != current_version
+                and last_seen != current_version
+            )
+            if completed_value and not notes and last_seen != current_version:
+                self.data["last_seen_release_notes_version"] = current_version
+                changed = True
+            if previous_version != current_version:
+                self.data["last_run_version"] = current_version
+                changed = True
+            if changed:
+                self._save()
+            return {
+                "onboarding_completed": completed_value,
+                "show_onboarding": not completed_value,
+                "show_release_notes": show_release_notes,
+                "release_notes": notes if show_release_notes else None,
+                "current_version": current_version,
+                "previous_version": previous_version,
+                "edition": edition,
+            }
+
+    def complete_onboarding(self, current_version: str) -> dict[str, Any]:
+        with self._lock:
+            self.data["onboarding_completed"] = True
+            self.data["last_run_version"] = current_version
+            self.data["last_seen_release_notes_version"] = current_version
+            self._save()
+            return dict(self.data)
+
+    def mark_release_notes_seen(self, version: str) -> dict[str, Any]:
+        with self._lock:
+            self.data["last_seen_release_notes_version"] = str(version or "").strip()
             self._save()
             return dict(self.data)
 

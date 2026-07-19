@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import Any
 import time
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
-from mangax.core.config import DATA_DIR, DOWNLOADS_DIR, IS_FULL_EDITION
+from mangax.core.config import APP_EDITION, APP_VERSION, DATA_DIR, DOWNLOADS_DIR, IS_FULL_EDITION
 from mangax.core.dependencies import library_manager
 from mangax.core.preferences_manager import preferences_manager
 router = APIRouter(prefix='/api/preferences', tags=['Preferences'])
@@ -20,6 +20,9 @@ class PreferencesUpdate(BaseModel):
     fallback_mode: str | None = None
     automatic_update_checks: bool | None = None
     source_priority: list[str] | None = Field(default=None, max_length=100)
+
+class ReleaseNotesSeenRequest(BaseModel):
+    version: str = Field(min_length=1, max_length=40)
 
 def _file_size(path: Path) -> int:
     try:
@@ -38,6 +41,23 @@ def get_preferences() -> dict[str, Any]:
     source_priority = []
     sources = []
     return {'settings': preferences_manager.get_all(), 'source_priority': source_priority, 'sources': sources, 'storage': {'downloads_directory': DOWNLOADS_DIR, 'cache_bytes': _cache_size(), 'mangas': storage, 'total_download_bytes': sum((item['bytes'] for item in storage))}}
+
+@router.get('/startup')
+def get_startup_experience(legacy_onboarding_completed: bool=Query(default=False)) -> dict[str, Any]:
+    library = library_manager.get_library().get('mangas', {})
+    return preferences_manager.startup_experience(current_version=APP_VERSION, edition=APP_EDITION, has_existing_data=bool(library), legacy_completed=legacy_onboarding_completed)
+
+@router.post('/onboarding/complete')
+def complete_onboarding() -> dict[str, Any]:
+    preferences_manager.complete_onboarding(APP_VERSION)
+    return {'status': 'success', 'onboarding_completed': True, 'version': APP_VERSION}
+
+@router.post('/release-notes/seen')
+def mark_release_notes_seen(request: ReleaseNotesSeenRequest) -> dict[str, Any]:
+    if request.version != APP_VERSION:
+        raise HTTPException(status_code=409, detail='Sürüm notu uygulama sürümüyle eşleşmiyor.')
+    preferences_manager.mark_release_notes_seen(request.version)
+    return {'status': 'success', 'version': request.version}
 
 @router.put('')
 def update_preferences(request: PreferencesUpdate) -> dict[str, Any]:

@@ -75,8 +75,8 @@ class LibraryManager:
     def import_mal_entry(self, manga: Dict[str, Any], mal_entry: Dict[str, Any]) -> Dict[str, Any]:
         """Onaylanmış bir MAL kaydını yerel kütüphaneye tek yönlü olarak ekle/güncelle."""
         manga_id = str(manga.get('id') or '')
-        if not manga_id.startswith('anilist_'):
-            raise ValueError('MAL kaydı güvenilir bir AniList kimliğiyle eşleşmedi')
+        if not manga_id.startswith(('anilist_', 'mal_')):
+            raise ValueError('MAL kaydı güvenilir bir manga kimliğiyle eşleşmedi')
         mal_id = max(0, int(mal_entry.get('mal_id') or 0))
         if not mal_id:
             raise ValueError('Geçersiz MAL kimliği')
@@ -90,7 +90,7 @@ class LibraryManager:
             collections.append('MyAnimeList')
             if mal_status == 'plan_to_read':
                 collections.append('MAL: Okuma Planı')
-            conn.execute('\n                UPDATE mangas SET mal_id = ?, mal_status = ?, mal_num_chapters_read = ?,\n                    mal_num_volumes_read = ?, library_status = ?, user_rating = ?,\n                    collections = ?, tags = ?, year = ?, updated_at = ? WHERE id = ?\n            ', (mal_id, mal_status, max(0, int(mal_entry.get('num_chapters_read') or 0)), max(0, int(mal_entry.get('num_volumes_read') or 0)), library_status, max(0, min(10, int(mal_entry.get('score') or 0))), json.dumps(self._clean_collections(collections), ensure_ascii=False), json.dumps(manga.get('tags') or [], ensure_ascii=False), int(manga.get('year') or 0), int(time.time()), manga_id))
+            conn.execute('\n                UPDATE mangas SET mal_id = ?, mal_status = ?, mal_num_chapters_read = ?,\n                    mal_num_volumes_read = ?, library_status = ?, user_rating = ?,\n                    collections = ?, tags = ?, year = ?, last_read_online = ?, updated_at = ? WHERE id = ?\n            ', (mal_id, mal_status, max(0, int(mal_entry.get('num_chapters_read') or 0)), max(0, int(mal_entry.get('num_volumes_read') or 0)), library_status, max(0, min(10, int(mal_entry.get('score') or 0))), json.dumps(self._clean_collections(collections), ensure_ascii=False), json.dumps(manga.get('tags') or [], ensure_ascii=False), int(manga.get('year') or 0), 0 if manga_id.startswith('mal_') else 1, int(time.time()), manga_id))
             conn.commit()
         return self.get_manga(manga_id) or {}
 

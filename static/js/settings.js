@@ -35,7 +35,7 @@ function shouldShowNotification(kind) {
     return getNotificationPreference(kind) && !isNotificationQuietHours();
 }
 
-const SETTINGS_CATEGORIES = ['general', 'reader', 'backup', 'system'];
+const SETTINGS_CATEGORIES = ['general', 'reader', 'backup', 'integrations', 'system'];
 const GITHUB_SETTINGS_CATEGORIES = new Set(['general', 'sources', 'downloads', 'notifications']);
 
 function settingsFullFeaturesAvailable() {
@@ -72,6 +72,7 @@ function switchSettingsCategory(category) {
     } catch (_) { /* kategori bu oturumda görünür kalır */ }
     if (normalized === 'integrations' && typeof loadMalIntegrationStatus === 'function') {
         loadMalIntegrationStatus();
+        if (typeof loadGithubIntegrationStatus === 'function') loadGithubIntegrationStatus();
     }
 }
 

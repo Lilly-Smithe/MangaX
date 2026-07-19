@@ -1,7 +1,7 @@
 {
   "ok": true,
   "edition": "reader",
-  "file_count": 70,
+  "file_count": 75,
   "files": [
     ".gitignore",
     ".mangax-public-reader-export",
@@ -21,10 +21,12 @@
     "mangax/core/migrate_folders.py",
     "mangax/core/models.py",
     "mangax/core/preferences_manager.py",
+    "mangax/core/release_notes.py",
     "mangax/integrations/__init__.py",
     "mangax/integrations/app_update.py",
     "mangax/integrations/full_release.py",
     "mangax/integrations/github_integration.py",
+    "mangax/integrations/mal_integration.py",
     "mangax/integrations/secure_store.py",
     "mangax/reader/__init__.py",
     "mangax/reader/local_import_jobs.py",
@@ -45,6 +47,7 @@
     "routers/github_auth.py",
     "routers/library.py",
     "routers/local_reader.py",
+    "routers/mal.py",
     "routers/preferences.py",
     "routers/updates.py",
     "scripts/windows/build_reader_installer.ps1",
@@ -65,11 +68,13 @@
     "static/js/backup.js",
     "static/js/diagnostics.js",
     "static/js/edition-gate.js",
+    "static/js/integrations.js",
     "static/js/library.js",
     "static/js/local-import.js",
     "static/js/manga-detail.js",
     "static/js/reader-onboarding.js",
     "static/js/reader.js",
+    "static/js/release-notes.js",
     "static/js/settings.js",
     "tests/test_public_reader_export.py",
     "tools/audit_public_reader.py"
@@ -88,7 +93,7 @@
     "ok": true,
     "detail": {
       "edition": "reader",
-      "route_count": 38,
+      "route_count": 52,
       "root_route": true
     }
   }

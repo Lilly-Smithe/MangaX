@@ -13,9 +13,9 @@
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 
-<link href="/static/css/styles.css?v=20260719c" rel="stylesheet"/>
+<link href="/static/css/styles.css?v=20260719d" rel="stylesheet"/>
 </head>
-<body data-app-edition="reader" data-app-version="v0.12.3" data-github-extensions-available="false">
+<body data-app-edition="reader" data-app-version="v0.12.4" data-github-extensions-available="false">
 <div class="app-container">
 
 <aside class="sidebar" id="app-sidebar">
@@ -43,7 +43,7 @@
 </div>
 </nav>
 <div class="sidebar-footer">
-<span class="app-version">v0.12.3</span>
+<span class="app-version">v0.12.4</span>
 </div>
 </aside>
 
@@ -150,7 +150,10 @@
 <span class="settings-category-icon"><i class="fa-solid fa-box-archive"></i></span>
 <span><strong>Yedekleme</strong><small>Taşıma ve yerel koruma</small></span>
 </button>
-
+<button class="settings-category-btn" data-settings-category="integrations" onclick="switchSettingsCategory('integrations')" type="button">
+<span class="settings-category-icon"><i class="fa-solid fa-link"></i></span>
+<span><strong>Entegrasyonlar</strong><small>MyAnimeList hesabı</small></span>
+</button>
 
 <button class="settings-category-btn" data-settings-category="system" onclick="switchSettingsCategory('system')" type="button">
 <span class="settings-category-icon"><i class="fa-solid fa-stethoscope"></i></span>
@@ -262,6 +265,30 @@
 </div>
 </section>
 </div>
+<div class="settings-card settings-category-panel mal-integration-card" data-settings-panel="integrations">
+<div class="settings-card-header"><i class="fa-solid fa-list-check"></i><h2>MyAnimeList</h2></div>
+<p class="settings-card-desc">Manga listeni güvenli biçimde önizle ve seçtiklerini MangaX'e aktar. Bu ilk sürüm MAL hesabındaki hiçbir kaydı değiştirmez.</p>
+<div class="mal-security-note"><i class="fa-solid fa-shield-halved"></i><div><strong>Salt okunur ve yerel</strong><span>Şifren MangaX'e verilmez. Erişim anahtarı Windows hesabına bağlı DPAPI şifrelemesiyle saklanır ve JSON yedeklerine eklenmez.</span></div></div>
+<div class="mal-config-grid" id="mal-config-panel">
+<label><span>Client ID</span><input autocomplete="off" class="settings-input" id="mal-client-id" maxlength="160" placeholder="MAL geliştirici panelindeki Client ID" type="text"/></label>
+<label><span>Client Secret <small>(yalnızca uygulaman gerektiriyorsa)</small></span><input autocomplete="new-password" class="settings-input" id="mal-client-secret" maxlength="300" placeholder="Kaydedilmiş değeri korumak için boş bırak" type="password"/></label>
+<label class="mal-callback-field"><span>Kayıtlı dönüş adresi</span><input class="settings-input" id="mal-callback-url" readonly="" type="text"/></label>
+</div>
+<div class="mal-connection-bar" id="mal-connection-bar">
+<div class="mal-account-state"><i class="fa-solid fa-circle-notch fa-spin"></i><div><strong>Bağlantı kontrol ediliyor</strong><span>MyAnimeList durumu okunuyor…</span></div></div>
+<div class="mal-connection-actions">
+<button class="btn btn-secondary" onclick="saveMalConfiguration()" type="button"><i class="fa-solid fa-floppy-disk"></i> Yapılandırmayı Kaydet</button>
+<button class="btn btn-primary" id="mal-connect-btn" onclick="connectMyAnimeList()" type="button"><i class="fa-solid fa-arrow-up-right-from-square"></i> Hesabı Bağla</button>
+<button class="btn btn-secondary hidden" id="mal-disconnect-btn" onclick="disconnectMyAnimeList()" type="button"><i class="fa-solid fa-link-slash"></i> Bağlantıyı Kes</button>
+</div>
+</div>
+<section class="mal-import-panel hidden" id="mal-import-panel">
+<div class="mal-import-heading"><div><span>TEK YÖNLÜ AKTARIM</span><strong>Manga listesini önizle</strong><small>Hazırlanan manga kayıtlarından istediklerini yerel kitaplığına aktarabilirsin.</small></div><button class="btn btn-secondary" id="mal-preview-btn" onclick="loadMalImportPreview(true)" type="button"><i class="fa-solid fa-arrows-rotate"></i> Listeyi Getir</button></div>
+<div class="mal-import-summary hidden" id="mal-import-summary"></div>
+<div class="mal-import-toolbar hidden" id="mal-import-toolbar"><label><input checked="" id="mal-select-all" onchange="toggleAllMalEntries(this.checked)" type="checkbox"/> Eşleşenlerin tümünü seç</label><button class="btn btn-primary" id="mal-import-btn" onclick="importSelectedMalEntries()" type="button"><i class="fa-solid fa-file-import"></i> Seçilenleri İçe Aktar</button></div>
+<div class="mal-import-list" id="mal-import-list"><div class="settings-inline-empty">Liste henüz yüklenmedi.</div></div>
+</section>
+</div>
 
 
 <div class="settings-card settings-category-panel system-settings-card" data-settings-panel="system">
@@ -271,7 +298,7 @@
 </div>
 <div class="about-info">
 <div class="about-row"><span>Uygulama</span><span>MangaX</span></div>
-<div class="about-row"><span>Versiyon</span><span class="app-version">v0.12.3</span></div>
+<div class="about-row"><span>Versiyon</span><span class="app-version">v0.12.4</span></div>
 
 </div>
 <section aria-labelledby="app-update-title" class="recovery-settings-panel app-update-settings">
@@ -696,6 +723,17 @@
 </div>
 </div>
 </div>
+<div aria-hidden="true" class="release-notes-overlay" id="release-notes-overlay">
+<section aria-labelledby="release-notes-title" aria-modal="true" class="release-notes-panel" role="dialog">
+<div aria-hidden="true" class="release-notes-icon"><i class="fa-solid fa-sparkles"></i></div>
+<div class="release-notes-copy">
+<span>YENİ SÜRÜM</span>
+<h2 id="release-notes-title">MangaX — Neler geliştirildi?</h2>
+<ul id="release-notes-list"></ul>
+</div>
+<button class="btn btn-primary" id="release-notes-close" onclick="closeReleaseNotes()" type="button">Tamam</button>
+</section>
+</div>
 
 <div class="toast-container" id="toast-container"></div>
 
@@ -706,14 +744,16 @@
 
 <script src="/static/js/manga-detail.js?v=20260718q"></script>
 
-<script src="/static/js/settings.js?v=20260719a"></script>
+<script src="/static/js/settings.js?v=20260719d"></script>
 <script src="/static/js/app-update.js?v=20260719b"></script>
+<script src="/static/js/integrations.js?v=20260719d"></script>
 
+<script src="/static/js/release-notes.js?v=20260719d"></script>
 <script src="/static/js/reader.js?v=20260718u"></script>
 
 
 
 <script src="/static/js/backup.js?v=20260718n"></script>
 <script src="/static/js/diagnostics.js?v=20260718b"></script>
-<script src="/static/js/reader-onboarding.js?v=20260718a"></script></body>
+<script src="/static/js/reader-onboarding.js?v=20260719d"></script></body>
 </html>

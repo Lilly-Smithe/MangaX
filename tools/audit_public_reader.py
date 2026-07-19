@@ -38,7 +38,6 @@ FORBIDDEN_FILES = {
     "routers/downloads.py",
     "routers/extensions.py",
     "routers/github.py",
-    "routers/mal.py",
     "routers/manga.py",
     "routers/news.py",
     "routers/search.py",
@@ -49,7 +48,6 @@ FORBIDDEN_STATIC_FILES = {
     "static/js/discover.js",
     "static/js/downloads.js",
     "static/js/extensions.js",
-    "static/js/integrations.js",
     "static/js/notifications.js",
     "static/js/onboarding.js",
     "static/css/modules/discover.css",
@@ -74,7 +72,6 @@ FORBIDDEN_ENDPOINT_PREFIXES = (
     "/api/sources",
     "/api/news",
     "/api/tracker",
-    "/api/mal",
 )
 TEXT_SUFFIXES = {".py", ".js", ".css", ".html", ".json", ".md", ".txt", ".bat", ".spec"}
 PRIVATE_REPOSITORY_REFERENCE = "MangaX-App" + "/mangax-full-releases"
@@ -177,7 +174,7 @@ def _startup_smoke_test(root: Path) -> dict[str, Any]:
 import json
 import sys
 import main
-forbidden = ('/api/search', '/api/download', '/api/extensions', '/api/sources', '/api/news', '/api/tracker', '/api/mal')
+forbidden = ('/api/search', '/api/download', '/api/extensions', '/api/sources', '/api/news', '/api/tracker')
 def collect_paths(routes):
     paths = []
     for route in routes:

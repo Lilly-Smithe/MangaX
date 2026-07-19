@@ -16,6 +16,7 @@ function completeReaderOnboarding() {
     try {
         localStorage.setItem(READER_ONBOARDING_COMPLETED_KEY, 'true');
     } catch (_) { /* uygulama bu oturumda devam eder */ }
+    if (typeof persistOnboardingCompleted === 'function') persistOnboardingCompleted();
 }
 
 function readerOnboardingFocusableElements() {
@@ -103,9 +104,13 @@ function handleReaderOnboardingKeydown(event) {
     }
 }
 
-function initializeReaderOnboarding() {
+async function initializeReaderOnboarding() {
     document.addEventListener('keydown', handleReaderOnboardingKeydown);
-    if (!isReaderOnboardingCompleted()) openOnboarding();
+    if (typeof applyStartupExperience === 'function') {
+        await applyStartupExperience(openOnboarding);
+    } else if (!isReaderOnboardingCompleted()) {
+        openOnboarding();
+    }
 }
 
 if (typeof document !== 'undefined') {

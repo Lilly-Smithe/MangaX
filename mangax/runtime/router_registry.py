@@ -9,6 +9,8 @@ CORE_ROUTER_MODULES = (
     "routers.local_reader",
     "routers.github_auth",
     "routers.full_release",
+    "routers.updates",
+    "routers.mal",
     "routers.backup",
     "routers.preferences",
     "routers.diagnostics",

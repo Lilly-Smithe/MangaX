@@ -6,7 +6,8 @@ MangaX Reader, yerel manga arşivlerini düzenlemek ve internet bağlantısı ol
 
 - Klasör, ZIP ve CBZ arşivlerinden manga içe aktarma
 - JPG, PNG ve WebP sayfa desteği
-- Tamamen çevrimdışı okuma
+- İnternet bağlantısı olmadan yerel arşivleri okuma
+- İsteğe bağlı MyAnimeList hesap ve okuma listesi eşitleme
 - Okuma ilerlemesini ve son kalınan sayfayı hatırlama
 - Koleksiyonlar, okuma durumları, kişisel puanlar ve notlar
 - Webtoon, tek sayfa ve çift sayfa okuyucu görünümleri
