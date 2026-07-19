@@ -2,7 +2,9 @@
 .app-confirm {
     position: fixed;
     inset: 0;
-    z-index: 1200;
+    /* Genel onay penceresi, kendisini açan Easter egg erişim panelinin de
+       üzerinde kalmalı; aksi halde kullanıcı indirmeyi onaylayamaz. */
+    z-index: 14000;
     display: grid;
     place-items: center;
     padding: 20px;

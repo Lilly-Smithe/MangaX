@@ -134,11 +134,14 @@ function openEditionAccessPanel() {
 }
 
 function closeEditionAccessPanel() {
+    const downloadContinues = Boolean(editionFullReleaseJobId);
     editionGatePollGeneration += 1;
     editionFullReleasePollGeneration += 1;
     cancelEditionAccessRequest({ silent: true });
-    cancelEditionFullReleaseDownload({ silent: true });
     closeEditionGateModal(document.getElementById('edition-access-modal'));
+    if (downloadContinues) {
+        showToast('MangaX Full indirmesi arka planda devam ediyor.', 'info');
+    }
 }
 
 function renderEditionAccessContent({ message, state = '', action = null, code = '', showDescription = true }) {

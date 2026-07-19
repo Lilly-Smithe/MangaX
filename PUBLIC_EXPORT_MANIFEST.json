@@ -37,7 +37,7 @@
     },
     {
       "path": "mangax/core/config.py",
-      "sha256": "c7407437f759bdff3de4dadd165c6f9ee72f0984222c2fabc9e0ed00c029eaa5"
+      "sha256": "8ed41692e7e265ae43be402982f74a8e16bb0e9013c32de194463331e6ff5425"
     },
     {
       "path": "mangax/core/database.py",
@@ -173,7 +173,7 @@
     },
     {
       "path": "static/css/modules/components.css",
-      "sha256": "2a375c8c222f61e64ef1dbda0ad6b8752e19984a1a08948c4163534b02a6d789"
+      "sha256": "ce3e4b3a8448bb69e66b45e6a84deab802ac6acb9c34f65761ffbd8a0b2fca85"
     },
     {
       "path": "static/css/modules/manga-detail.css",
@@ -197,7 +197,7 @@
     },
     {
       "path": "static/css/styles.css",
-      "sha256": "90be32c787726482fa5490507c91cc6384708a0069efa72a5e7f5e442bf93fbb"
+      "sha256": "ca903d7780c9a1da8e63dd69156eafbc050569e3b56d47ad89332977dda9eded"
     },
     {
       "path": "static/img/no-cover.jpg",
@@ -209,7 +209,7 @@
     },
     {
       "path": "static/index.html",
-      "sha256": "b5b4989b9d7bf29e24fd9fe12bcce0f7ab2f456ed7f4d4e415ed3c308f3b3935"
+      "sha256": "9598ff4baf561d86feda514c50639c5443b5c88483bd41ae5165ff347019cee8"
     },
     {
       "path": "static/js/app.js",
@@ -225,7 +225,7 @@
     },
     {
       "path": "static/js/edition-gate.js",
-      "sha256": "264761c15909ef6d1a2b28ea45c085ce614a94d3932b1d47caddb31a7e1ef446"
+      "sha256": "8dff1f744c80b9ff865ba3e93e89c26007e2bf6393e8c218f5dfa71e13205104"
     },
     {
       "path": "static/js/library.js",
