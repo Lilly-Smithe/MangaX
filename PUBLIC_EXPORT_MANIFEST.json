@@ -37,7 +37,7 @@
     },
     {
       "path": "mangax/core/config.py",
-      "sha256": "317b3073b69bc9d88def59f23b82460b2efa39885198a60f9c8fd5c11cf05713"
+      "sha256": "0b1ea6d950c87e313f6e9e47f48bcbde14db4939803dc991c736bcd06b8fed23"
     },
     {
       "path": "mangax/core/database.py",
@@ -121,7 +121,7 @@
     },
     {
       "path": "packaging/windows/mangax_reader_installer.iss",
-      "sha256": "17f8f4e6dea014452e6e5e0f9ada2ad0d060eabf089fd36d5a36ab6ac395cf10"
+      "sha256": "c9ccfc322f50e3c4be53078d98b6ca18d2a46c2c7cf91b67f80e02027c859b4d"
     },
     {
       "path": "requirements-build.txt",
@@ -177,7 +177,7 @@
     },
     {
       "path": "static/css/modules/base.css",
-      "sha256": "2841c8e81b4ece70faca14fa5f5099fd1eeff8e688c6b52cdfb0d98ee7ee7dad"
+      "sha256": "e96b70f6ecaf2c6057481aa8ffb22053ac4adad263508b9293ec279209cf2aad"
     },
     {
       "path": "static/css/modules/components.css",
@@ -217,7 +217,7 @@
     },
     {
       "path": "static/index.html",
-      "sha256": "27ebb55b4aea453e81177fc37fae0105c90ee2e8fd3e8b954becd284586031bd"
+      "sha256": "908f953e8615fb644a4ef1d052a23a19dbc6c6e9b4ee9ed864bfd8e734dede62"
     },
     {
       "path": "static/js/app-update.js",
@@ -225,7 +225,7 @@
     },
     {
       "path": "static/js/app.js",
-      "sha256": "70cc2bb28e8c2ee8d0559cbaeb3dfa664265512eb225f691497c95734d164c84"
+      "sha256": "fa9c7dd3ff6256701a247cc6856a28bad92265f51ab50851b528515ac483b448"
     },
     {
       "path": "static/js/backup.js",
@@ -237,11 +237,11 @@
     },
     {
       "path": "static/js/edition-gate.js",
-      "sha256": "8dff1f744c80b9ff865ba3e93e89c26007e2bf6393e8c218f5dfa71e13205104"
+      "sha256": "f2cd27923875d0c687d50cdc3df7dde324ecc04b30ae96096a82600270ddab39"
     },
     {
       "path": "static/js/library.js",
-      "sha256": "f92c135d48a2903c94c301492332009a549a0fc6a462699b4a567c354244f355"
+      "sha256": "00201e0f406e73dce2238df0628e239c8bc4ae42bd9401431e692a64e9cfc056"
     },
     {
       "path": "static/js/local-import.js",

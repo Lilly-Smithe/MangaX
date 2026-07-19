@@ -2,11 +2,21 @@
 function isReaderEdition() {
     return document.body?.dataset.appEdition === 'reader';
 }
+
+function configureLibraryEditionLayout() {
+    if (isReaderEdition()) return;
+    document.getElementById('library-continue-btn')?.remove();
+    document.getElementById('library-continue-panel')?.remove();
+    if (activeLibraryView === 'continue') activeLibraryView = 'catalog';
+}
+
 function switchLibraryView(view) {
+    const fallbackView = isReaderEdition() ? 'continue' : 'catalog';
     if (view === 'downloaded' && (typeof isGithubExtensionsAvailable !== 'function' || !isGithubExtensionsAvailable())) {
-        view = 'continue';
+        view = fallbackView;
     }
-    activeLibraryView = ['continue', 'catalog', 'downloaded'].includes(view) ? view : 'continue';
+    if (!isReaderEdition() && view === 'continue') view = 'catalog';
+    activeLibraryView = ['continue', 'catalog', 'downloaded'].includes(view) ? view : fallbackView;
     ['continue', 'catalog', 'downloaded'].forEach(name => {
         document.getElementById(`library-${name}-btn`)?.classList.toggle('active', name === activeLibraryView);
         document.getElementById(`library-${name}-panel`)?.classList.toggle('active', name === activeLibraryView);
@@ -177,6 +187,18 @@ function buildLibraryCatalogCard(id, manga) {
     const coverSrc = manga.cover_path
         ? '/' + manga.cover_path.split('/').map(segment => encodeURIComponent(segment)).join('/')
         : manga.cover_url;
+    const fullEditionActions = !isReaderEdition() ? `
+        <div class="library-catalog-actions" aria-label="${escapeHtml(manga.title)} okuma işlemleri">
+            ${manga.last_read_chapter ? `
+                <button class="library-card-action library-card-resume library-catalog-resume" type="button">
+                    <i class="fa-solid fa-play"></i><span>Devam Et</span>
+                </button>
+            ` : ''}
+            <button class="library-card-action library-card-chapters library-catalog-online" type="button">
+                <i class="fa-solid fa-globe"></i><span>Online Bölümlere Bak</span>
+            </button>
+        </div>
+    ` : '';
     card.className = `library-catalog-card${selected ? ' selected' : ''}`;
     card.dataset.mangaId = id;
     card.innerHTML = `
@@ -186,6 +208,7 @@ function buildLibraryCatalogCard(id, manga) {
         <div class="library-catalog-cover">
             <img src="${escapeHtml(coverSrc || '/static/img/no-cover.jpg')}" alt="${escapeHtml(manga.title)}" loading="lazy" decoding="async" fetchpriority="low">
             ${Number(manga.unread_count) > 0 ? `<span class="library-unread-badge" data-manga-id="${escapeHtml(id)}">${Number(manga.unread_count)} yeni</span>` : ''}
+            ${fullEditionActions}
         </div>
         <div class="library-catalog-copy">
             <div class="library-catalog-heading">
@@ -204,6 +227,14 @@ function buildLibraryCatalogCard(id, manga) {
 
     const image = card.querySelector('img');
     image.addEventListener('error', () => { image.src = '/static/img/no-cover.jpg'; });
+    card.querySelector('.library-catalog-resume')?.addEventListener('click', event => {
+        event.stopPropagation();
+        resumeLibraryManga(id);
+    });
+    card.querySelector('.library-catalog-online')?.addEventListener('click', event => {
+        event.stopPropagation();
+        openLibraryManga(id, true);
+    });
     card.addEventListener('click', event => {
         if (event.target.closest('.library-edit-btn')) {
             openLibraryEditor(id);
@@ -451,6 +482,7 @@ async function resumeLibraryManga(id) {
 }
 
 function renderLibrarySnapshot(data) {
+    configureLibraryEditionLayout();
     const previousMangas = libraryData?.mangas || {};
     const incomingMangas = data?.mangas || {};
     libraryData = {
@@ -473,14 +505,22 @@ function renderLibrarySnapshot(data) {
 
     const continueGrid = document.getElementById('library-continue-grid');
     const downloadedGrid = document.getElementById('library-downloaded-grid');
-    continueGrid.innerHTML = '';
-    downloadedGrid.innerHTML = '';
-    continuing.forEach(([id, manga]) => continueGrid.appendChild(buildLibraryCard(id, manga, 'continue')));
-    downloaded.forEach(([id, manga]) => downloadedGrid.appendChild(buildLibraryCard(id, manga, 'downloaded')));
-    document.getElementById('library-continue-empty').style.display = continuing.length ? 'none' : 'block';
-    document.getElementById('library-downloaded-empty').style.display = downloaded.length ? 'none' : 'block';
-    document.getElementById('library-continue-count').textContent = continuing.length;
-    document.getElementById('library-downloaded-count').textContent = downloaded.length;
+    if (continueGrid) {
+        continueGrid.innerHTML = '';
+        continuing.forEach(([id, manga]) => continueGrid.appendChild(buildLibraryCard(id, manga, 'continue')));
+    }
+    if (downloadedGrid) {
+        downloadedGrid.innerHTML = '';
+        downloaded.forEach(([id, manga]) => downloadedGrid.appendChild(buildLibraryCard(id, manga, 'downloaded')));
+    }
+    const continueEmpty = document.getElementById('library-continue-empty');
+    const downloadedEmpty = document.getElementById('library-downloaded-empty');
+    const continueCount = document.getElementById('library-continue-count');
+    const downloadedCount = document.getElementById('library-downloaded-count');
+    if (continueEmpty) continueEmpty.style.display = continuing.length ? 'none' : 'block';
+    if (downloadedEmpty) downloadedEmpty.style.display = downloaded.length ? 'none' : 'block';
+    if (continueCount) continueCount.textContent = continuing.length;
+    if (downloadedCount) downloadedCount.textContent = downloaded.length;
     renderLibraryCatalog();
     switchLibraryView(activeLibraryView);
     updateLibraryCardDownloadStates();

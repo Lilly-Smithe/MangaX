@@ -175,6 +175,7 @@ if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded
     setSidebarCollapsed(getSavedSidebarCollapsed(), { persist: false });
     setupTabNavigation();
     setPreferredAppLanguage(activeDiscoverLang, { render: false });
+    if (typeof configureLibraryEditionLayout === 'function') configureLibraryEditionLayout();
     const restoredLibrarySnapshot = hydrateLibraryFromSnapshot();
     loadLibrary({ silent: restoredLibrarySnapshot });
     if (typeof syncMangaNewsSetting === 'function') syncMangaNewsSetting();

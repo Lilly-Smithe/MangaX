@@ -632,6 +632,34 @@ body {
     object-fit: cover;
 }
 
+.library-catalog-actions {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 7px;
+    padding: 42px 10px 12px;
+    background: linear-gradient(to top, rgba(3, 5, 9, 0.97) 4%, rgba(3, 5, 9, 0.68) 50%, transparent 82%);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.library-catalog-card:hover .library-catalog-actions,
+.library-catalog-card:focus-within .library-catalog-actions {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.library-catalog-grid.selection-mode .library-catalog-actions,
+.library-catalog-grid.compact-list .library-catalog-actions {
+    display: none;
+}
+
 .library-unread-badge {
     position: absolute;
     left: 8px;
@@ -1034,7 +1062,8 @@ body {
 }
 
 @media (hover: none) {
-    .library-card-actions {
+    .library-card-actions,
+    .library-catalog-actions {
         opacity: 1;
         transform: none;
         pointer-events: auto;

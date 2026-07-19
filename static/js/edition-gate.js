@@ -20,7 +20,8 @@ let editionFullReleasePollGeneration = 0;
 let editionFullReleaseReadyNotifiedJobId = '';
 
 function isEditionGateTriggerAvailable() {
-    return Boolean(document.querySelector('.nav-btn[data-tab="library"]'));
+    return document.body?.dataset.appEdition === 'reader'
+        && Boolean(document.querySelector('.nav-btn[data-tab="library"]'));
 }
 
 function handleEditionGateLibraryActivation() {
@@ -572,6 +573,7 @@ function handleEditionGateKeydown(event) {
 }
 
 if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
+    if (!isEditionGateTriggerAvailable()) return;
     const libraryTrigger = document.querySelector('.nav-btn[data-tab="library"]');
     if (!libraryTrigger) return;
     libraryTrigger.addEventListener('click', handleEditionGateLibraryActivation);
