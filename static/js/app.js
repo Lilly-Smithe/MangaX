@@ -315,7 +315,7 @@ function setupTabNavigation() {
     });
 }
 
-function switchTab(tabId) {
+function switchTab(tabId, { resetDiscover = true } = {}) {
     if (['browse', 'notifications', 'extensions'].includes(tabId) && document.body?.dataset.githubExtensionsAvailable !== 'true') {
         tabId = 'library';
     }
@@ -343,10 +343,14 @@ function switchTab(tabId) {
     if (tabId === 'library') {
         loadLibrary();
     }
-    if (tabId === 'browse' && (!discoverScreenLoaded || !document.querySelector('#browse-grid .manga-card'))) {
+    if (tabId === 'browse') {
         discoverScreenLoaded = true;
-        loadPopular();
-        if (isMangaNewsEnabled()) loadMangaNews();
+        if (resetDiscover && typeof resetDiscoverState === 'function') {
+            resetDiscoverState({ reload: true });
+        } else if (typeof resetDiscoverState !== 'function' && !document.querySelector('#browse-grid .manga-card')) {
+            loadPopular();
+        }
+        if (isMangaNewsEnabled() && !mangaNewsItems.length) loadMangaNews();
     }
     if (tabId === 'settings') {
         // NSFW toggle switch durumunu güncelle

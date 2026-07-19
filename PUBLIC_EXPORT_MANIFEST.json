@@ -33,15 +33,15 @@
     },
     {
       "path": "mangax/core/backup_service.py",
-      "sha256": "e74cc88909eaa07845f63723decb4939685e35cffb686d230daa1fa6e87ea6e9"
+      "sha256": "416c2d0eb0a8aeaebc24357712c06f9a341e341fa50b6d4177e84d31d22d322b"
     },
     {
       "path": "mangax/core/config.py",
-      "sha256": "b98e94af22cdd98b6d843e2ff7ca36577a27f70dfbd30c502f22f48a14c4e8a8"
+      "sha256": "f87be6300504924ad1d5d489318414fdce5761484c9642e77a811ac3c0855ca4"
     },
     {
       "path": "mangax/core/database.py",
-      "sha256": "b6357917effbfe0f9b553707047163eb9fc0f67587442dcb9881768d053129a9"
+      "sha256": "ec6a58a868be6b23e5f629895c6c5c305fd3eecaf3a00ff5dd9c527b2122424c"
     },
     {
       "path": "mangax/core/dependencies.py",
@@ -49,7 +49,7 @@
     },
     {
       "path": "mangax/core/library.py",
-      "sha256": "22549cd8d046ba6193f1b29aa09296b520f528f2067027569a4333914094568e"
+      "sha256": "593d13266cc67af720fcbab753dad962e529a1889440f1611af6e4192d6d5c0b"
     },
     {
       "path": "mangax/core/migrate_folders.py",
@@ -65,7 +65,7 @@
     },
     {
       "path": "mangax/core/release_notes.py",
-      "sha256": "083f3e1c116a7a8878d52b31f2a4b1ccb6f96a3774ca372d64d62cb514b3d6c7"
+      "sha256": "e68b55987a862ec78ec2ef0f65e7affa969e04f725d3a4145cdf8a012543b3f1"
     },
     {
       "path": "mangax/integrations/__init__.py",
@@ -85,7 +85,7 @@
     },
     {
       "path": "mangax/integrations/mal_integration.py",
-      "sha256": "401db7beface246a393c0a86987ff285a6480178cb49e3b8a073e0d9b10bcd5e"
+      "sha256": "723204c198590bbdc5544507ab3ce98d4742b83e461fbd21b037310622576197"
     },
     {
       "path": "mangax/integrations/mal_outbound.py",
@@ -93,7 +93,7 @@
     },
     {
       "path": "mangax/integrations/mal_sync.py",
-      "sha256": "a643296deae4a037e04bd7514bbd3b4335ef514b6cfd36db34771f87d9bcebc5"
+      "sha256": "6c2926ebb95b4b71e558bc04a7d9d3f3a3f239e66e05b6ece6a30815608e0e88"
     },
     {
       "path": "mangax/integrations/mal_sync_jobs.py",
@@ -145,7 +145,7 @@
     },
     {
       "path": "packaging/windows/mangax_reader_installer.iss",
-      "sha256": "b17bb05ac710852db87fbb083051997001d94a6dc87dfd393e344339aba21b71"
+      "sha256": "877cf1ffd35ccc484667f9c9d54539aa05d4f0e4b628f99de614cdb86e44f918"
     },
     {
       "path": "requirements-build.txt",
@@ -161,7 +161,7 @@
     },
     {
       "path": "routers/diagnostics.py",
-      "sha256": "67a06c725da39cf20b305d63cd818d8d7519a50a897a7545553bcb9c74fb9f64"
+      "sha256": "86605ac7454542652eb75672294c6b222a030a018c8ab79e358cbca107946725"
     },
     {
       "path": "routers/frontend.py",
@@ -205,7 +205,7 @@
     },
     {
       "path": "static/css/modules/base.css",
-      "sha256": "bce3ab910876fb294266ce55bf830c5dec7ec3765e9522f87b1f9749f8a45d9f"
+      "sha256": "61ad58d0636fcc0067d78527d6dc05b48ba0ce356a79d717731332f71d3f649d"
     },
     {
       "path": "static/css/modules/components.css",
@@ -213,7 +213,7 @@
     },
     {
       "path": "static/css/modules/manga-detail.css",
-      "sha256": "3ded31e982ddc932fcb1f8854d56558d6ea3799c0091763128372765354b4efa"
+      "sha256": "a8881049a9afac99edc566d4be089a3172451ddb144866ab5fd810a8745d559f"
     },
     {
       "path": "static/css/modules/onboarding.css",
@@ -233,7 +233,7 @@
     },
     {
       "path": "static/css/styles.css",
-      "sha256": "9fc0807d957d48f93fd4e2f09ca28afba2c180fe4830932d7682e658f6f15a8a"
+      "sha256": "55bdd38ee4f591db62959eec0ce7104fcf6847ae2e783202eaa6f35dd5a87d20"
     },
     {
       "path": "static/img/no-cover.jpg",
@@ -245,7 +245,7 @@
     },
     {
       "path": "static/index.html",
-      "sha256": "524d2ae73f9cf1b45174f98f51a3700d7671b062071fe1caffe0bbc20e038e28"
+      "sha256": "899667371669134c47381a418418caa0f89d2e73739ebfcfe83b88b4a3e62acf"
     },
     {
       "path": "static/js/app-update.js",
@@ -253,7 +253,7 @@
     },
     {
       "path": "static/js/app.js",
-      "sha256": "2dea928ef285fd619e7103e181fb75260c9908002b7fba3d5be8f778a1eaf977"
+      "sha256": "2454b6d3e4858640bb0f43966ef4bd96e9b40834fa488c484e31efd15037aa17"
     },
     {
       "path": "static/js/backup.js",
@@ -273,7 +273,7 @@
     },
     {
       "path": "static/js/library.js",
-      "sha256": "33a04f1efd1bd7473195bde6c5c550fb0b62bd9572a636d27fe42d3ffc5afa65"
+      "sha256": "aa9a645b5895afeab6968fa6cd2bc139695519be3d12ad051340dceee5941bdb"
     },
     {
       "path": "static/js/local-import.js",
@@ -281,7 +281,7 @@
     },
     {
       "path": "static/js/manga-detail.js",
-      "sha256": "ead1bb550a6e772b08bee31f7109986ea5f51306e3ab8795b57d72b9bedef7a2"
+      "sha256": "d8a8f20dbab77f0354e35fc99cf26eb7dacccb020a9f1bc9493eb0a007aa07f4"
     },
     {
       "path": "static/js/reader-onboarding.js",

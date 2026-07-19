@@ -69,6 +69,20 @@ class MalIntegrationManager:
     @staticmethod
     def _reader_manga(node: dict[str, Any], mal_id: int) -> dict[str, Any]:
         picture = node.get("main_picture") if isinstance(node.get("main_picture"), dict) else {}
+        alternatives = (
+            node.get("alternative_titles")
+            if isinstance(node.get("alternative_titles"), dict)
+            else {}
+        )
+        external_titles = []
+        for value in (
+            alternatives.get("en"),
+            alternatives.get("ja"),
+            *(alternatives.get("synonyms") or []),
+        ):
+            title = str(value or "").strip()
+            if title and title not in external_titles:
+                external_titles.append(title)
         year_text = str(node.get("start_date") or "")[:4]
         return {
             "id": f"mal_{mal_id}",
@@ -78,6 +92,8 @@ class MalIntegrationManager:
             "status": str(node.get("status") or "unknown"),
             "tags": [],
             "year": int(year_text) if year_text.isdigit() else 0,
+            "_external_titles": external_titles,
+            "_mal_media_type": str(node.get("media_type") or ""),
         }
 
     def _load_config(self) -> dict[str, Any]:
@@ -475,12 +491,26 @@ class MalIntegrationManager:
             mal_id = self._safe_nonnegative_int(node.get("id"))
             exact_value = matches.get(mal_id)
             exact_match = exact_value if isinstance(exact_value, dict) else None
+            mal_metadata = self._reader_manga(node, mal_id) if mal_id > 0 else None
             fallback_match = (
-                self._reader_manga(node, mal_id)
+                mal_metadata
                 if matcher and mal_id > 0 and exact_match is None
                 else None
             )
-            match = exact_match or fallback_match
+            if exact_match:
+                match = dict(exact_match)
+                combined_titles = []
+                for value in (
+                    *((mal_metadata or {}).get("_external_titles") or []),
+                    *(exact_match.get("_search_titles") or []),
+                    exact_match.get("_romaji_title"),
+                ):
+                    title = str(value or "").strip()
+                    if title and title not in combined_titles:
+                        combined_titles.append(title)
+                match["_external_titles"] = combined_titles
+            else:
+                match = fallback_match
             picture = node.get("main_picture") if isinstance(node.get("main_picture"), dict) else {}
             entries.append({
                 "mal_id": mal_id,

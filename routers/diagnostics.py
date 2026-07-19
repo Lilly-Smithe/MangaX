@@ -53,7 +53,7 @@ def _check_database() -> dict:
         connection = sqlite3.connect(DB_PATH, timeout=5)
         integrity = connection.execute('PRAGMA quick_check').fetchone()
         if not integrity or str(integrity[0]).lower() != 'ok':
-            return _result('database', 'Veritabanı ve kütüphane', 'broken', f"SQLite bütünlük kontrolü başarısız: {(integrity[0] if integrity else 'yanıt yok')}")
+            return _result('database', 'Veritabanı ve kütüphane', 'broken', f'SQLite bütünlük kontrolü başarısız: {(integrity[0] if integrity else 'yanıt yok')}')
         manga_count = int(connection.execute('SELECT COUNT(*) FROM mangas').fetchone()[0])
         chapter_count = int(connection.execute('SELECT COUNT(*) FROM downloaded_chapters').fetchone()[0])
         return _result('database', 'Veritabanı ve kütüphane', 'healthy', f'Sağlıklı · {manga_count} manga · {chapter_count} indirilen bölüm', manga_count=manga_count, downloaded_chapter_count=chapter_count)
@@ -119,7 +119,7 @@ def _check_backups() -> dict:
     if not valid_items:
         return _result('backups', 'Yerel yedekler', 'warning', 'Henüz doğrulanabilir yerel yedek bulunmuyor.', valid_count=0)
     latest = valid_items[0]
-    return _result('backups', 'Yerel yedekler', 'healthy', f"{len(valid_items)} sağlam yedek · son kayıt {latest.get('created_at') or 'tarih bilinmiyor'}", valid_count=len(valid_items), latest_id=latest.get('id', ''))
+    return _result('backups', 'Yerel yedekler', 'healthy', f'{len(valid_items)} sağlam yedek · son kayıt {latest.get('created_at') or 'tarih bilinmiyor'}', valid_count=len(valid_items), latest_id=latest.get('id', ''))
 
 
 @router.get('/quick')
@@ -137,7 +137,7 @@ def _clean_text(value: Any) -> str:
 def build_diagnostic_report(payload: DiagnosticReportRequest) -> str:
     labels = {'healthy': 'SAĞLIKLI', 'warning': 'UYARI', 'broken': 'HATA', 'timeout': 'ZAMAN AŞIMI'}
     generated_at = time.strftime('%Y-%m-%d %H:%M:%S')
-    lines = ['MangaX Sistem Kontrolü Raporu', '=' * 31, f'Uygulama sürümü: {APP_VERSION}', f"Tarama türü: {('Tam kontrol' if payload.mode == 'full' else 'Hızlı kontrol')}", f'Rapor zamanı: {generated_at}', '', 'ÇEKİRDEK KONTROLLER', '-' * 20]
+    lines = ['MangaX Sistem Kontrolü Raporu', '=' * 31, f'Uygulama sürümü: {APP_VERSION}', f'Tarama türü: {('Tam kontrol' if payload.mode == 'full' else 'Hızlı kontrol')}', f'Rapor zamanı: {generated_at}', '', 'ÇEKİRDEK KONTROLLER', '-' * 20]
     for item in payload.checks:
         lines.append(f'[{labels.get(item.status, item.status.upper())}] {_clean_text(item.label)}: {_clean_text(item.message)}')
     lines.extend(['', 'KAYNAK KONTROLLERİ', '-' * 20])
@@ -156,7 +156,7 @@ def save_diagnostic_report(payload: DiagnosticReportRequest) -> dict:
         raise HTTPException(status_code=400, detail='Önce sistem kontrolünü çalıştırın.')
     report_dir = Path(SOURCE_REPORTS_DIR).resolve()
     report_dir.mkdir(parents=True, exist_ok=True)
-    filename = f"mangax-sistem-raporu-{time.strftime('%Y%m%d-%H%M%S')}.txt"
+    filename = f'mangax-sistem-raporu-{time.strftime('%Y%m%d-%H%M%S')}.txt'
     destination = (report_dir / filename).resolve()
     if report_dir not in destination.parents:
         raise HTTPException(status_code=500, detail='Geçersiz rapor yolu')

@@ -10,7 +10,7 @@ from mangax.core.models import LIBRARY_STATUS_VALUES
 from typing import Dict, Any, List, Optional
 
 DB_PATH = os.path.join(DATA_DIR, "library.db")
-DATABASE_SCHEMA_VERSION = 3
+DATABASE_SCHEMA_VERSION = 4
 LIBRARY_STATUS_SQL_VALUES = ", ".join(
     f"'{value}'" for value in sorted(LIBRARY_STATUS_VALUES)
 )
@@ -77,7 +77,9 @@ class DatabaseManager:
                     mal_remote_score INTEGER DEFAULT 0,
                     mal_last_synced_at INTEGER DEFAULT 0,
                     mal_remote_updated_at TEXT DEFAULT '',
-                    mal_sync_error TEXT DEFAULT ''
+                    mal_sync_error TEXT DEFAULT '',
+                    anilist_id INTEGER DEFAULT 0,
+                    external_titles TEXT DEFAULT '[]'
                 )
             """)
             existing_columns = {
@@ -110,6 +112,8 @@ class DatabaseManager:
                 "mal_last_synced_at": "INTEGER DEFAULT 0",
                 "mal_remote_updated_at": "TEXT DEFAULT ''",
                 "mal_sync_error": "TEXT DEFAULT ''",
+                "anilist_id": "INTEGER DEFAULT 0",
+                "external_titles": "TEXT DEFAULT '[]'",
             }
             for column, definition in library_columns.items():
                 if column not in existing_columns:
@@ -140,9 +144,48 @@ class DatabaseManager:
                     WHERE mal_id > 0
                 """)
                 conn.execute("PRAGMA user_version = 3")
+                schema_version = 3
+            if schema_version < 4:
+                # Eski anilist_<id> kayıtlarının dış kimliği anahtar değiştirmeden
+                # doldurulur. mal_<id> kimlikleri daha sonra Full eşleştiricisi
+                # tarafından güvenli biçimde zenginleştirilebilir.
+                conn.execute("""
+                    UPDATE mangas
+                    SET anilist_id = CAST(SUBSTR(id, 9) AS INTEGER)
+                    WHERE id GLOB 'anilist_[0-9]*'
+                      AND COALESCE(anilist_id, 0) = 0
+                """)
+                conn.execute("PRAGMA user_version = 4")
             conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_mangas_mal_id
                 ON mangas(mal_id) WHERE mal_id > 0
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_mangas_anilist_id
+                ON mangas(anilist_id) WHERE anilist_id > 0
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS manga_source_bindings (
+                    manga_id TEXT NOT NULL,
+                    source_id TEXT NOT NULL,
+                    source_manga_id TEXT NOT NULL,
+                    source_title TEXT NOT NULL DEFAULT '',
+                    confidence REAL NOT NULL DEFAULT 0,
+                    status TEXT NOT NULL DEFAULT 'active'
+                        CHECK (status IN ('active', 'ambiguous', 'broken', 'unavailable')),
+                    manual INTEGER NOT NULL DEFAULT 0,
+                    chapter_count INTEGER NOT NULL DEFAULT 0,
+                    verified_at INTEGER NOT NULL DEFAULT 0,
+                    last_error TEXT NOT NULL DEFAULT '',
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    updated_at INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY (manga_id, source_id, source_manga_id),
+                    FOREIGN KEY(manga_id) REFERENCES mangas(id)
+                )
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_source_bindings_manga
+                ON manga_source_bindings(manga_id, status, confidence DESC)
             """)
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS downloaded_chapters (

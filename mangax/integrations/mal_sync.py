@@ -91,6 +91,18 @@ class MalSyncService:
         year = self._nonnegative_int(manga.get("year"))
         if not year:
             year = self._nonnegative_int(existing.get("year"))
+        external_titles = manga.get("_external_titles") or manga.get("_search_titles") or []
+        if not isinstance(external_titles, list) or not external_titles:
+            external_titles = self._json_list(existing.get("external_titles"))
+        normalized_titles = []
+        for value in external_titles:
+            title = str(value or "").strip()
+            if title and title not in normalized_titles:
+                normalized_titles.append(title[:300])
+        manga_id = str(manga.get("id") or "")
+        anilist_id = self._nonnegative_int(manga.get("anilist_id"))
+        if not anilist_id and manga_id.startswith("anilist_"):
+            anilist_id = self._nonnegative_int(manga_id.removeprefix("anilist_"))
 
         return {
             "title": str(
@@ -119,6 +131,8 @@ class MalSyncService:
             "mal_remote_score": min(10, self._nonnegative_int(entry.get("score"))),
             "mal_remote_updated_at": str(entry.get("remote_updated_at") or "")[:80],
             "mal_sync_error": "",
+            "anilist_id": anilist_id or self._nonnegative_int(existing.get("anilist_id")),
+            "external_titles": json.dumps(normalized_titles[:50], ensure_ascii=False),
         }
 
     @staticmethod
@@ -128,6 +142,7 @@ class MalSyncService:
             if key in {
                 "mal_id", "mal_num_chapters_read", "mal_num_volumes_read",
                 "mal_remote_score", "user_rating", "year",
+                "anilist_id",
             }:
                 try:
                     current = int(current or 0)
@@ -264,10 +279,12 @@ class MalSyncService:
                                 collections, updated_at, mal_id, mal_status,
                                 mal_num_chapters_read, mal_num_volumes_read,
                                 mal_remote_score, mal_last_synced_at,
-                                mal_remote_updated_at, mal_sync_error
+                                mal_remote_updated_at, mal_sync_error,
+                                anilist_id, external_titles
                             ) VALUES (
                                 ?, ?, ?, ?, '', ?, '', ?, ?, '', 0, '', '', '', 'tr', ?,
-                                0, ?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?, ?, ''
+                                0, ?, ?, '', ?, ?, ?, ?, ?, ?, ?, ?, ?, '',
+                                ?, ?
                             )
                             """,
                             (
@@ -290,6 +307,8 @@ class MalSyncService:
                                 values["mal_remote_score"],
                                 synced_at,
                                 values["mal_remote_updated_at"],
+                                values["anilist_id"],
+                                values["external_titles"],
                             ),
                         )
                         inserted = dict(values)
@@ -368,7 +387,7 @@ class MalSyncService:
                             mal_num_chapters_read = ?, mal_num_volumes_read = ?,
                             mal_remote_score = ?,
                             mal_last_synced_at = ?, mal_remote_updated_at = ?,
-                            mal_sync_error = ?,
+                            mal_sync_error = ?, anilist_id = ?, external_titles = ?,
                             updated_at = CASE WHEN ? THEN ? ELSE updated_at END
                         WHERE id = ?
                         """,
@@ -390,6 +409,8 @@ class MalSyncService:
                             synced_at,
                             values["mal_remote_updated_at"],
                             values["mal_sync_error"],
+                            values["anilist_id"],
+                            values["external_titles"],
                             changed,
                             synced_at,
                             existing["id"],

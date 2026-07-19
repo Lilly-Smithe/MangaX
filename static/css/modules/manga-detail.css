@@ -367,3 +367,40 @@
 .chapter-progress-container {
     height: 5px;
 }
+.source-binding-panel {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.2fr) auto auto;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid rgba(229, 9, 20, .28);
+    border-radius: 12px;
+    background: rgba(18, 18, 20, .94);
+}
+
+.source-binding-panel.hidden {
+    display: none;
+}
+
+.source-binding-panel strong,
+.source-binding-panel small {
+    display: block;
+}
+
+.source-binding-panel small {
+    margin-top: 3px;
+    color: var(--text-secondary);
+}
+
+.source-binding-panel select {
+    min-width: 0;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .source-binding-panel {
+        grid-template-columns: 1fr;
+    }
+}

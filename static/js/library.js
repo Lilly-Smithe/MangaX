@@ -1,6 +1,28 @@
 // Library Management: online reading history and offline downloads.
+const deletingLibraryMangaIds = new Set();
+
 function isReaderEdition() {
     return document.body?.dataset.appEdition === 'reader';
+}
+
+function libraryRemoveButtonMarkup(manga) {
+    const title = String(manga?.title || 'Manga');
+    return `
+        <button class="library-delete-btn" type="button" title="Kütüphaneden kaldır"
+                aria-label="${escapeHtml(title)} mangasını kütüphaneden kaldır">
+            <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+        </button>
+    `;
+}
+
+function setLibraryRemoveBusy(mangaId, busy) {
+    document.querySelectorAll('.library-manga-card[data-manga-id], .library-catalog-card[data-manga-id]')
+        .forEach(card => {
+            if (card.dataset.mangaId !== mangaId) return;
+            card.classList.toggle('library-remove-pending', busy);
+            const button = card.querySelector('.library-delete-btn');
+            if (button) button.disabled = busy;
+        });
 }
 
 function configureLibraryEditionLayout() {
@@ -97,9 +119,7 @@ function buildLibraryCard(id, manga, mode) {
                     </button>
                 </div>
             ` : '<span class="library-card-kind"><i class="fa-solid fa-download"></i> Cihazda</span>'}
-            <button class="library-delete-btn" type="button" title="Seriyi kütüphaneden sil" aria-label="${escapeHtml(manga.title)} serisini sil">
-                <i class="fa-solid fa-trash-can"></i>
-            </button>
+            ${libraryRemoveButtonMarkup(manga)}
         </div>
         <div class="card-content">
             <span class="card-status ${escapeHtml(manga.status || 'ongoing')}">${manga.status === 'completed' ? 'Tamamlandı' : 'Devam Ediyor'}</span>
@@ -118,8 +138,9 @@ function buildLibraryCard(id, manga, mode) {
         }
     });
     card.querySelector('.library-delete-btn').addEventListener('click', event => {
+        event.preventDefault();
         event.stopPropagation();
-        deleteLibraryManga(id, manga.title);
+        deleteLibraryManga(id, manga);
     });
     card.querySelector('.library-card-resume')?.addEventListener('click', event => {
         event.stopPropagation();
@@ -212,6 +233,7 @@ function buildLibraryCatalogCard(id, manga) {
             ${Number(manga.unread_count) > 0 ? `<span class="library-unread-badge" data-manga-id="${escapeHtml(id)}">${Number(manga.unread_count)} yeni</span>` : ''}
             ${Number(manga.mal_id) > 0 ? '<span class="library-mal-badge" title="MyAnimeList ile eşitleniyor" aria-label="MyAnimeList kaydı">MAL</span>' : ''}
             ${fullEditionActions}
+            ${libraryRemoveButtonMarkup(manga)}
         </div>
         <div class="library-catalog-copy">
             <div class="library-catalog-heading">
@@ -237,6 +259,11 @@ function buildLibraryCatalogCard(id, manga) {
     card.querySelector('.library-catalog-online')?.addEventListener('click', event => {
         event.stopPropagation();
         openLibraryManga(id, true);
+    });
+    card.querySelector('.library-delete-btn')?.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        deleteLibraryManga(id, manga);
     });
     card.addEventListener('click', event => {
         if (event.target.closest('.library-edit-btn')) {
@@ -463,23 +490,43 @@ async function openLibraryManga(id) {
     await viewMangaDetails(id);
 }
 
-async function deleteLibraryManga(mangaId, mangaTitle) {
-    if (!await showAppConfirm({
-        title: 'Seriyi Tamamen Sil',
-        message: `“${mangaTitle}” serisi kütüphaneden kalıcı olarak kaldırılacak.`,
-        confirmText: 'Seriyi Sil',
-        variant: 'danger',
-        icon: 'fa-trash-can'
-    })) return;
+async function deleteLibraryManga(mangaId, manga = {}) {
+    if (!mangaId || deletingLibraryMangaIds.has(mangaId)) return;
+    deletingLibraryMangaIds.add(mangaId);
+    setLibraryRemoveBusy(mangaId, true);
+
+    const mangaTitle = String(manga.title || libraryData.mangas?.[mangaId]?.title || 'Bu manga');
+    const localChapterCount = Object.keys(manga.downloaded_chapters || {}).length;
+    const localDataCopy = localChapterCount > 0
+        ? ` Kütüphane kaydıyla birlikte cihazdaki ${localChapterCount} yerel bölüm ve bu mangaya ait yönetilen dosyalar da güvenli biçimde silinecek.`
+        : ' Kütüphane durumu, okuma ilerlemesi, kişisel notu ve koleksiyon bağlantıları kaldırılacak.';
+
     try {
+        const confirmed = await showAppConfirm({
+            title: 'Mangayı Kütüphaneden Kaldır',
+            message: `“${mangaTitle}” kütüphaneden kaldırılacak.${localDataCopy}`,
+            confirmText: 'Kaldır',
+            variant: 'danger',
+            icon: 'fa-trash-can'
+        });
+        if (!confirmed) return;
+
         const response = await fetch(`/api/library/${encodeURIComponent(mangaId)}`, { method: 'DELETE' });
         const result = await response.json();
         if (!response.ok) throw new Error(result.detail || 'Seri silinemedi.');
-        showToast('Seri kütüphaneden silindi.', 'success');
+
+        delete libraryData.mangas[mangaId];
+        selectedLibraryMangaIds.delete(mangaId);
+        renderLibrarySnapshot(libraryData);
+        cacheLibrarySnapshot(libraryData);
         if (activeManga && activeManga.id === mangaId) closeDetailsModal();
-        await loadLibrary();
+        showToast(`“${mangaTitle}” kütüphaneden kaldırıldı.`, 'success');
+        loadLibrary({ silent: true });
     } catch (error) {
-        showToast(error.message || 'Seri silinirken hata oluştu.', 'error');
+        showToast(error.message || 'Manga kütüphaneden kaldırılırken hata oluştu.', 'error');
+    } finally {
+        deletingLibraryMangaIds.delete(mangaId);
+        setLibraryRemoveBusy(mangaId, false);
     }
 }
 

@@ -72,10 +72,12 @@ async function viewMangaDetails(mangaId, options = {}) {
     const sourcesLoadingStatus = document.getElementById('manga-sources-loading-status');
     const onlineWrapper = document.getElementById('online-mode-wrapper');
     const onlineToggle = document.getElementById('manga-online-toggle');
+    const sourceBindingPanel = document.getElementById('source-binding-panel');
     
     // Reset view
     listBody.innerHTML = "";
     allFetchedSources = [];
+    sourceBindingPanel?.classList.add('hidden');
     loader.classList.remove('hidden');
     if (showModal) modal.classList.add('active');
     
@@ -205,7 +207,13 @@ async function viewMangaDetails(mangaId, options = {}) {
         }
         
         // AniList kaynaklarını sonuç geldikçe aşamalı yükle.
-        if (mangaId.startsWith("anilist_")) {
+        if (
+            mangaId.startsWith("anilist_")
+            || (
+                mangaId.startsWith("mal_")
+                && window.mangaXFullSourceBindings === true
+            )
+        ) {
             await loadAniListSourcesProgressively(
                 mangaId,
                 searchManga,
@@ -653,8 +661,20 @@ async function loadAniListSourcesProgressively(
             } else if (event.type === 'source_status') {
                 if (event.source_name) failedSourceNames.push(event.source_name);
                 if (statusText && event.message) statusText.textContent = event.message;
+                if (
+                    event.status === 'ambiguous'
+                    && typeof window.renderSourceBindingCandidates === 'function'
+                ) {
+                    window.renderSourceBindingCandidates(mangaId, event.candidates || []);
+                }
             } else if (event.type === 'source') {
                 loadResolvedSource(event.source);
+            } else if (
+                event.type === 'complete'
+                && Number(event.source_count || 0) === 0
+                && typeof window.renderSourceBindingRetry === 'function'
+            ) {
+                window.renderSourceBindingRetry(mangaId);
             }
         };
 
