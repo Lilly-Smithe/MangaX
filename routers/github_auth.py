@@ -23,8 +23,8 @@ def _http_error(error: GitHubIntegrationError) -> HTTPException:
 
 
 @router.get("/status")
-def github_status() -> dict[str, Any]:
-    return github_integration_manager.status()
+def github_status(validate: bool = Query(default=True)) -> dict[str, Any]:
+    return github_integration_manager.status(validate=validate)
 
 
 @router.post("/connect")

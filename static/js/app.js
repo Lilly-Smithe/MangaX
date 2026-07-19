@@ -320,7 +320,7 @@ function switchTab(tabId) {
         tabId = 'library';
     }
     currentTab = tabId;
-    if (tabId !== 'discover' && typeof cancelDiscoverRequests === 'function') cancelDiscoverRequests();
+    if (tabId !== 'browse' && typeof cancelDiscoverRequests === 'function') cancelDiscoverRequests();
     
     // Update active nav button
     document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -343,7 +343,7 @@ function switchTab(tabId) {
     if (tabId === 'library') {
         loadLibrary();
     }
-    if (tabId === 'discover' && (!discoverScreenLoaded || !document.querySelector('#browse-grid .manga-card'))) {
+    if (tabId === 'browse' && (!discoverScreenLoaded || !document.querySelector('#browse-grid .manga-card'))) {
         discoverScreenLoaded = true;
         loadPopular();
         if (isMangaNewsEnabled()) loadMangaNews();

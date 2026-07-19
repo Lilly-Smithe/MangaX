@@ -246,6 +246,8 @@ def audit_public_reader(root: str | Path, *, run_startup: bool = True) -> dict[s
 
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     target = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
     result = audit_public_reader(target)
     print(json.dumps(result, ensure_ascii=False, indent=2))

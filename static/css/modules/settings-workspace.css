@@ -501,6 +501,25 @@
     transition: width 0.25s ease;
 }
 
+.system-check-progress-track.is-indeterminate span {
+    width: 35%;
+    animation: app-update-indeterminate 1.15s ease-in-out infinite;
+}
+
+@keyframes app-update-indeterminate {
+    0% { transform: translateX(-120%); }
+    50% { transform: translateX(95%); }
+    100% { transform: translateX(320%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .system-check-progress-track.is-indeterminate span {
+        width: 100%;
+        animation: none;
+        opacity: 0.65;
+    }
+}
+
 .system-check-summary {
     display: flex;
     align-items: center;

@@ -26,8 +26,15 @@ function renderAppUpdateStatus(message, progress = null, state = '') {
         status.textContent = message || '';
         status.dataset.state = state;
     }
-    if (progressWrap) progressWrap.classList.toggle('hidden', progress === null);
-    if (progressBar && progress !== null) progressBar.style.width = `${Math.max(0, Math.min(100, Number(progress) || 0))}%`;
+    const checking = state === 'checking';
+    if (progressWrap) {
+        progressWrap.classList.toggle('hidden', progress === null && !checking);
+        progressWrap.classList.toggle('is-indeterminate', checking);
+        progressWrap.setAttribute('aria-hidden', String(progress === null && !checking));
+    }
+    if (progressBar && progress !== null && !checking) {
+        progressBar.style.width = `${Math.max(0, Math.min(100, Number(progress) || 0))}%`;
+    }
     if (cancel) cancel.classList.toggle('hidden', !['downloading', 'ready'].includes(state));
 }
 
@@ -45,12 +52,22 @@ async function checkForAppUpdate({ manual = false, startup = false } = {}) {
     if (startup) appUpdateStartupChecked = true;
     const button = document.getElementById('app-update-check-btn');
     if (button) button.disabled = true;
-    if (manual) renderAppUpdateStatus('Yeni sürüm kontrol ediliyor…', null, 'checking');
+    const buttonIcon = button?.querySelector('i');
+    buttonIcon?.classList.add('fa-spin');
+    renderAppUpdateStatus('Yeni sürüm kontrol ediliyor…', null, 'checking');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
     try {
-        const response = await fetch(`/api/updates/check?startup=${startup ? 'true' : 'false'}`, { cache: 'no-store' });
+        const response = await fetch(`/api/updates/check?startup=${startup ? 'true' : 'false'}`, {
+            cache: 'no-store',
+            signal: controller.signal,
+        });
         if (!response.ok) throw new Error(await readUpdateError(response, 'Güncelleme kontrol edilemedi.'));
         const update = await response.json();
-        if (update.skipped) return;
+        if (update.skipped) {
+            renderAppUpdateStatus('Açılışta otomatik güncelleme kontrolü kapalı.', null, 'skipped');
+            return;
+        }
         if (!update.update_available) {
             renderAppUpdateStatus(`MangaX ${update.current_version} güncel.`, null, 'current');
             if (manual && typeof showToast === 'function') showToast('MangaX güncel.', 'success');
@@ -67,14 +84,19 @@ async function checkForAppUpdate({ manual = false, startup = false } = {}) {
         if (!accepted) return;
         await startAppUpdateDownload(update.update_id);
     } catch (error) {
+        const message = error?.name === 'AbortError'
+            ? 'Güncelleme kontrolü zaman aşımına uğradı. Daha sonra yeniden deneyin.'
+            : (error.message || 'Güncelleme kontrol edilemedi.');
+        renderAppUpdateStatus(message, null, 'error');
         if (manual) {
-            renderAppUpdateStatus(error.message || 'Güncelleme kontrol edilemedi.', null, 'error');
-            if (typeof showToast === 'function') showToast(error.message || 'Güncelleme kontrol edilemedi.', 'error');
+            if (typeof showToast === 'function') showToast(message, 'error');
         } else {
             console.warn('Otomatik güncelleme kontrolü atlandı:', error);
         }
     } finally {
+        clearTimeout(timeoutId);
         if (button) button.disabled = false;
+        buttonIcon?.classList.remove('fa-spin');
     }
 }
 

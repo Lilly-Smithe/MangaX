@@ -37,7 +37,7 @@
     },
     {
       "path": "mangax/core/config.py",
-      "sha256": "0b1ea6d950c87e313f6e9e47f48bcbde14db4939803dc991c736bcd06b8fed23"
+      "sha256": "267a2031e31886c8a391030822e2e76918004f8e50af25ff47d03e9af3a607a6"
     },
     {
       "path": "mangax/core/database.py",
@@ -77,7 +77,7 @@
     },
     {
       "path": "mangax/integrations/github_integration.py",
-      "sha256": "6e5591066e0a8b4da6065501f470f227a2f38b6044f216fc7bde8fced502b721"
+      "sha256": "0c28b43c9cddfd3878838d7834fff34f33a4b3b9692fa9f212e17164ef8311c4"
     },
     {
       "path": "mangax/integrations/secure_store.py",
@@ -121,7 +121,7 @@
     },
     {
       "path": "packaging/windows/mangax_reader_installer.iss",
-      "sha256": "c9ccfc322f50e3c4be53078d98b6ca18d2a46c2c7cf91b67f80e02027c859b4d"
+      "sha256": "7407ee2a8fa2a84665f35962529e916272d24ff3d4acc79778615904c8b28d5a"
     },
     {
       "path": "requirements-build.txt",
@@ -149,7 +149,7 @@
     },
     {
       "path": "routers/github_auth.py",
-      "sha256": "19c7882ec4be8f864be7475a6c95c2f8301c7b6e2c9514873e143567e830bf8d"
+      "sha256": "a41bab591c5d31a533a06970925ae3cfdb6163a3fd18113896aafb0e41ee76fd"
     },
     {
       "path": "routers/library.py",
@@ -197,7 +197,7 @@
     },
     {
       "path": "static/css/modules/settings-workspace.css",
-      "sha256": "c03baf244ded126504e69a467e7cb1f435c3da5fc561f9e4ee3924ed36192a54"
+      "sha256": "ff2aa27ef896c1c3ba99b274fb1fb3f43e43c6d1cbae536375ff67094f479902"
     },
     {
       "path": "static/css/modules/settings.css",
@@ -205,7 +205,7 @@
     },
     {
       "path": "static/css/styles.css",
-      "sha256": "ca903d7780c9a1da8e63dd69156eafbc050569e3b56d47ad89332977dda9eded"
+      "sha256": "fbac5ca1c663271edd79e6e611c68d62e52d1079bf750035122e1dfc470edfb4"
     },
     {
       "path": "static/img/no-cover.jpg",
@@ -217,15 +217,15 @@
     },
     {
       "path": "static/index.html",
-      "sha256": "908f953e8615fb644a4ef1d052a23a19dbc6c6e9b4ee9ed864bfd8e734dede62"
+      "sha256": "f6c815a625af6a2c604b6ffe18366379f9a637c0084134cb06c7b6abb8c6d093"
     },
     {
       "path": "static/js/app-update.js",
-      "sha256": "0b88441dca31823fff4ad45254a7b222de1d88be420969788b1fbe318bdd3c99"
+      "sha256": "cb7991d02528b62c7b2001b6507c81ff26ff867d097e19cacaea7876d3a680b3"
     },
     {
       "path": "static/js/app.js",
-      "sha256": "fa9c7dd3ff6256701a247cc6856a28bad92265f51ab50851b528515ac483b448"
+      "sha256": "2dea928ef285fd619e7103e181fb75260c9908002b7fba3d5be8f778a1eaf977"
     },
     {
       "path": "static/js/backup.js",
@@ -269,7 +269,7 @@
     },
     {
       "path": "tools/audit_public_reader.py",
-      "sha256": "f126a76b9fb2fde3760d1a2570969a0dbc0e901ad0a4beef2706b308e552f577"
+      "sha256": "ebffce35f7dd16c52f601c36b0d2e741be9f5776543977f8790b75e333b3da0c"
     }
   ]
 }

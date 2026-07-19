@@ -50,6 +50,11 @@ class GitHubNotConnectedError(GitHubIntegrationError):
     status_code = 401
 
 
+class GitHubSessionExpiredError(GitHubIntegrationError):
+    code = "session_expired"
+    status_code = 401
+
+
 class GitHubSecureStoreError(GitHubIntegrationError):
     code = "secure_storage_error"
     status_code = 500
@@ -69,6 +74,7 @@ class GitHubIntegrationManager:
             GITHUB_CREDENTIALS_PATH, "MangaX GitHub hesabı"
         )
         self._lock = threading.RLock()
+        self._verification_lock = threading.Lock()
         self._pending: dict[str, dict[str, Any]] = {}
         self._verified_at = 0.0
 
@@ -101,6 +107,8 @@ class GitHubIntegrationManager:
                 timeout=15.0,
                 follow_redirects=True,
             )
+            if profile_response.status_code in {401, 403}:
+                raise GitHubSessionExpiredError("GitHub oturumunun süresi doldu. Hesabı yeniden bağlayın.")
             profile_response.raise_for_status()
             profile = profile_response.json()
             repository_response = httpx.get(
@@ -109,11 +117,11 @@ class GitHubIntegrationManager:
                 timeout=15.0,
                 follow_redirects=True,
             )
-            if repository_response.status_code == 404:
+            if repository_response.status_code in {401, 403, 404}:
                 raise GitHubAccessDeniedError("Bu hesap için erişim bulunamadı")
             repository_response.raise_for_status()
             repository = repository_response.json()
-        except GitHubAccessDeniedError:
+        except (GitHubAccessDeniedError, GitHubSessionExpiredError):
             raise
         except (httpx.HTTPError, ValueError, TypeError) as error:
             raise GitHubIntegrationError(
@@ -269,18 +277,22 @@ class GitHubIntegrationManager:
             raise GitHubNotConnectedError("GitHub hesabı bağlı değil.")
         expires_at = int(credentials.get("expires_at") or 0)
         if expires_at and expires_at <= int(time.time()) + 30:
-            raise GitHubIntegrationError("GitHub oturumunun süresi doldu. Hesabı yeniden bağlayın.")
+            raise GitHubSessionExpiredError("GitHub oturumunun süresi doldu. Hesabı yeniden bağlayın.")
         if str(credentials.get("repository") or "") != self.repository:
             raise GitHubNotConnectedError("GitHub hesabını yeniden bağlayın.")
         if validate and time.time() - self._verified_at > 60:
-            profile = self._verify_token(token)
-            credentials["profile"] = profile
-            self._save_credentials(credentials)
-            self._verified_at = time.time()
+            # GitHub durum denetimi ile otomatik guncelleme ayni anda baslayabilir.
+            # Tek kilit, ayni token icin iki ayri /user + /repos turu acilmasini engeller.
+            with self._verification_lock:
+                if time.time() - self._verified_at > 60:
+                    profile = self._verify_token(token)
+                    credentials["profile"] = profile
+                    self._save_credentials(credentials)
+                    self._verified_at = time.time()
         return credentials
 
-    def require_access(self) -> str:
-        return str(self._authorized_credentials(validate=True)["access_token"])
+    def require_access(self, *, validate: bool = True) -> str:
+        return str(self._authorized_credentials(validate=validate)["access_token"])
 
     def status(self, *, validate: bool = True) -> dict[str, Any]:
         try:
