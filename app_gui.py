@@ -147,7 +147,10 @@ class MangaXDesktopBridge:
             if path.suffix.lower() == ".msi":
                 command = ["msiexec.exe", "/i", str(path)]
             else:
-                command = [str(path)]
+                # Reader baska bir disk veya klasore kurulmus olabilir. Full
+                # installer ayni AppId'yi kullanir; /DIR mevcut calisan EXE'nin
+                # gercek konumunu ayrica sabitleyerek ozel yolu da korur.
+                command = [str(path), f"/DIR={BASE_DIR}"]
             subprocess.Popen(
                 command,
                 cwd=str(path.parent),

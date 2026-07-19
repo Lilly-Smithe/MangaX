@@ -13,7 +13,7 @@
     },
     {
       "path": "app_gui.py",
-      "sha256": "505d93e40fa4702edcb6c46e786ef5e2325835378947ef3a15a0e606f5a6e405"
+      "sha256": "a80dd07ee05572e28831cb106049e9bb594ce8845c1ac94198ad68fa5d93d007"
     },
     {
       "path": "build_reader.bat",
@@ -37,7 +37,7 @@
     },
     {
       "path": "mangax/core/config.py",
-      "sha256": "25349df06ecb6f63d2f81692a57e6277118f0e4dc85b97ff4fc93575ab47598a"
+      "sha256": "c7407437f759bdff3de4dadd165c6f9ee72f0984222c2fabc9e0ed00c029eaa5"
     },
     {
       "path": "mangax/core/database.py",
@@ -117,7 +117,7 @@
     },
     {
       "path": "packaging/windows/mangax_reader_installer.iss",
-      "sha256": "00c6806cbda5f2fade5e45f7345363a455e9420156c4de53f5a24f919df92a91"
+      "sha256": "8d2e1bc94464fcf49dbd3ac4e56cf34fbef8d67e39fbc10bd336b191222a6375"
     },
     {
       "path": "requirements-build.txt",
@@ -209,7 +209,7 @@
     },
     {
       "path": "static/index.html",
-      "sha256": "bcec2ef3991dfa55afd7929ce7882ddd2fcbd1d4fcd3dc052a2f32205cf54813"
+      "sha256": "b5b4989b9d7bf29e24fd9fe12bcce0f7ab2f456ed7f4d4e415ed3c308f3b3935"
     },
     {
       "path": "static/js/app.js",
@@ -225,7 +225,7 @@
     },
     {
       "path": "static/js/edition-gate.js",
-      "sha256": "6359dd12e433d40508b083d2086e1d2b7ac0c4cc9395ae5b61492559e6be0f10"
+      "sha256": "264761c15909ef6d1a2b28ea45c085ce614a94d3932b1d47caddb31a7e1ef446"
     },
     {
       "path": "static/js/library.js",

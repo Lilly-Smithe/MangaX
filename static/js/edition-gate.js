@@ -17,6 +17,7 @@ let editionGateActiveRequestId = '';
 let editionFullReleaseManifest = null;
 let editionFullReleaseJobId = '';
 let editionFullReleasePollGeneration = 0;
+let editionFullReleaseReadyNotifiedJobId = '';
 
 function isEditionGateTriggerAvailable() {
     return Boolean(document.querySelector('.nav-btn[data-tab="library"]'));
@@ -335,6 +336,23 @@ function renderEditionFullRelease(manifest, username) {
 }
 
 async function loadEditionFullRelease(username = 'GitHub hesabı') {
+    if (editionFullReleaseJobId) {
+        try {
+            const existingJob = await readEditionAccessResponse(await fetch(
+                `/api/integrations/github/full-release/download/${encodeURIComponent(editionFullReleaseJobId)}`,
+                { cache: 'no-store' }
+            ));
+            if (existingJob.status === 'downloading' || existingJob.status === 'ready') {
+                const generation = ++editionFullReleasePollGeneration;
+                renderEditionFullReleaseProgress(existingJob);
+                if (existingJob.status === 'downloading') pollEditionFullReleaseDownload(generation);
+                return;
+            }
+            editionFullReleaseJobId = '';
+        } catch (_error) {
+            editionFullReleaseJobId = '';
+        }
+    }
     renderEditionAccessContent({ message: 'Full sürüm bilgisi kontrol ediliyor…' });
     try {
         const manifest = await readEditionAccessResponse(await fetch(
@@ -395,7 +413,7 @@ function renderEditionFullReleaseProgress(job) {
     const status = document.createElement('div');
     status.className = `edition-access-status ${job.status === 'ready' ? 'success' : ''}`.trim();
     status.textContent = job.status === 'ready'
-        ? 'Dosya SHA-256 ile doğrulandı ve kuruluma hazır.'
+        ? 'İndirme tamamlandı. MangaX Full güvenle kurulmaya hazır.'
         : `İndiriliyor… %${Number(job.progress || 0).toFixed(1)}`;
     const progress = document.createElement('div');
     progress.className = 'edition-release-progress';
@@ -408,7 +426,7 @@ function renderEditionFullReleaseProgress(job) {
     const actions = document.createElement('div');
     actions.className = 'edition-access-actions';
     if (job.ready_to_install) {
-        appendEditionReleaseButton(actions, 'Reader’ı Kapat ve Kur', confirmEditionFullReleaseInstall);
+        appendEditionReleaseButton(actions, 'MangaX Full’a Yükselt', confirmEditionFullReleaseInstall);
         appendEditionReleaseButton(actions, 'Dosyayı Sil', cancelEditionFullReleaseDownload, true);
     } else {
         appendEditionReleaseButton(actions, 'İndirmeyi İptal Et', cancelEditionFullReleaseDownload, true);
@@ -428,6 +446,11 @@ async function pollEditionFullReleaseDownload(generation) {
         renderEditionFullReleaseProgress(job);
         if (job.status === 'downloading') {
             pollEditionFullReleaseDownload(generation);
+        } else if (job.status === 'ready') {
+            if (editionFullReleaseReadyNotifiedJobId !== job.job_id) {
+                editionFullReleaseReadyNotifiedJobId = job.job_id;
+                showToast('MangaX Full indirildi ve doğrulandı. Yükseltmeye hazır.', 'success');
+            }
         } else if (job.status !== 'ready') {
             editionFullReleaseJobId = '';
             renderEditionAccessContent({
@@ -447,6 +470,7 @@ async function cancelEditionFullReleaseDownload({ silent = false } = {}) {
     if (!jobId) return;
     editionFullReleaseJobId = '';
     editionFullReleasePollGeneration += 1;
+    editionFullReleaseReadyNotifiedJobId = '';
     try {
         await readEditionAccessResponse(await fetch(
             `/api/integrations/github/full-release/download/${encodeURIComponent(jobId)}`,
@@ -461,9 +485,9 @@ async function cancelEditionFullReleaseDownload({ silent = false } = {}) {
 async function confirmEditionFullReleaseInstall() {
     if (!editionFullReleaseJobId) return;
     const accepted = await showAppConfirm({
-        title: 'Reader Kapatılsın mı?',
-        message: 'Kütüphane, ayarlar ve okuma geçmişi ortak veri alanında korunacak. MangaX Reader kapatıldıktan sonra doğrulanmış Full kurulumu başlatılacak.',
-        confirmText: 'Reader’ı Kapat ve Kur',
+        title: 'MangaX Full’a Yükselt',
+        message: 'Kütüphane, ayarlar ve okuma geçmişi korunacak. Full sürüm mevcut MangaX kurulumunun bulunduğu klasöre kurulacak ve eski Reader kısayolu kaldırılacak.',
+        confirmText: 'Yükseltmeyi Başlat',
         cancelText: 'Şimdi Değil',
         icon: 'fa-shield-halved',
     });
