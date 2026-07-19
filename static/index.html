@@ -13,9 +13,9 @@
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 
-<link href="/static/css/styles.css?v=20260719d" rel="stylesheet"/>
+<link href="/static/css/styles.css?v=20260719f" rel="stylesheet"/>
 </head>
-<body data-app-edition="reader" data-app-version="v0.12.4" data-github-extensions-available="false">
+<body data-app-edition="reader" data-app-version="v0.13.0" data-github-extensions-available="false">
 <div class="app-container">
 
 <aside class="sidebar" id="app-sidebar">
@@ -43,7 +43,7 @@
 </div>
 </nav>
 <div class="sidebar-footer">
-<span class="app-version">v0.12.4</span>
+<span class="app-version">v0.13.0</span>
 </div>
 </aside>
 
@@ -82,11 +82,12 @@
 <div class="library-view-panel" id="library-catalog-panel">
 <div class="library-catalog-toolbar">
 <div aria-label="Okuma durumu filtreleri" class="library-status-filters" id="library-status-filters">
-<button class="active" data-library-status="all" onclick="setLibraryStatusFilter('all')" type="button">Tümü</button>
-<button data-library-status="reading" onclick="setLibraryStatusFilter('reading')" type="button">Okunuyor</button>
-<button data-library-status="completed" onclick="setLibraryStatusFilter('completed')" type="button">Tamamlandı</button>
-<button data-library-status="on_hold" onclick="setLibraryStatusFilter('on_hold')" type="button">Beklemede</button>
-<button data-library-status="dropped" onclick="setLibraryStatusFilter('dropped')" type="button">Bırakıldı</button>
+<button class="active" data-library-status="all" onclick="setLibraryStatusFilter('all')" type="button">Tümü <span data-library-status-count="all">0</span></button>
+<button data-library-status="reading" onclick="setLibraryStatusFilter('reading')" type="button">Okunuyor <span data-library-status-count="reading">0</span></button>
+<button data-library-status="completed" onclick="setLibraryStatusFilter('completed')" type="button">Tamamlandı <span data-library-status-count="completed">0</span></button>
+<button data-library-status="on_hold" onclick="setLibraryStatusFilter('on_hold')" type="button">Beklemede <span data-library-status-count="on_hold">0</span></button>
+<button data-library-status="dropped" onclick="setLibraryStatusFilter('dropped')" type="button">Bırakıldı <span data-library-status-count="dropped">0</span></button>
+<button data-library-status="plan_to_read" onclick="setLibraryStatusFilter('plan_to_read')" type="button">Okuma Planı <span data-library-status-count="plan_to_read">0</span></button>
 </div>
 <div class="library-catalog-controls">
 <select aria-label="Koleksiyona göre filtrele" id="library-collection-filter" onchange="setLibraryCollectionFilter(this.value)">
@@ -113,6 +114,7 @@
 <option value="completed">Tamamlandı</option>
 <option value="on_hold">Beklemede</option>
 <option value="dropped">Bırakıldı</option>
+<option value="plan_to_read">Okuma Planı</option>
 </select>
 <input id="library-bulk-collection" maxlength="40" placeholder="Koleksiyon ekle…" type="text"/>
 <button class="btn btn-primary" onclick="applyLibraryBulkUpdate()" type="button">Uygula</button>
@@ -267,26 +269,74 @@
 </div>
 <div class="settings-card settings-category-panel mal-integration-card" data-settings-panel="integrations">
 <div class="settings-card-header"><i class="fa-solid fa-list-check"></i><h2>MyAnimeList</h2></div>
-<p class="settings-card-desc">Manga listeni güvenli biçimde önizle ve seçtiklerini MangaX'e aktar. Bu ilk sürüm MAL hesabındaki hiçbir kaydı değiştirmez.</p>
-<div class="mal-security-note"><i class="fa-solid fa-shield-halved"></i><div><strong>Salt okunur ve yerel</strong><span>Şifren MangaX'e verilmez. Erişim anahtarı Windows hesabına bağlı DPAPI şifrelemesiyle saklanır ve JSON yedeklerine eklenmez.</span></div></div>
+<p class="settings-card-desc">Manga listeni güvenli biçimde MangaX ile eşitle. MAL'a geri gönderme ayrı izinle ve kontrollü kuyrukla çalışır.</p>
+<div class="mal-security-note"><i class="fa-solid fa-shield-halved"></i><div><strong>Varsayılan olarak salt okunur</strong><span>Şifren MangaX'e verilmez. Çift yönlü eşitleme sen açana kadar MAL hesabında hiçbir kayıt değiştirilmez; erişim anahtarı DPAPI ile korunur.</span></div></div>
+<section aria-labelledby="mal-connect-title" class="mal-disconnected-view" id="mal-disconnected-view">
+<div class="mal-connect-copy">
+<span class="mal-state-icon"><i class="fa-solid fa-link"></i></span>
+<div><strong id="mal-connect-title">MyAnimeList hesabını bağla</strong><small>Güvenli izin ekranı varsayılan tarayıcında açılır. MangaX kullanıcı adını veya parolanı görmez.</small></div>
+</div>
+<button class="btn btn-primary" id="mal-connect-btn" onclick="connectMyAnimeList()" type="button"><i class="fa-solid fa-arrow-up-right-from-square"></i> MyAnimeList Hesabını Bağla</button>
+</section>
+<details class="mal-advanced-settings" id="mal-api-settings">
+<summary>Gelişmiş bağlantı ayarları</summary>
 <div class="mal-config-grid" id="mal-config-panel">
 <label><span>Client ID</span><input autocomplete="off" class="settings-input" id="mal-client-id" maxlength="160" placeholder="MAL geliştirici panelindeki Client ID" type="text"/></label>
 <label><span>Client Secret <small>(yalnızca uygulaman gerektiriyorsa)</small></span><input autocomplete="new-password" class="settings-input" id="mal-client-secret" maxlength="300" placeholder="Kaydedilmiş değeri korumak için boş bırak" type="password"/></label>
 <label class="mal-callback-field"><span>Kayıtlı dönüş adresi</span><input class="settings-input" id="mal-callback-url" readonly="" type="text"/></label>
 </div>
-<div class="mal-connection-bar" id="mal-connection-bar">
-<div class="mal-account-state"><i class="fa-solid fa-circle-notch fa-spin"></i><div><strong>Bağlantı kontrol ediliyor</strong><span>MyAnimeList durumu okunuyor…</span></div></div>
-<div class="mal-connection-actions">
 <button class="btn btn-secondary" onclick="saveMalConfiguration()" type="button"><i class="fa-solid fa-floppy-disk"></i> Yapılandırmayı Kaydet</button>
-<button class="btn btn-primary" id="mal-connect-btn" onclick="connectMyAnimeList()" type="button"><i class="fa-solid fa-arrow-up-right-from-square"></i> Hesabı Bağla</button>
-<button class="btn btn-secondary hidden" id="mal-disconnect-btn" onclick="disconnectMyAnimeList()" type="button"><i class="fa-solid fa-link-slash"></i> Bağlantıyı Kes</button>
+</details>
+<div class="mal-connected-view hidden" id="mal-connected-view">
+<div aria-live="polite" class="mal-account-overview" role="status">
+<span class="mal-account-avatar"><i class="fa-solid fa-user-check"></i></span>
+<div class="mal-account-identity"><small>BAĞLI HESAP</small><strong id="mal-account-username">MyAnimeList</strong><span><i class="fa-solid fa-circle-check"></i> Bağlantı güvenli ve etkin</span></div>
+<div class="mal-account-metrics">
+<span><small>Son başarılı eşitleme</small><strong id="mal-last-sync-time">Henüz yapılmadı</strong></span>
+<span><small>Toplam MAL mangası</small><strong id="mal-total-count">—</strong></span>
+<span><small>Son hata</small><strong id="mal-last-sync-error">Yok</strong></span>
+</div>
+</div>
+<div class="mal-sync-preferences">
+<label class="mal-auto-sync-control" for="mal-auto-sync-toggle"><span><strong>Otomatik eşitleme</strong><small>Uygulama açıldığında MAL listen güncel tutulur.</small></span><input id="mal-auto-sync-toggle" onchange="updateMalAutomaticSync(this.checked)" type="checkbox"/><i aria-hidden="true"></i></label>
+<label class="mal-auto-sync-control" for="mal-two-way-sync-toggle"><span><strong>Çift yönlü eşitleme</strong><small>Durum, puan ve okuma ilerlemesini MAL'a gönderir.</small></span><input id="mal-two-way-sync-toggle" onchange="updateMalTwoWaySync(this.checked)" type="checkbox"/><i aria-hidden="true"></i></label>
+<label class="mal-sync-interval-control" for="mal-sync-interval"><span>Senkronizasyon aralığı</span><select class="settings-input settings-select" id="mal-sync-interval" onchange="updateMalSyncInterval(this.value)"><option value="startup">Uygulama açılışında</option><option value="6h">6 saatte bir</option><option value="12h">12 saatte bir</option><option selected="" value="24h">24 saatte bir</option></select></label>
+<button class="btn btn-secondary" id="mal-disconnect-btn" onclick="disconnectMyAnimeList()" type="button"><i class="fa-solid fa-link-slash"></i> Hesabın Bağlantısını Kaldır</button>
 </div>
 </div>
 <section class="mal-import-panel hidden" id="mal-import-panel">
-<div class="mal-import-heading"><div><span>TEK YÖNLÜ AKTARIM</span><strong>Manga listesini önizle</strong><small>Hazırlanan manga kayıtlarından istediklerini yerel kitaplığına aktarabilirsin.</small></div><button class="btn btn-secondary" id="mal-preview-btn" onclick="loadMalImportPreview(true)" type="button"><i class="fa-solid fa-arrows-rotate"></i> Listeyi Getir</button></div>
+<div aria-live="polite" class="mal-sync-panel" data-state="idle" id="mal-sync-panel">
+<div class="mal-sync-heading">
+<div><span id="mal-sync-stage">HAZIR</span><strong id="mal-sync-title">Henüz çalışmadı</strong><small id="mal-sync-message" role="status">Hesap bağlandığında ilk eşitleme otomatik başlar.</small></div>
+<div class="mal-sync-actions">
+<button class="btn btn-secondary" id="mal-sync-start-btn" onclick="startMalSync()" type="button"><i class="fa-solid fa-rotate"></i> Şimdi Eşitle</button>
+<button class="btn btn-secondary hidden" id="mal-sync-cancel-btn" onclick="cancelMalSync()" type="button"><i class="fa-solid fa-xmark"></i> İptal Et</button>
+</div>
+</div>
+<div aria-label="MyAnimeList eşitleme ilerlemesi" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="mal-sync-progress" id="mal-sync-progress" role="progressbar"><span id="mal-sync-progress-bar"></span></div>
+<div class="mal-sync-counts">
+<span><strong id="mal-sync-processed">0 / 0</strong> İşlenen</span>
+<span><strong id="mal-sync-added">0</strong> Eklenen</span>
+<span><strong id="mal-sync-updated">0</strong> Güncellenen</span>
+<span><strong id="mal-sync-unchanged">0</strong> Değişmeyen</span>
+<span><strong id="mal-sync-unmatched">0</strong> Eşleşmeyen</span>
+<span><strong id="mal-sync-failed">0</strong> Başarısız</span>
+</div>
+</div>
+<section aria-live="polite" class="mal-outbound-panel" id="mal-outbound-panel">
+<div class="mal-outbound-heading">
+<div><span>MAL'A GÖNDERİM</span><strong>Bekleyen yerel değişiklikler</strong><small id="mal-outbound-summary">Çift yönlü eşitleme kapalı.</small></div>
+<button class="btn btn-secondary hidden" id="mal-outbound-retry" onclick="retryMalOutbound()" type="button"><i class="fa-solid fa-rotate"></i> Yeniden Dene</button>
+</div>
+<div class="mal-conflict-list" id="mal-conflict-list"></div>
+</section>
+<details class="mal-advanced-preview" id="mal-advanced-preview">
+<summary>Gelişmiş: Listeyi önizle</summary>
+<div class="mal-import-heading"><div><span>SEÇMELİ AKTARIM</span><strong>Manga listesini önizle</strong><small>Otomatik akıştan bağımsız olarak belirli kayıtları seçebilirsin.</small></div><button class="btn btn-secondary" id="mal-preview-btn" onclick="loadMalImportPreview(true)" type="button"><i class="fa-solid fa-arrows-rotate"></i> Listeyi Getir</button></div>
 <div class="mal-import-summary hidden" id="mal-import-summary"></div>
 <div class="mal-import-toolbar hidden" id="mal-import-toolbar"><label><input checked="" id="mal-select-all" onchange="toggleAllMalEntries(this.checked)" type="checkbox"/> Eşleşenlerin tümünü seç</label><button class="btn btn-primary" id="mal-import-btn" onclick="importSelectedMalEntries()" type="button"><i class="fa-solid fa-file-import"></i> Seçilenleri İçe Aktar</button></div>
 <div class="mal-import-list" id="mal-import-list"><div class="settings-inline-empty">Liste henüz yüklenmedi.</div></div>
+</details>
 </section>
 </div>
 
@@ -298,7 +348,7 @@
 </div>
 <div class="about-info">
 <div class="about-row"><span>Uygulama</span><span>MangaX</span></div>
-<div class="about-row"><span>Versiyon</span><span class="app-version">v0.12.4</span></div>
+<div class="about-row"><span>Versiyon</span><span class="app-version">v0.13.0</span></div>
 
 </div>
 <section aria-labelledby="app-update-title" class="recovery-settings-panel app-update-settings">
@@ -443,11 +493,20 @@
 <option value="completed">Tamamlandı</option>
 <option value="on_hold">Beklemede</option>
 <option value="dropped">Bırakıldı</option>
+<option value="plan_to_read">Okuma Planı</option>
 </select>
 </label>
 <label>Puanın <span id="library-editor-rating-value">0 / 10</span>
 <input id="library-editor-rating" max="10" min="0" oninput="document.getElementById('library-editor-rating-value').textContent = `${this.value} / 10`" step="1" type="range" value="0"/>
 </label>
+<div class="library-mal-progress-fields hidden" id="library-mal-progress-fields">
+<label>Okunan bölüm
+                    <input id="library-editor-mal-chapters" min="0" step="1" type="number" value="0"/>
+</label>
+<label>Okunan cilt
+                    <input id="library-editor-mal-volumes" min="0" step="1" type="number" value="0"/>
+</label>
+</div>
 <label>Koleksiyonlar <small>Virgülle ayırın</small>
 <input id="library-editor-collections" maxlength="840" placeholder="Favoriler, Hafta sonu…" type="text"/>
 </label>
@@ -739,14 +798,14 @@
 
 <script src="/static/js/app.js?v=20260719c"></script>
 <script src="/static/js/edition-gate.js?v=20260719c"></script>
-<script src="/static/js/library.js?v=20260719b"></script>
+<script src="/static/js/library.js?v=20260719f"></script>
 <script src="/static/js/local-import.js?v=20260718b"></script>
 
 <script src="/static/js/manga-detail.js?v=20260718q"></script>
 
 <script src="/static/js/settings.js?v=20260719d"></script>
 <script src="/static/js/app-update.js?v=20260719b"></script>
-<script src="/static/js/integrations.js?v=20260719d"></script>
+<script src="/static/js/integrations.js?v=20260719f"></script>
 
 <script src="/static/js/release-notes.js?v=20260719d"></script>
 <script src="/static/js/reader.js?v=20260718u"></script>
@@ -755,5 +814,5 @@
 
 <script src="/static/js/backup.js?v=20260718n"></script>
 <script src="/static/js/diagnostics.js?v=20260718b"></script>
-<script src="/static/js/reader-onboarding.js?v=20260719d"></script></body>
+<script src="/static/js/reader-onboarding.js?v=20260719e"></script></body>
 </html>

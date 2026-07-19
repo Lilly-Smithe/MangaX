@@ -1,7 +1,7 @@
 {
   "ok": true,
   "edition": "reader",
-  "file_count": 75,
+  "file_count": 79,
   "files": [
     ".gitignore",
     ".mangax-public-reader-export",
@@ -27,6 +27,10 @@
     "mangax/integrations/full_release.py",
     "mangax/integrations/github_integration.py",
     "mangax/integrations/mal_integration.py",
+    "mangax/integrations/mal_outbound.py",
+    "mangax/integrations/mal_sync.py",
+    "mangax/integrations/mal_sync_jobs.py",
+    "mangax/integrations/mal_sync_scheduler.py",
     "mangax/integrations/secure_store.py",
     "mangax/reader/__init__.py",
     "mangax/reader/local_import_jobs.py",
@@ -93,7 +97,7 @@
     "ok": true,
     "detail": {
       "edition": "reader",
-      "route_count": 52,
+      "route_count": 59,
       "root_route": true
     }
   }

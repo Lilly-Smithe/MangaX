@@ -15,7 +15,7 @@ from urllib.parse import urlencode
 
 import httpx
 
-from mangax.core.config import APP_URL, DATA_DIR
+from mangax.core.config import APP_URL, DATA_DIR, MAL_OAUTH_CLIENT_ID
 from mangax.integrations.secure_store import SecureStoreError, WindowsDpapiJsonStore
 
 
@@ -26,10 +26,19 @@ MAL_CALLBACK_URL = f"{APP_URL}/api/integrations/mal/callback"
 MAL_CONFIG_PATH = Path(DATA_DIR) / "mal_integration.json"
 MAL_CREDENTIALS_PATH = Path(DATA_DIR) / ".mal_credentials"
 CLIENT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{8,160}$")
+MAX_MAL_LIST_PAGES = 1000
+MAL_SYNC_INTERVALS = {"startup", "6h", "12h", "24h"}
+DEFAULT_MAL_SYNC_INTERVAL = "24h"
 
 
 class MalIntegrationError(RuntimeError):
     pass
+
+
+class MalRateLimitError(MalIntegrationError):
+    def __init__(self, message: str, retry_after: int = 60):
+        super().__init__(message)
+        self.retry_after = max(1, min(3600, int(retry_after or 60)))
 
 
 class MalIntegrationManager:
@@ -97,18 +106,78 @@ class MalIntegrationManager:
             raise MalIntegrationError(str(error)) from error
 
     def get_client_id(self) -> str:
-        return str(os.getenv("MANGAX_MAL_CLIENT_ID") or self._load_config().get("client_id") or "").strip()
+        return str(
+            os.getenv("MANGAX_MAL_CLIENT_ID")
+            or self._load_config().get("client_id")
+            or MAL_OAUTH_CLIENT_ID
+            or ""
+        ).strip()
 
     def configure(self, client_id: str, client_secret: str = "") -> dict[str, Any]:
         normalized = str(client_id or "").strip()
         if not CLIENT_ID_PATTERN.fullmatch(normalized):
             raise MalIntegrationError("Geçerli bir MyAnimeList Client ID girilmelidir.")
-        self._save_config({"client_id": normalized})
+        with self._lock:
+            config = self._load_config()
+            config["client_id"] = normalized
+            self._save_config(config)
         if client_secret:
             credentials = self._load_credentials()
             credentials["client_secret"] = str(client_secret).strip()
             self._save_credentials(credentials)
         return self.status()
+
+    def automatic_sync_enabled(self) -> bool:
+        return self._load_config().get("automatic_sync", True) is not False
+
+    def two_way_sync_enabled(self) -> bool:
+        # Uzak hesapta yazma yapan özellik güvenli varsayılan olarak kapalıdır.
+        return self._load_config().get("two_way_sync") is True
+
+    def set_sync_preferences(
+        self,
+        enabled: bool,
+        interval: str,
+        two_way_sync: bool | None = None,
+    ) -> dict[str, Any]:
+        normalized_interval = str(interval or "").strip().lower()
+        if normalized_interval not in MAL_SYNC_INTERVALS:
+            raise MalIntegrationError("Geçerli bir MyAnimeList senkronizasyon aralığı seçilmelidir.")
+        with self._lock:
+            config = self._load_config()
+            config["automatic_sync"] = bool(enabled)
+            config["sync_interval"] = normalized_interval
+            if two_way_sync is not None:
+                config["two_way_sync"] = bool(two_way_sync)
+            self._save_config(config)
+        return self.status()
+
+    def set_automatic_sync(self, enabled: bool) -> dict[str, Any]:
+        return self.set_sync_preferences(
+            enabled,
+            str(self._load_config().get("sync_interval") or DEFAULT_MAL_SYNC_INTERVAL),
+        )
+
+    def record_sync_summary(self, summary: dict[str, Any]) -> None:
+        allowed = {
+            "status", "total", "added", "updated", "unchanged",
+            "unmatched", "failed", "completed_at", "error",
+        }
+        public_summary = {key: summary.get(key) for key in allowed if key in summary}
+        if public_summary.get("status") not in {"completed", "failed", "cancelled"}:
+            return
+        with self._lock:
+            config = self._load_config()
+            config["last_sync"] = public_summary
+            if public_summary.get("status") == "completed":
+                config["last_success"] = public_summary
+                config.pop("last_error", None)
+            elif public_summary.get("status") == "failed":
+                config["last_error"] = {
+                    "error": str(public_summary.get("error") or "MyAnimeList eşitlemesi tamamlanamadı.")[:300],
+                    "completed_at": public_summary.get("completed_at"),
+                }
+            self._save_config(config)
 
     def status(self) -> dict[str, Any]:
         client_id = self.get_client_id()
@@ -121,15 +190,39 @@ class MalIntegrationManager:
             storage_available = False
             storage_error = str(error)
         profile = credentials.get("profile") if isinstance(credentials.get("profile"), dict) else {}
+        config = self._load_config()
+        last_sync = config.get("last_sync") if isinstance(config.get("last_sync"), dict) else {}
+        last_success = config.get("last_success") if isinstance(config.get("last_success"), dict) else {}
+        if not last_success and last_sync.get("status") == "completed":
+            last_success = last_sync
+        last_error = config.get("last_error") if isinstance(config.get("last_error"), dict) else {}
         return {
             "configured": bool(client_id),
             "client_id": client_id,
             "connected": bool(credentials.get("access_token")),
             "username": str(profile.get("name") or ""),
             "callback_url": MAL_CALLBACK_URL,
+            "automatic_sync": self.automatic_sync_enabled(),
+            "two_way_sync": self.two_way_sync_enabled(),
+            "sync_interval": (
+                str(config.get("sync_interval") or DEFAULT_MAL_SYNC_INTERVAL)
+                if str(config.get("sync_interval") or DEFAULT_MAL_SYNC_INTERVAL) in MAL_SYNC_INTERVALS
+                else DEFAULT_MAL_SYNC_INTERVAL
+            ),
+            "last_sync": last_sync,
+            "last_success": last_success,
+            "last_error": last_error,
             "secure_storage": storage_available,
             "storage_error": storage_error,
         }
+
+    def account_identity(self) -> str:
+        """Tokenı açığa çıkarmadan bağlı hesabın kararlı iş anahtarını döndürür."""
+        credentials = self._load_credentials()
+        profile = credentials.get("profile") if isinstance(credentials.get("profile"), dict) else {}
+        account_id = str(profile.get("id") or "").strip()
+        username = str(profile.get("name") or "").strip().casefold()
+        return account_id or username
 
     def start_oauth(self) -> str:
         client_id = self.get_client_id()
@@ -149,6 +242,7 @@ class MalIntegrationManager:
             "client_id": client_id,
             "code_challenge": verifier,
             "code_challenge_method": "plain",
+            "scope": "write:users",
             "state": state,
             "redirect_uri": MAL_CALLBACK_URL,
         })
@@ -213,26 +307,43 @@ class MalIntegrationManager:
         self._save_credentials(credentials)
         return credentials
 
-    def _authorized_get(self, url: str) -> dict[str, Any]:
+    @staticmethod
+    def _safe_retry_after(response: httpx.Response) -> int:
+        try:
+            return max(1, min(3600, int(response.headers.get("Retry-After") or 60)))
+        except (TypeError, ValueError):
+            return 60
+
+    def _authorized_request(
+        self,
+        method: str,
+        url: str,
+        *,
+        data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         credentials = self._load_credentials()
         if not credentials.get("access_token"):
             raise MalIntegrationError("MyAnimeList hesabı bağlı değil.")
         if int(credentials.get("expires_at") or 0) <= int(time.time()) + 60:
             credentials = self._refresh_access_token(credentials)
+        def send(active_credentials: dict[str, Any]) -> httpx.Response:
+            options = {
+                "headers": {"Authorization": f"Bearer {active_credentials['access_token']}"},
+                "timeout": 25.0,
+                "follow_redirects": True,
+            }
+            if method.upper() == "GET":
+                return httpx.get(url, **options)
+            return httpx.request(method, url, data=data, **options)
         try:
-            response = httpx.get(
-                url,
-                headers={"Authorization": f"Bearer {credentials['access_token']}"},
-                timeout=25.0,
-                follow_redirects=True,
-            )
+            response = send(credentials)
             if response.status_code == 401:
                 credentials = self._refresh_access_token(credentials)
-                response = httpx.get(
-                    url,
-                    headers={"Authorization": f"Bearer {credentials['access_token']}"},
-                    timeout=25.0,
-                    follow_redirects=True,
+                response = send(credentials)
+            if response.status_code == 429:
+                raise MalRateLimitError(
+                    "MyAnimeList istek sınırına ulaşıldı; değişiklik daha sonra yeniden denenecek.",
+                    self._safe_retry_after(response),
                 )
             response.raise_for_status()
             value = response.json()
@@ -242,54 +353,144 @@ class MalIntegrationManager:
         except (httpx.HTTPError, ValueError, TypeError) as error:
             raise MalIntegrationError("MyAnimeList listesine şu anda ulaşılamıyor.") from error
 
-    def fetch_preview(self, *, force: bool = False) -> dict[str, Any]:
+    def _authorized_get(self, url: str) -> dict[str, Any]:
+        return self._authorized_request("GET", url)
+
+    @classmethod
+    def _normalized_list_status(cls, value: Any) -> dict[str, Any]:
+        status = cls._mapping(value)
+        return {
+            "status": str(status.get("status") or "plan_to_read"),
+            "score": min(10, cls._safe_nonnegative_int(status.get("score"))),
+            "num_chapters_read": cls._safe_nonnegative_int(status.get("num_chapters_read")),
+            "num_volumes_read": cls._safe_nonnegative_int(status.get("num_volumes_read")),
+            "remote_updated_at": str(status.get("updated_at") or "")[:80],
+        }
+
+    def fetch_manga_list_status(self, mal_id: int) -> dict[str, Any]:
+        safe_id = self._safe_nonnegative_int(mal_id)
+        if not safe_id:
+            raise MalIntegrationError("Geçersiz MyAnimeList manga kimliği.")
+        response = self._authorized_get(
+            f"{MAL_API_URL}/manga/{safe_id}?{urlencode({'fields': 'my_list_status'})}"
+        )
+        return self._normalized_list_status(response.get("my_list_status"))
+
+    def update_manga_list_status(
+        self,
+        mal_id: int,
+        payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Resmî MAL sözleşmesine yalnızca izin verilen liste alanlarını gönder."""
+        safe_id = self._safe_nonnegative_int(mal_id)
+        if not safe_id:
+            raise MalIntegrationError("Geçersiz MyAnimeList manga kimliği.")
+        allowed_statuses = {"reading", "completed", "on_hold", "dropped", "plan_to_read"}
+        status = str(payload.get("status") or "")
+        if status not in allowed_statuses:
+            raise MalIntegrationError("Geçersiz MyAnimeList okuma durumu.")
+        body = {
+            "status": status,
+            "score": min(10, self._safe_nonnegative_int(payload.get("score"))),
+            "num_chapters_read": self._safe_nonnegative_int(payload.get("num_chapters_read")),
+            "num_volumes_read": self._safe_nonnegative_int(payload.get("num_volumes_read")),
+        }
+        response = self._authorized_request(
+            "PATCH",
+            f"{MAL_API_URL}/manga/{safe_id}/my_list_status",
+            data=body,
+        )
+        return self._normalized_list_status(response)
+
+    def fetch_preview(
+        self,
+        *,
+        force: bool = False,
+        progress_callback: Callable[[str, int, int], None] | None = None,
+        cancel_event: threading.Event | None = None,
+    ) -> dict[str, Any]:
+        def progress(stage: str, processed: int, total: int) -> None:
+            if cancel_event is not None and cancel_event.is_set():
+                from mangax.integrations.mal_sync import MalSyncCancelled
+
+                raise MalSyncCancelled("MyAnimeList senkronizasyonu iptal edildi.")
+            if progress_callback:
+                progress_callback(stage, processed, total)
+
         with self._lock:
             if not force and self._preview["entries"] and time.time() - self._preview["saved_at"] < 600:
                 entries = list(self._preview["entries"])
                 return self._preview_payload(entries, cached=True)
+        progress("fetching", 0, 0)
         fields = "list_status,alternative_titles,start_date,media_type,status,num_chapters,num_volumes"
         next_url = f"{MAL_API_URL}/users/@me/mangalist?{urlencode({'limit': 100, 'fields': fields, 'sort': 'list_updated_at'})}"
         raw_entries: list[dict[str, Any]] = []
-        for _ in range(20):
+        visited_urls: set[str] = set()
+        for _ in range(MAX_MAL_LIST_PAGES):
+            if next_url in visited_urls:
+                raise MalIntegrationError("MAL sayfalama adresi tekrarlandı.")
+            visited_urls.add(next_url)
             response = self._authorized_get(next_url)
             raw_entries.extend(item for item in response.get("data") or [] if isinstance(item, dict))
+            progress("fetching", len(raw_entries), 0)
             candidate = str((response.get("paging") or {}).get("next") or "")
             if not candidate:
                 break
             if not candidate.startswith(f"{MAL_API_URL}/users/"):
                 raise MalIntegrationError("MAL sayfalama adresi güvenlik kontrolünden geçmedi.")
             next_url = candidate
-        mal_ids = [int((item.get("node") or {}).get("id") or 0) for item in raw_entries]
+        else:
+            raise MalIntegrationError("MAL manga listesi güvenli sayfalama sınırını aştı.")
+        mal_ids = [
+            self._safe_nonnegative_int(self._mapping(item.get("node")).get("id"))
+            for item in raw_entries
+        ]
         valid_ids = [value for value in mal_ids if value > 0]
+        progress("matching", 0, len(valid_ids))
         with self._lock:
             matcher = self._manga_matcher
         matches = matcher(valid_ids) if matcher else {
-            int((item.get("node") or {}).get("id") or 0): self._reader_manga(
-                item.get("node") or {}, int((item.get("node") or {}).get("id") or 0)
+            self._safe_nonnegative_int(self._mapping(item.get("node")).get("id")): self._reader_manga(
+                self._mapping(item.get("node")),
+                self._safe_nonnegative_int(self._mapping(item.get("node")).get("id")),
             )
             for item in raw_entries
-            if int((item.get("node") or {}).get("id") or 0) > 0
+            if self._safe_nonnegative_int(self._mapping(item.get("node")).get("id")) > 0
         }
+        progress("matching", len(valid_ids), len(valid_ids))
         entries = []
         for item in raw_entries:
-            node = item.get("node") or {}
-            list_status = item.get("list_status") or {}
-            mal_id = int(node.get("id") or 0)
+            node = self._mapping(item.get("node"))
+            list_status = self._mapping(item.get("list_status"))
+            mal_id = self._safe_nonnegative_int(node.get("id"))
             match = matches.get(mal_id)
+            picture = node.get("main_picture") if isinstance(node.get("main_picture"), dict) else {}
             entries.append({
                 "mal_id": mal_id,
                 "title": str(node.get("title") or "Bilinmeyen Manga"),
-                "cover_url": str((node.get("main_picture") or {}).get("medium") or ""),
+                "cover_url": str(picture.get("large") or picture.get("medium") or ""),
                 "status": str(list_status.get("status") or "plan_to_read"),
-                "score": max(0, min(10, int(list_status.get("score") or 0))),
-                "num_chapters_read": max(0, int(list_status.get("num_chapters_read") or 0)),
-                "num_volumes_read": max(0, int(list_status.get("num_volumes_read") or 0)),
+                "score": min(10, self._safe_nonnegative_int(list_status.get("score"))),
+                "num_chapters_read": self._safe_nonnegative_int(list_status.get("num_chapters_read")),
+                "num_volumes_read": self._safe_nonnegative_int(list_status.get("num_volumes_read")),
+                "remote_updated_at": str(list_status.get("updated_at") or "")[:80],
                 "matched": bool(match),
                 "manga": match,
             })
         with self._lock:
             self._preview = {"saved_at": time.time(), "entries": entries}
         return self._preview_payload(entries, cached=False)
+
+    @staticmethod
+    def _safe_nonnegative_int(value: Any) -> int:
+        try:
+            return max(0, int(value or 0))
+        except (TypeError, ValueError, OverflowError):
+            return 0
+
+    @staticmethod
+    def _mapping(value: Any) -> dict[str, Any]:
+        return value if isinstance(value, dict) else {}
 
     @staticmethod
     def _preview_payload(entries: list[dict[str, Any]], *, cached: bool) -> dict[str, Any]:
@@ -317,6 +518,13 @@ class MalIntegrationManager:
         with self._lock:
             self._pending.clear()
             self._preview = {"saved_at": 0.0, "entries": []}
+        with self._lock:
+            config = self._load_config()
+            config.pop("last_sync", None)
+            config.pop("last_success", None)
+            config.pop("last_error", None)
+            config["two_way_sync"] = False
+            self._save_config(config)
         return self.status()
 
 

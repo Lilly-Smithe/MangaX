@@ -33,23 +33,23 @@
     },
     {
       "path": "mangax/core/backup_service.py",
-      "sha256": "af166eb4efe328e85bea733bf37baa2b5722e27ffb71db130badb9773afec495"
+      "sha256": "e74cc88909eaa07845f63723decb4939685e35cffb686d230daa1fa6e87ea6e9"
     },
     {
       "path": "mangax/core/config.py",
-      "sha256": "543c27dc045902a5705ea2c91b8013fe56544b10aeff53aeb17b0d6f6ea1b105"
+      "sha256": "a23795066968ca945509524e5c7dd12224515ab2aff4566cedbe30b37ab0129e"
     },
     {
       "path": "mangax/core/database.py",
-      "sha256": "ddff119035a7493667b6d11149108ede1d266cd9b30cbfeabb9e2a3729c94401"
+      "sha256": "b6357917effbfe0f9b553707047163eb9fc0f67587442dcb9881768d053129a9"
     },
     {
       "path": "mangax/core/dependencies.py",
-      "sha256": "f060d61a3506f9ba0b8faeb0a4445fbfc2d89115cb15479bcdd2f4a0171e7ecf"
+      "sha256": "db167a3353a7cee54fd215d92b154c07664e147b60227113f814bba3b64ff336"
     },
     {
       "path": "mangax/core/library.py",
-      "sha256": "882aefd880653b851ef29fe35ca5e6c5f8a79201d00c110b18d44c9b0d8431dd"
+      "sha256": "22549cd8d046ba6193f1b29aa09296b520f528f2067027569a4333914094568e"
     },
     {
       "path": "mangax/core/migrate_folders.py",
@@ -57,7 +57,7 @@
     },
     {
       "path": "mangax/core/models.py",
-      "sha256": "0059bd4c9d0fefad197daa1f68dfc42ac436333bc5cb6317906d9222220b5028"
+      "sha256": "d6257c4497b99020fb018fd43348238eb9766cbc86457c55416b918dd440faa4"
     },
     {
       "path": "mangax/core/preferences_manager.py",
@@ -65,7 +65,7 @@
     },
     {
       "path": "mangax/core/release_notes.py",
-      "sha256": "94cff1706de2d51cb54919ff16663f30fc46e45a634f1f444f1915c1e9a9170d"
+      "sha256": "1e02d2adc521a58fde5436d4477a5db9b4eb41258d569878bd35a79e6e671156"
     },
     {
       "path": "mangax/integrations/__init__.py",
@@ -85,7 +85,23 @@
     },
     {
       "path": "mangax/integrations/mal_integration.py",
-      "sha256": "87bb656ebe8d152ea42f92787d946a555c2364bca9ef5b1531e4984c13b3a8f9"
+      "sha256": "1945c6e40ab56e68044ec58e7b3ad1af6b7fe2f310bfa3fee6f7692549b5ae6b"
+    },
+    {
+      "path": "mangax/integrations/mal_outbound.py",
+      "sha256": "40507ffdde6b9749805dddf930700173bbbe635e4e92c5ad9b34606a831f9141"
+    },
+    {
+      "path": "mangax/integrations/mal_sync.py",
+      "sha256": "a517cf5064eba02b640add73f8f731c537a2e73e67b22426811e522d6bae4ffb"
+    },
+    {
+      "path": "mangax/integrations/mal_sync_jobs.py",
+      "sha256": "5007dc6915f62b9217c1db4518e117aa549bb2b2f001b1635960644426a412a8"
+    },
+    {
+      "path": "mangax/integrations/mal_sync_scheduler.py",
+      "sha256": "82e1d5491fa243751134a32f1c75c9eaebedce478cbb315973f72e4f228546eb"
     },
     {
       "path": "mangax/integrations/secure_store.py",
@@ -125,11 +141,11 @@
     },
     {
       "path": "packaging/windows/mangax_reader.spec",
-      "sha256": "9d79ff6456adfea8373b02662509804498e5998b546174e5d9f0e7d53f04cf59"
+      "sha256": "671642726278624cb17cc70a61e4cab7d95528753b7e2cd8cb953469310b5a6c"
     },
     {
       "path": "packaging/windows/mangax_reader_installer.iss",
-      "sha256": "882be413c6261d5be35a9a5a4cd3a8e51b72afe1e4fb02a8362643960cd1a743"
+      "sha256": "e1b82898aef4f11fbc229be3259014ad1f39bcbca7bd0026fe23f3be204d4ce9"
     },
     {
       "path": "requirements-build.txt",
@@ -161,7 +177,7 @@
     },
     {
       "path": "routers/library.py",
-      "sha256": "8242ca423fc903eb88db37f8fc8cbca744c061a4e8c84992cb3c4df178449b59"
+      "sha256": "a99a3bf7477dc9c899996ac2fc7c385ed7fa7fbf846f54ac8eb87468776e2a26"
     },
     {
       "path": "routers/local_reader.py",
@@ -169,7 +185,7 @@
     },
     {
       "path": "routers/mal.py",
-      "sha256": "03d21fd3c3e86a7ecd48ab3c61bf6e67d047262d98613e3d5fc14b5b29844816"
+      "sha256": "835fc8b03b6b2ab997111ac5c3a4ffcfb787f79a7a5011bd899f83e084ad39f9"
     },
     {
       "path": "routers/preferences.py",
@@ -189,7 +205,7 @@
     },
     {
       "path": "static/css/modules/base.css",
-      "sha256": "e96b70f6ecaf2c6057481aa8ffb22053ac4adad263508b9293ec279209cf2aad"
+      "sha256": "bce3ab910876fb294266ce55bf830c5dec7ec3765e9522f87b1f9749f8a45d9f"
     },
     {
       "path": "static/css/modules/components.css",
@@ -209,7 +225,7 @@
     },
     {
       "path": "static/css/modules/settings-workspace.css",
-      "sha256": "ff2aa27ef896c1c3ba99b274fb1fb3f43e43c6d1cbae536375ff67094f479902"
+      "sha256": "d60b0071c0a784083c25441b6f742c972c1551f6128f0a526b566e49429b34ca"
     },
     {
       "path": "static/css/modules/settings.css",
@@ -217,7 +233,7 @@
     },
     {
       "path": "static/css/styles.css",
-      "sha256": "74ca7b28f58aba6eab01a0c0da49c437c88fddde97ae5db8993846b952b3f970"
+      "sha256": "9fc0807d957d48f93fd4e2f09ca28afba2c180fe4830932d7682e658f6f15a8a"
     },
     {
       "path": "static/img/no-cover.jpg",
@@ -229,7 +245,7 @@
     },
     {
       "path": "static/index.html",
-      "sha256": "84f1432fcc38818319626499f14c928589065210100d9b995a4ec09c5c70a489"
+      "sha256": "e7e4bf3d00bd6e9d44e60ef54684a1ca2f916a40272bc93db1fbcef17accf920"
     },
     {
       "path": "static/js/app-update.js",
@@ -253,11 +269,11 @@
     },
     {
       "path": "static/js/integrations.js",
-      "sha256": "383a4445420121603c60cf86dfe4cd723451613440cfb12f1d489a944689edb2"
+      "sha256": "9f07e38576fb9f82ea42b14714091e1ba31b736ec6e4178b6920131f05280476"
     },
     {
       "path": "static/js/library.js",
-      "sha256": "00201e0f406e73dce2238df0628e239c8bc4ae42bd9401431e692a64e9cfc056"
+      "sha256": "33a04f1efd1bd7473195bde6c5c550fb0b62bd9572a636d27fe42d3ffc5afa65"
     },
     {
       "path": "static/js/local-import.js",

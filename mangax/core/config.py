@@ -1,6 +1,6 @@
 import os
 import sys
-APP_VERSION = 'v0.12.4'
+APP_VERSION = 'v0.13.0'
 SUPPORTED_EDITIONS = {'reader'}
 APP_EDITION = os.getenv('MANGAX_EDITION', 'reader').strip().lower() or 'full'
 if APP_EDITION not in SUPPORTED_EDITIONS:
@@ -46,6 +46,7 @@ GITHUB_ACCESS_REPOSITORY = os.getenv('MANGAX_GITHUB_ACCESS_REPOSITORY', 'MangaX-
 GITHUB_READER_RELEASE_REPOSITORY = os.getenv('MANGAX_READER_RELEASE_REPOSITORY', 'Lilly-Smithe/MangaX').strip()
 GITHUB_FULL_RELEASE_MANIFEST_PATH = os.getenv('MANGAX_FULL_RELEASE_MANIFEST_PATH', 'releases/latest.json').strip().strip('/') or 'releases/latest.json'
 GITHUB_OAUTH_CLIENT_ID = os.getenv('MANGAX_GITHUB_CLIENT_ID', 'Ov23li2UlSSwaQNJHeyA').strip()
+MAL_OAUTH_CLIENT_ID = os.getenv('MANGAX_MAL_CLIENT_ID', '27002aa2bf9efbe7be68020cf89b843d').strip()
 os.makedirs(STATIC_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(LOCAL_MANGA_DIR, exist_ok=True)

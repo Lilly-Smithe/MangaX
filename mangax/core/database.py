@@ -6,9 +6,14 @@ import os
 import time
 from contextlib import contextmanager
 from mangax.core.config import DATA_DIR
+from mangax.core.models import LIBRARY_STATUS_VALUES
 from typing import Dict, Any, List, Optional
 
 DB_PATH = os.path.join(DATA_DIR, "library.db")
+DATABASE_SCHEMA_VERSION = 3
+LIBRARY_STATUS_SQL_VALUES = ", ".join(
+    f"'{value}'" for value in sorted(LIBRARY_STATUS_VALUES)
+)
 
 class DatabaseManager:
     def __init__(self):
@@ -29,7 +34,7 @@ class DatabaseManager:
 
     def init_db(self):
         with self.get_connection() as conn:
-            conn.execute("""
+            conn.execute(f"""
                 CREATE TABLE IF NOT EXISTS mangas (
                     id TEXT PRIMARY KEY,
                     title TEXT,
@@ -50,7 +55,8 @@ class DatabaseManager:
                     last_read_at INTEGER,
                     last_read_offset REAL DEFAULT 0,
                     last_read_percent REAL DEFAULT 0,
-                    library_status TEXT DEFAULT 'reading',
+                    library_status TEXT NOT NULL DEFAULT 'reading'
+                        CHECK (library_status IN ({LIBRARY_STATUS_SQL_VALUES})),
                     user_rating INTEGER DEFAULT 0,
                     personal_note TEXT DEFAULT '',
                     collections TEXT DEFAULT '[]',
@@ -67,7 +73,11 @@ class DatabaseManager:
                     mal_id INTEGER DEFAULT 0,
                     mal_status TEXT DEFAULT '',
                     mal_num_chapters_read INTEGER DEFAULT 0,
-                    mal_num_volumes_read INTEGER DEFAULT 0
+                    mal_num_volumes_read INTEGER DEFAULT 0,
+                    mal_remote_score INTEGER DEFAULT 0,
+                    mal_last_synced_at INTEGER DEFAULT 0,
+                    mal_remote_updated_at TEXT DEFAULT '',
+                    mal_sync_error TEXT DEFAULT ''
                 )
             """)
             existing_columns = {
@@ -96,10 +106,44 @@ class DatabaseManager:
                 "mal_status": "TEXT DEFAULT ''",
                 "mal_num_chapters_read": "INTEGER DEFAULT 0",
                 "mal_num_volumes_read": "INTEGER DEFAULT 0",
+                "mal_remote_score": "INTEGER DEFAULT 0",
+                "mal_last_synced_at": "INTEGER DEFAULT 0",
+                "mal_remote_updated_at": "TEXT DEFAULT ''",
+                "mal_sync_error": "TEXT DEFAULT ''",
             }
             for column, definition in library_columns.items():
                 if column not in existing_columns:
                     conn.execute(f"ALTER TABLE mangas ADD COLUMN {column} {definition}")
+            schema_version = int(conn.execute("PRAGMA user_version").fetchone()[0])
+            if schema_version < 1:
+                # v0.12.4 ve öncesinde MAL plan_to_read kayıtları zorunlu olarak
+                # on_hold saklanıyordu. Yalnız MAL kökeni kesin olan satırları
+                # düzelt; kullanıcının elle seçtiği mevcut durumlara dokunma.
+                conn.execute("""
+                    UPDATE mangas
+                    SET library_status = 'plan_to_read'
+                    WHERE mal_status = 'plan_to_read'
+                      AND library_status = 'on_hold'
+                """)
+                conn.execute("PRAGMA user_version = 1")
+                schema_version = 1
+            if schema_version < 2:
+                conn.execute("PRAGMA user_version = 2")
+                schema_version = 2
+            if schema_version < 3:
+                # Eski kayıtlarda yerel puan son MAL içe aktarımından geliyordu.
+                # Uzak temel değeri ayrı saklayarak sonraki yerel değişiklikleri
+                # güvenli biçimde çakışma denetimine sok.
+                conn.execute("""
+                    UPDATE mangas
+                    SET mal_remote_score = user_rating
+                    WHERE mal_id > 0
+                """)
+                conn.execute("PRAGMA user_version = 3")
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_mangas_mal_id
+                ON mangas(mal_id) WHERE mal_id > 0
+            """)
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS downloaded_chapters (
                     id TEXT,
@@ -124,6 +168,27 @@ class DatabaseManager:
                     read INTEGER DEFAULT 0,
                     dedupe_key TEXT UNIQUE
                 )
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS mal_outbound_queue (
+                    manga_id TEXT PRIMARY KEY,
+                    mal_id INTEGER NOT NULL,
+                    account_key TEXT NOT NULL DEFAULT '',
+                    base_payload TEXT NOT NULL DEFAULT '{}',
+                    desired_payload TEXT NOT NULL DEFAULT '{}',
+                    remote_payload TEXT NOT NULL DEFAULT '{}',
+                    state TEXT NOT NULL DEFAULT 'pending'
+                        CHECK (state IN ('pending', 'conflict')),
+                    queued_at INTEGER NOT NULL DEFAULT 0,
+                    available_at REAL NOT NULL DEFAULT 0,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    last_error TEXT NOT NULL DEFAULT '',
+                    updated_at INTEGER NOT NULL DEFAULT 0
+                )
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_mal_outbound_due
+                ON mal_outbound_queue(account_key, state, available_at)
             """)
             conn.commit()
 

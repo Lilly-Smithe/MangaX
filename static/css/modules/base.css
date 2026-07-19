@@ -534,11 +534,31 @@ body {
     color: #fff;
 }
 
+.library-status-filters [data-library-status-count] {
+    display: inline-grid;
+    min-width: 19px;
+    height: 19px;
+    margin-left: 4px;
+    padding: 0 5px;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.library-status-filters button.active [data-library-status-count] {
+    background: rgba(229, 9, 20, 0.18);
+    color: #fff;
+}
+
 .library-catalog-controls select,
 .library-bulk-bar select,
 .library-bulk-bar input,
 .library-editor-panel select,
 .library-editor-panel input[type="text"],
+.library-editor-panel input[type="number"],
 .library-editor-panel textarea {
     min-height: 38px;
     border: 1px solid var(--border-color);
@@ -674,6 +694,22 @@ body {
     box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
 }
 
+.library-mal-badge {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    z-index: 5;
+    padding: 4px 6px;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 5px;
+    background: rgba(18, 73, 151, .92);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .04em;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .35);
+}
+
 .library-card-selector {
     display: none;
     position: absolute;
@@ -721,6 +757,7 @@ body {
 .library-status-pill.completed { background: rgba(52, 211, 153, .13); color: #53dba9; }
 .library-status-pill.on_hold { background: rgba(245, 158, 11, .13); color: #f6b83f; }
 .library-status-pill.dropped { background: rgba(148, 163, 184, .13); color: #9aa6b8; }
+.library-status-pill.plan_to_read { background: rgba(168, 85, 247, .14); color: #c084fc; }
 .library-rating { color: #f5b82e; font-size: 11px; font-weight: 800; }
 .library-tracking-indicator {
     display: inline-grid;
@@ -797,6 +834,7 @@ body {
 .compact-list .library-collection-tags { grid-column: 2; grid-row: 1 / span 2; margin: 0; justify-content: flex-end; }
 .compact-list .library-catalog-footer { grid-column: 2; grid-row: 3; min-width: 220px; padding-top: 5px; }
 .compact-list .library-unread-badge { left: 70px; }
+.compact-list .library-mal-badge { right: auto; left: 70px; top: 36px; }
 
 .library-editor {
     position: fixed;
@@ -830,6 +868,8 @@ body {
 .library-editor-panel label > small { margin-left: auto; color: var(--text-muted); font-size: 10px; font-weight: 500; }
 .library-editor-panel textarea { padding: 11px; resize: vertical; }
 .library-editor-panel input[type="range"] { accent-color: var(--primary-solid); }
+.library-mal-progress-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.library-mal-progress-fields.hidden { display: none; }
 .library-editor-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .library-tracking-settings {
     display: grid;

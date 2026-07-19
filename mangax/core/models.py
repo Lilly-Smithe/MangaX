@@ -42,7 +42,15 @@ class DeleteRequest(BaseModel):
     chapter_id: str
 
 
-LibraryStatus = Literal["reading", "completed", "on_hold", "dropped"]
+LIBRARY_STATUS_VALUES = frozenset({
+    "reading",
+    "completed",
+    "on_hold",
+    "dropped",
+    "plan_to_read",
+})
+
+LibraryStatus = Literal["reading", "completed", "on_hold", "dropped", "plan_to_read"]
 
 
 class LibraryMetadataRequest(BaseModel):
@@ -50,6 +58,8 @@ class LibraryMetadataRequest(BaseModel):
     user_rating: int = Field(default=0, ge=0, le=10)
     personal_note: str = Field(default="", max_length=4000)
     collections: list[str] = Field(default_factory=list, max_length=20)
+    mal_num_chapters_read: Optional[int] = Field(default=None, ge=0)
+    mal_num_volumes_read: Optional[int] = Field(default=None, ge=0)
 
 
 class LibraryBulkUpdateRequest(BaseModel):

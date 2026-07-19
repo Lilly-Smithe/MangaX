@@ -10,6 +10,7 @@ from mangax.core.models import (
     ProgressRequest,
 )
 from mangax.core.dependencies import library_manager
+from mangax.integrations.mal_outbound import mal_outbound_service
 
 router = APIRouter(prefix="/api", tags=["Library"])
 
@@ -30,6 +31,7 @@ def schedule_library_maintenance(background_tasks: BackgroundTasks):
 @router.post("/progress")
 def update_progress(req: ProgressRequest):
     """Okuma ilerlemesini güncelle"""
+    before = library_manager.get_manga(req.manga_id)
     manga = library_manager.update_progress(
         req.manga_id,
         req.chapter_id,
@@ -46,6 +48,7 @@ def update_progress(req: ProgressRequest):
         page_offset=req.page_offset,
         chapter_percent=req.chapter_percent,
     )
+    mal_outbound_service.enqueue_local_change(before, manga)
     return {"status": "success", "manga": manga}
 
 
@@ -77,25 +80,35 @@ def delete_manga(manga_id: str):
 
 @router.put("/library/{manga_id}/metadata")
 def update_library_metadata(manga_id: str, req: LibraryMetadataRequest):
+    before = library_manager.get_manga(manga_id)
     manga = library_manager.update_library_metadata(
         manga_id,
         library_status=req.library_status,
         user_rating=req.user_rating,
         personal_note=req.personal_note,
         collections=req.collections,
+        mal_num_chapters_read=req.mal_num_chapters_read,
+        mal_num_volumes_read=req.mal_num_volumes_read,
     )
     if not manga:
         raise HTTPException(status_code=404, detail="Kütüphane kaydı bulunamadı.")
+    mal_outbound_service.enqueue_local_change(before, manga)
     return {"status": "success", "manga": manga}
 
 
 @router.put("/library/bulk-update")
 def bulk_update_library(req: LibraryBulkUpdateRequest):
+    before = {
+        manga_id: library_manager.get_manga(manga_id)
+        for manga_id in req.manga_ids
+    }
     mangas = library_manager.bulk_update_library(
         req.manga_ids,
         library_status=req.library_status,
         add_collection=req.add_collection,
     )
+    for manga in mangas:
+        mal_outbound_service.enqueue_local_change(before.get(manga["id"]), manga)
     return {"status": "success", "updated": len(mangas), "mangas": mangas}
 
 

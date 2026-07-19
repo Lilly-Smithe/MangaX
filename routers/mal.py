@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 
 from mangax.core.dependencies import library_manager
 from mangax.integrations.mal_integration import MAL_CALLBACK_URL, MalIntegrationError, mal_integration_manager
+from mangax.integrations.mal_sync_jobs import MalSyncJobError, mal_sync_job_manager
+from mangax.integrations.mal_outbound import mal_outbound_service
 
 
 router = APIRouter(prefix="/api/integrations/mal", tags=["MyAnimeList"])
@@ -23,6 +25,16 @@ class MalConfigureRequest(BaseModel):
 
 class MalImportRequest(BaseModel):
     mal_ids: list[int] = Field(min_length=1, max_length=1000)
+
+
+class MalSyncPreferencesRequest(BaseModel):
+    automatic_sync: bool
+    sync_interval: str = Field(default="24h", pattern=r"^(startup|6h|12h|24h)$")
+    two_way_sync: bool | None = None
+
+
+class MalConflictResolutionRequest(BaseModel):
+    choice: str = Field(pattern=r"^(remote|local)$")
 
 
 def _http_error(error: MalIntegrationError) -> HTTPException:
@@ -38,6 +50,22 @@ def mal_status() -> dict[str, Any]:
 def configure_mal(request: MalConfigureRequest) -> dict[str, Any]:
     try:
         return mal_integration_manager.configure(request.client_id, request.client_secret)
+    except MalIntegrationError as error:
+        raise _http_error(error) from error
+
+
+@router.put("/sync/preferences")
+def configure_mal_sync_preferences(request: MalSyncPreferencesRequest) -> dict[str, Any]:
+    try:
+        status = mal_integration_manager.set_sync_preferences(
+            request.automatic_sync,
+            request.sync_interval,
+            request.two_way_sync,
+        )
+        from mangax.integrations.mal_sync_scheduler import mal_sync_scheduler
+
+        mal_sync_scheduler.preferences_changed()
+        return status
     except MalIntegrationError as error:
         raise _http_error(error) from error
 
@@ -64,7 +92,22 @@ def mal_callback(
     else:
         try:
             result = mal_integration_manager.complete_oauth(state, code)
-            message = f"{result.get('username') or 'MyAnimeList'} hesabı MangaX'e bağlandı. Bu pencereyi kapatabilirsiniz."
+            automatic_sync = mal_integration_manager.automatic_sync_enabled()
+            if automatic_sync:
+                try:
+                    mal_sync_job_manager.start(trigger="oauth")
+                except (MalSyncJobError, MalIntegrationError):
+                    # OAuth bağlantısı başarılı kalır; kullanıcı işi MangaX içinden
+                    # yeniden başlatabilir. Callback senkronizasyonu beklemez.
+                    pass
+            message = (
+                f"{result.get('username') or 'MyAnimeList'} hesabı MangaX'e bağlandı. "
+                + (
+                    "Kütüphane eşitlemesi arka planda başladı; bu pencereyi kapatabilirsiniz."
+                    if automatic_sync
+                    else "Bu pencereyi kapatıp eşitlemeyi MangaX içinden başlatabilirsiniz."
+                )
+            )
             success = True
         except MalIntegrationError as integration_error:
             message = str(integration_error)
@@ -111,9 +154,54 @@ def import_mal_library(request: MalImportRequest) -> dict[str, Any]:
     }
 
 
+@router.post("/sync")
+def sync_mal_library() -> dict[str, Any]:
+    try:
+        return mal_sync_job_manager.start(trigger="manual")
+    except MalSyncJobError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+
+
+@router.get("/sync/status")
+def mal_sync_status() -> dict[str, Any]:
+    return mal_sync_job_manager.status()
+
+
+@router.get("/sync/summary")
+def mal_sync_summary() -> dict[str, Any]:
+    return mal_sync_job_manager.last_summary()
+
+
+@router.get("/outbound/status")
+def mal_outbound_status() -> dict[str, Any]:
+    return mal_outbound_service.status()
+
+
+@router.post("/outbound/retry")
+def retry_mal_outbound() -> dict[str, Any]:
+    return mal_outbound_service.retry_all()
+
+
+@router.post("/outbound/conflicts/{manga_id}/resolve")
+def resolve_mal_conflict(
+    manga_id: str,
+    request: MalConflictResolutionRequest,
+) -> dict[str, Any]:
+    try:
+        return mal_outbound_service.resolve_conflict(manga_id, request.choice)
+    except MalIntegrationError as error:
+        raise _http_error(error) from error
+
+
+@router.delete("/sync")
+def cancel_mal_sync() -> dict[str, Any]:
+    return mal_sync_job_manager.cancel()
+
+
 @router.delete("/disconnect")
 def disconnect_mal() -> dict[str, Any]:
     try:
+        mal_sync_job_manager.cancel()
         return mal_integration_manager.disconnect()
     except MalIntegrationError as error:
         raise _http_error(error) from error

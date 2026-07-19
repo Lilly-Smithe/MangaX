@@ -180,7 +180,8 @@
 .mal-integration-card { overflow: visible; }
 
 .mal-security-note,
-.mal-connection-bar,
+.mal-disconnected-view,
+.mal-connected-view,
 .mal-import-panel {
     border: 1px solid rgba(255, 255, 255, .065);
     border-radius: 12px;
@@ -207,16 +208,87 @@
 .mal-callback-field { grid-column: 1 / -1; }
 .mal-callback-field input { color: #93c5fd; }
 
-.mal-connection-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 14px; padding: 12px; }
-.mal-account-state { min-width: 0; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 9px; align-items: center; }
-.mal-account-state > i { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; color: #fbbf24; background: rgba(251, 191, 36, .09); }
-.mal-account-state.connected > i { color: #4ade80; background: rgba(74, 222, 128, .09); }
-.mal-account-state > div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.mal-account-state strong { font-size: 11px; }
-.mal-account-state span { color: var(--text-muted); font-size: 9px; line-height: 1.35; }
-.mal-connection-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.mal-disconnected-view { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; padding: 15px; }
+.mal-disconnected-view.hidden { display: none; }
+.mal-connect-copy { min-width: 0; display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 11px; align-items: center; }
+.mal-state-icon,
+.mal-account-avatar { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 11px; color: #ff5962; background: rgba(229, 9, 20, .1); }
+.mal-connect-copy > div { display: flex; flex-direction: column; gap: 3px; }
+.mal-connect-copy strong { font-size: 12px; }
+.mal-connect-copy small { color: var(--text-muted); font-size: 9px; line-height: 1.45; }
+
+.mal-advanced-settings,
+.mal-advanced-preview { margin-top: 11px; border: 1px solid rgba(255, 255, 255, .055); border-radius: 10px; background: rgba(255, 255, 255, .012); }
+.mal-advanced-settings summary,
+.mal-advanced-preview summary { padding: 11px 13px; color: var(--text-secondary); font-size: 9px; font-weight: 800; cursor: pointer; }
+.mal-advanced-settings summary:focus-visible,
+.mal-advanced-preview summary:focus-visible { outline: 2px solid rgba(229, 9, 20, .65); outline-offset: 2px; border-radius: 8px; }
+.mal-advanced-settings[open] { padding: 0 13px 13px; }
+.mal-advanced-settings[open] summary { margin: 0 -13px 12px; border-bottom: 1px solid rgba(255, 255, 255, .05); }
+.mal-advanced-settings .btn { margin-top: 10px; }
+
+.mal-connected-view { margin-top: 14px; overflow: hidden; }
+.mal-connected-view.hidden { display: none; }
+.mal-account-overview { display: grid; grid-template-columns: 42px minmax(130px, 1fr) minmax(360px, auto); gap: 12px; align-items: center; padding: 15px; }
+.mal-account-avatar { color: #4ade80; background: rgba(74, 222, 128, .09); }
+.mal-account-identity { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mal-account-identity small { color: var(--text-muted); font-size: 7px; font-weight: 900; letter-spacing: .12em; }
+.mal-account-identity strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.mal-account-identity span { color: #4ade80; font-size: 8px; }
+.mal-account-metrics { display: grid; grid-template-columns: repeat(3, minmax(105px, 1fr)); gap: 7px; }
+.mal-account-metrics > span { display: flex; flex-direction: column; gap: 3px; padding: 9px 11px; border-radius: 9px; background: rgba(255, 255, 255, .025); }
+.mal-account-metrics small { color: var(--text-muted); font-size: 7px; }
+.mal-account-metrics strong { font-size: 10px; }
+.mal-sync-preferences { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 15px; border-top: 1px solid rgba(255, 255, 255, .055); }
+.mal-auto-sync-control { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.mal-auto-sync-control > span { display: flex; flex-direction: column; gap: 2px; }
+.mal-auto-sync-control strong { font-size: 10px; }
+.mal-auto-sync-control small { color: var(--text-muted); font-size: 8px; }
+.mal-auto-sync-control input { position: absolute; opacity: 0; pointer-events: none; }
+.mal-auto-sync-control > i { position: relative; width: 34px; height: 19px; border-radius: 999px; background: #30313a; transition: background .18s ease; }
+.mal-auto-sync-control > i::after { content: ""; position: absolute; width: 13px; height: 13px; left: 3px; top: 3px; border-radius: 50%; background: #fff; transition: transform .18s ease; }
+.mal-auto-sync-control input:checked + i { background: var(--primary-solid); }
+.mal-auto-sync-control input:checked + i::after { transform: translateX(15px); }
+.mal-auto-sync-control input:focus-visible + i { outline: 2px solid #fff; outline-offset: 3px; }
+.mal-sync-interval-control { min-width: 170px; display: flex; flex-direction: column; gap: 5px; }
+.mal-sync-interval-control > span { color: var(--text-muted); font-size: 8px; font-weight: 800; }
+.mal-sync-interval-control select { min-height: 34px; padding: 6px 30px 6px 9px; font-size: 9px; }
+#mal-last-sync-error { max-width: 150px; overflow: hidden; color: #fbbf24; text-overflow: ellipsis; white-space: nowrap; }
 
 .mal-import-panel { margin-top: 16px; padding: 13px; }
+.mal-outbound-panel { margin: 0 0 14px; padding: 12px; border: 1px solid rgba(255, 255, 255, .06); border-radius: 10px; background: rgba(255, 255, 255, .015); }
+.mal-outbound-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mal-outbound-heading > div { display: flex; flex-direction: column; gap: 2px; }
+.mal-outbound-heading span { color: #60a5fa; font-size: 7px; font-weight: 900; letter-spacing: .12em; }
+.mal-outbound-heading strong { font-size: 11px; }
+.mal-outbound-heading small { color: var(--text-muted); font-size: 8px; }
+.mal-conflict-list { display: flex; flex-direction: column; gap: 7px; margin-top: 9px; }
+.mal-conflict-list:empty { display: none; }
+.mal-conflict-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px; border: 1px solid rgba(251, 191, 36, .22); border-radius: 9px; background: rgba(251, 191, 36, .035); }
+.mal-conflict-row > div:first-child { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mal-conflict-row strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.mal-conflict-row small { color: var(--text-muted); font-size: 8px; }
+.mal-conflict-row > div:last-child { display: flex; flex-wrap: wrap; gap: 6px; }
+.mal-sync-panel { margin-bottom: 14px; padding: 12px; border: 1px solid rgba(229, 9, 20, .18); border-radius: 10px; background: rgba(229, 9, 20, .035); }
+.mal-sync-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mal-sync-heading > div:first-child { display: flex; flex-direction: column; gap: 2px; }
+.mal-sync-heading span { color: #ff5962; font-size: 7px; font-weight: 900; letter-spacing: .12em; }
+.mal-sync-heading strong { font-size: 12px; }
+.mal-sync-heading small { color: var(--text-muted); font-size: 9px; }
+.mal-sync-actions { display: flex; gap: 7px; }
+.mal-sync-progress { height: 5px; margin-top: 11px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, .07); }
+.mal-sync-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #e50914, #ff5962); transition: width .25s ease; }
+.mal-sync-panel[data-state="fetching"] .mal-sync-progress span,
+.mal-sync-panel[data-state="matching"] .mal-sync-progress span { width: 35%; animation: mal-sync-indeterminate 1.1s ease-in-out infinite alternate; }
+.mal-sync-panel[data-state="completed"] .mal-sync-progress span { background: #36d399; }
+.mal-sync-panel[data-state="failed"] .mal-sync-progress span { background: #ff5962; }
+.mal-sync-counts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 9px; }
+.mal-sync-counts span { display: flex; flex-direction: column; gap: 1px; color: var(--text-muted); font-size: 7px; }
+.mal-sync-counts strong { color: var(--text-primary); font-size: 10px; }
+@keyframes mal-sync-indeterminate { from { transform: translateX(-40%); } to { transform: translateX(190%); } }
+.mal-advanced-preview { margin-top: 13px; }
+.mal-advanced-preview[open] { padding: 0 12px 12px; }
+.mal-advanced-preview[open] summary { margin: 0 -12px 12px; border-bottom: 1px solid rgba(255, 255, 255, .05); }
 .mal-import-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .mal-import-heading > div { display: flex; flex-direction: column; gap: 2px; }
 .mal-import-heading span { color: #ff5962; font-size: 7px; font-weight: 900; letter-spacing: .12em; }
@@ -238,6 +310,14 @@
 .mal-import-row small { color: var(--text-muted); font-size: 8px; }
 .mal-import-row em { color: #4ade80; font-size: 8px; font-style: normal; font-weight: 700; white-space: nowrap; }
 .mal-import-row.unmatched em { color: #fbbf24; }
+
+@media (max-width: 760px) {
+    .mal-disconnected-view,
+    .mal-sync-preferences { align-items: stretch; flex-direction: column; }
+    .mal-account-overview { grid-template-columns: 42px minmax(0, 1fr); }
+    .mal-account-metrics { grid-column: 1 / -1; }
+    .mal-sync-counts { grid-template-columns: repeat(3, 1fr); }
+}
 
 .reader-settings-workspace {
     display: block;
@@ -370,8 +450,8 @@
 @media (max-width: 680px) {
     .advanced-settings-grid, .storage-summary { grid-template-columns: 1fr; }
     .mal-config-grid, .mal-import-summary { grid-template-columns: 1fr; }
-    .mal-connection-bar, .mal-import-heading, .mal-import-toolbar { align-items: stretch; flex-direction: column; }
-    .mal-connection-actions { justify-content: flex-start; }
+    .mal-import-heading, .mal-import-toolbar, .mal-sync-heading { align-items: stretch; flex-direction: column; }
+    .mal-sync-counts { grid-template-columns: repeat(2, 1fr); }
     .mal-import-row { grid-template-columns: 18px 32px minmax(0, 1fr); }
     .mal-import-row em { grid-column: 3; }
     .reader-settings-workspace.preview-active { grid-template-columns: 1fr; }

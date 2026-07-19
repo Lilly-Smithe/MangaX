@@ -86,6 +86,7 @@ function buildLibraryCard(id, manga, mode) {
         <div class="card-cover-wrapper">
             <img src="${escapeHtml(coverSrc || '/static/img/no-cover.jpg')}" alt="${escapeHtml(manga.title)}" class="card-cover" loading="lazy" decoding="async" fetchpriority="low">
             ${Number(manga.unread_count) > 0 ? `<span class="library-unread-badge" data-manga-id="${escapeHtml(id)}">${Number(manga.unread_count)} yeni</span>` : ''}
+            ${Number(manga.mal_id) > 0 ? '<span class="library-mal-badge" title="MyAnimeList ile eşitleniyor" aria-label="MyAnimeList kaydı">MAL</span>' : ''}
             ${isContinue ? `
                 <div class="library-card-actions" aria-label="${escapeHtml(manga.title)} okuma işlemleri">
                     <button class="library-card-action library-card-resume" type="button">
@@ -136,6 +137,7 @@ const libraryStatusLabels = {
     completed: 'Tamamlandı',
     on_hold: 'Beklemede',
     dropped: 'Bırakıldı',
+    plan_to_read: 'Okuma Planı',
 };
 
 function getLibraryStatusLabel(status) {
@@ -208,6 +210,7 @@ function buildLibraryCatalogCard(id, manga) {
         <div class="library-catalog-cover">
             <img src="${escapeHtml(coverSrc || '/static/img/no-cover.jpg')}" alt="${escapeHtml(manga.title)}" loading="lazy" decoding="async" fetchpriority="low">
             ${Number(manga.unread_count) > 0 ? `<span class="library-unread-badge" data-manga-id="${escapeHtml(id)}">${Number(manga.unread_count)} yeni</span>` : ''}
+            ${Number(manga.mal_id) > 0 ? '<span class="library-mal-badge" title="MyAnimeList ile eşitleniyor" aria-label="MyAnimeList kaydı">MAL</span>' : ''}
             ${fullEditionActions}
         </div>
         <div class="library-catalog-copy">
@@ -264,6 +267,13 @@ function renderLibraryCatalog() {
     const grid = document.getElementById('library-catalog-grid');
     if (!grid) return;
     const allEntries = Object.entries(libraryData.mangas || {});
+    const statusCounts = Object.fromEntries(
+        Object.keys(libraryStatusLabels).map(status => [status, 0]),
+    );
+    allEntries.forEach(([, manga]) => {
+        const status = manga.library_status || 'reading';
+        if (Object.prototype.hasOwnProperty.call(statusCounts, status)) statusCounts[status] += 1;
+    });
     refreshLibraryCollectionOptions(allEntries);
     const entries = allEntries.filter(([, manga]) => {
         const statusMatches = activeLibraryStatus === 'all'
@@ -288,6 +298,12 @@ function renderLibraryCatalog() {
     document.getElementById('library-list-view-btn')?.classList.toggle('active', libraryCatalogView === 'list');
     document.querySelectorAll('[data-library-status]').forEach(button => {
         button.classList.toggle('active', button.dataset.libraryStatus === activeLibraryStatus);
+        const counter = button.querySelector('[data-library-status-count]');
+        if (counter) {
+            counter.textContent = button.dataset.libraryStatus === 'all'
+                ? allEntries.length
+                : (statusCounts[button.dataset.libraryStatus] || 0);
+        }
     });
     updateLibrarySelectionBar();
 }
@@ -375,6 +391,10 @@ function openLibraryEditor(id) {
     document.getElementById('library-editor-status').value = manga.library_status || 'reading';
     document.getElementById('library-editor-rating').value = Number(manga.user_rating) || 0;
     document.getElementById('library-editor-rating-value').textContent = `${Number(manga.user_rating) || 0} / 10`;
+    const malProgress = document.getElementById('library-mal-progress-fields');
+    malProgress?.classList.toggle('hidden', !(Number(manga.mal_id) > 0));
+    document.getElementById('library-editor-mal-chapters').value = Number(manga.mal_num_chapters_read) || 0;
+    document.getElementById('library-editor-mal-volumes').value = Number(manga.mal_num_volumes_read) || 0;
     document.getElementById('library-editor-collections').value = (manga.collections || []).join(', ');
     document.getElementById('library-editor-note').value = manga.personal_note || '';
     document.getElementById('library-editor-tracking').checked = Boolean(manga.tracking_enabled);

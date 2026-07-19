@@ -10,6 +10,7 @@ import re
 from typing import Dict, Any, Optional, List
 from mangax.core.config import BASE_DIR, DATA_DIR, DOWNLOADS_DIR, LOCAL_MANGA_DIR
 from mangax.core.database import db
+from mangax.core.models import LIBRARY_STATUS_VALUES
 LIBRARY_FILE = os.path.join(DATA_DIR, 'library.json')
 BACKUP_FILE = os.path.join(DATA_DIR, 'library.json.bak')
 
@@ -81,7 +82,7 @@ class LibraryManager:
         if not mal_id:
             raise ValueError('Geçersiz MAL kimliği')
         mal_status = str(mal_entry.get('status') or 'plan_to_read')
-        status_map = {'reading': 'reading', 'completed': 'completed', 'on_hold': 'on_hold', 'dropped': 'dropped', 'plan_to_read': 'on_hold'}
+        status_map = {'reading': 'reading', 'completed': 'completed', 'on_hold': 'on_hold', 'dropped': 'dropped', 'plan_to_read': 'plan_to_read'}
         library_status = status_map.get(mal_status, 'on_hold')
         self.add_manga(manga_id, str(manga.get('title') or mal_entry.get('title') or 'Bilinmeyen Manga'), str(manga.get('description') or ''), str(manga.get('cover_url') or mal_entry.get('cover_url') or ''), str(manga.get('status') or 'ongoing'))
         with db.get_connection() as conn:
@@ -90,7 +91,7 @@ class LibraryManager:
             collections.append('MyAnimeList')
             if mal_status == 'plan_to_read':
                 collections.append('MAL: Okuma Planı')
-            conn.execute('\n                UPDATE mangas SET mal_id = ?, mal_status = ?, mal_num_chapters_read = ?,\n                    mal_num_volumes_read = ?, library_status = ?, user_rating = ?,\n                    collections = ?, tags = ?, year = ?, last_read_online = ?, updated_at = ? WHERE id = ?\n            ', (mal_id, mal_status, max(0, int(mal_entry.get('num_chapters_read') or 0)), max(0, int(mal_entry.get('num_volumes_read') or 0)), library_status, max(0, min(10, int(mal_entry.get('score') or 0))), json.dumps(self._clean_collections(collections), ensure_ascii=False), json.dumps(manga.get('tags') or [], ensure_ascii=False), int(manga.get('year') or 0), 0 if manga_id.startswith('mal_') else 1, int(time.time()), manga_id))
+            conn.execute('\n                UPDATE mangas SET mal_id = ?, mal_status = ?, mal_num_chapters_read = ?,\n                    mal_num_volumes_read = ?, library_status = ?, user_rating = ?,\n                    mal_remote_score = ?,\n                    collections = ?, tags = ?, year = ?, last_read_online = ?, updated_at = ? WHERE id = ?\n            ', (mal_id, mal_status, max(0, int(mal_entry.get('num_chapters_read') or 0)), max(0, int(mal_entry.get('num_volumes_read') or 0)), library_status, max(0, min(10, int(mal_entry.get('score') or 0))), max(0, min(10, int(mal_entry.get('score') or 0))), json.dumps(self._clean_collections(collections), ensure_ascii=False), json.dumps(manga.get('tags') or [], ensure_ascii=False), int(manga.get('year') or 0), 0 if manga_id.startswith('mal_') else 1, int(time.time()), manga_id))
             conn.commit()
         return self.get_manga(manga_id) or {}
 
@@ -262,14 +263,22 @@ class LibraryManager:
             conn.execute('UPDATE mangas SET unread_count = ? WHERE id = ?', (self._unread_count(known, chapter_num), manga_id))
             conn.commit()
 
-    def update_library_metadata(self, manga_id: str, *, library_status: str, user_rating: int, personal_note: str, collections: list) -> Dict[str, Any] | None:
-        allowed_statuses = {'reading', 'completed', 'on_hold', 'dropped'}
-        status = library_status if library_status in allowed_statuses else 'reading'
+    def update_library_metadata(self, manga_id: str, *, library_status: str, user_rating: int, personal_note: str, collections: list, mal_num_chapters_read: int | None=None, mal_num_volumes_read: int | None=None) -> Dict[str, Any] | None:
+        status = library_status if library_status in LIBRARY_STATUS_VALUES else 'reading'
         rating = max(0, min(10, int(user_rating or 0)))
         note = str(personal_note or '')[:4000]
         cleaned_collections = self._clean_collections(collections)
         with db.get_connection() as conn:
-            result = conn.execute('\n                UPDATE mangas SET library_status = ?, user_rating = ?, personal_note = ?,\n                    collections = ?, updated_at = ? WHERE id = ?\n            ', (status, rating, note, json.dumps(cleaned_collections, ensure_ascii=False), int(time.time()), manga_id))
+            updates = ['library_status = ?', 'user_rating = ?', 'personal_note = ?', 'collections = ?', 'updated_at = ?']
+            params: list[Any] = [status, rating, note, json.dumps(cleaned_collections, ensure_ascii=False), int(time.time())]
+            if mal_num_chapters_read is not None:
+                updates.append('mal_num_chapters_read = ?')
+                params.append(max(0, int(mal_num_chapters_read)))
+            if mal_num_volumes_read is not None:
+                updates.append('mal_num_volumes_read = ?')
+                params.append(max(0, int(mal_num_volumes_read)))
+            params.append(manga_id)
+            result = conn.execute(f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?", params)
             conn.commit()
             if result.rowcount == 0:
                 return None
@@ -286,7 +295,7 @@ class LibraryManager:
                     continue
                 updates = ['updated_at = ?']
                 params: list[Any] = [int(time.time())]
-                if library_status in {'reading', 'completed', 'on_hold', 'dropped'}:
+                if library_status in LIBRARY_STATUS_VALUES:
                     updates.append('library_status = ?')
                     params.append(library_status)
                 if collection:
