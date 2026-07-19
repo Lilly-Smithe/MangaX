@@ -88,11 +88,13 @@ class MangaXDesktopBridge:
         # pywebview js_api bütün public nesne özniteliklerini özyinelemeli tarar.
         # Window gibi native nesneler bu yüzden mutlaka private tutulmalıdır.
         self._window = None
-        self._full_installer_started = False
+        self._installer_started = False
         from mangax.reader.local_import_jobs import LocalImportJobManager
         self._local_imports = LocalImportJobManager()
         from mangax.integrations.full_release import full_release_manager
         full_release_manager.set_installer_launcher(self._launch_full_installer)
+        from mangax.integrations.app_update import app_update_manager
+        app_update_manager.set_installer_launcher(self._launch_app_update_installer)
 
     def _attach_window(self, window) -> None:
         self._window = window
@@ -128,16 +130,24 @@ class MangaXDesktopBridge:
         return self._local_imports.cancel(job_id)
 
     def _launch_full_installer(self, installer_path: str) -> bool:
+        # Korunan Full yukselme sozlesmesi genel handoff icinde uygulanir:
+        # local_backup_manager.create("before_full_install")
+        return self._launch_verified_installer(installer_path, "before_full_install")
+
+    def _launch_app_update_installer(self, installer_path: str) -> bool:
+        return self._launch_verified_installer(installer_path, "before_app_update")
+
+    def _launch_verified_installer(self, installer_path: str, backup_label: str) -> bool:
         from pathlib import Path
         import subprocess
 
         path = Path(installer_path).resolve()
-        if self._full_installer_started or not path.is_file() or path.suffix.lower() not in {".exe", ".msi"}:
+        if self._installer_started or not path.is_file() or path.suffix.lower() not in {".exe", ".msi"}:
             return False
-        self._full_installer_started = True
+        self._installer_started = True
 
         def handoff() -> None:
-            local_backup_manager.create("before_full_install")
+            local_backup_manager.create(backup_label)
             if self._window is not None:
                 try:
                     self._window.destroy()
@@ -159,7 +169,7 @@ class MangaXDesktopBridge:
                 creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
             )
 
-        threading.Thread(target=handoff, name="MangaXFullInstallerHandoff", daemon=False).start()
+        threading.Thread(target=handoff, name="MangaXInstallerHandoff", daemon=False).start()
         return True
 
 

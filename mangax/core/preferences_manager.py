@@ -19,6 +19,7 @@ DEFAULT_PREFERENCES = {
     "extension_update_mode": "notify",
     "backup_before_extension_update": True,
     "fallback_mode": "ask",
+    "automatic_update_checks": True,
 }
 
 
@@ -54,7 +55,7 @@ class PreferencesManager:
                 normalized["download_concurrency"] = max(1, min(8, int(normalized["download_concurrency"])))
             if "image_cache_limit_mb" in normalized:
                 normalized["image_cache_limit_mb"] = max(64, min(4096, int(normalized["image_cache_limit_mb"])))
-            for key in ("low_bandwidth_mode", "safe_mode", "backup_before_extension_update"):
+            for key in ("low_bandwidth_mode", "safe_mode", "backup_before_extension_update", "automatic_update_checks"):
                 if key in normalized:
                     normalized[key] = bool(normalized[key])
             if normalized.get("extension_update_mode", "notify") not in {"manual", "notify", "auto"}:

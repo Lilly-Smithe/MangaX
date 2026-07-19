@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "0.11.63"
+  #define AppVersion "0.12.0"
 #endif
 
 #define ProjectRoot SourcePath + "\..\.."
@@ -35,6 +35,8 @@ ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\{#ReaderExe}
 UninstallDisplayName=MangaX Reader
 SetupLogging=yes
+CloseApplications=yes
+RestartApplications=no
 
 [Languages]
 Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
@@ -47,6 +49,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "{#ReaderDist}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [InstallDelete]
+Type: filesandordirs; Name: "{app}\_internal"
+Type: filesandordirs; Name: "{app}\static"
 Type: files; Name: "{autodesktop}\MangaX Reader.lnk"
 Type: filesandordirs; Name: "{autoprograms}\MangaX Reader"
 

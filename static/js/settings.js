@@ -104,6 +104,7 @@ async function loadAdvancedPreferences() {
         setControlValue('settings-low-bandwidth', advancedSettingsState.low_bandwidth_mode, true);
         setControlValue('settings-download-directory', advancedSettingsState.download_directory || data.storage?.downloads_directory || '');
         setControlValue('settings-safe-mode', advancedSettingsState.safe_mode, true);
+        setControlValue('settings-automatic-update-checks', advancedSettingsState.automatic_update_checks !== false, true);
         renderStorageOverview(data.storage || {});
     } catch (error) {
         console.warn('Gelişmiş ayarlar yüklenemedi:', error);
@@ -123,6 +124,7 @@ function advancedPreferencesFromControls() {
         low_bandwidth_mode: Boolean(document.getElementById('settings-low-bandwidth')?.checked),
         download_directory: document.getElementById('settings-download-directory')?.value || '',
         safe_mode: Boolean(document.getElementById('settings-safe-mode')?.checked),
+        automatic_update_checks: document.getElementById('settings-automatic-update-checks')?.checked !== false,
         source_priority: sourcePriorityState,
     };
 }

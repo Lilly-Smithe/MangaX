@@ -1,7 +1,7 @@
 {
   "ok": true,
   "edition": "reader",
-  "file_count": 67,
+  "file_count": 70,
   "files": [
     ".gitignore",
     ".mangax-public-reader-export",
@@ -22,6 +22,7 @@
     "mangax/core/models.py",
     "mangax/core/preferences_manager.py",
     "mangax/integrations/__init__.py",
+    "mangax/integrations/app_update.py",
     "mangax/integrations/full_release.py",
     "mangax/integrations/github_integration.py",
     "mangax/integrations/secure_store.py",
@@ -45,6 +46,7 @@
     "routers/library.py",
     "routers/local_reader.py",
     "routers/preferences.py",
+    "routers/updates.py",
     "scripts/windows/build_reader_installer.ps1",
     "start_reader.bat",
     "static/css/modules/base.css",
@@ -58,6 +60,7 @@
     "static/img/no-cover.jpg",
     "static/img/no-page.jpg",
     "static/index.html",
+    "static/js/app-update.js",
     "static/js/app.js",
     "static/js/backup.js",
     "static/js/diagnostics.js",

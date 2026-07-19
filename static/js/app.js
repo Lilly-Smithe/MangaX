@@ -180,6 +180,7 @@ if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded
     if (typeof syncMangaNewsSetting === 'function') syncMangaNewsSetting();
     runWhenAppIdle(() => {
         if (typeof startDownloadStatusPolling === 'function') startDownloadStatusPolling();
+        if (typeof scheduleStartupUpdateCheck === 'function') scheduleStartupUpdateCheck();
         fetch('/api/library/maintenance', { method: 'POST' }).catch(error => {
             console.warn('Kütüphane arka plan bakımı başlatılamadı:', error);
         });

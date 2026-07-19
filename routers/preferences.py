@@ -18,6 +18,7 @@ class PreferencesUpdate(BaseModel):
     extension_update_mode: str | None = None
     backup_before_extension_update: bool | None = None
     fallback_mode: str | None = None
+    automatic_update_checks: bool | None = None
     source_priority: list[str] | None = Field(default=None, max_length=100)
 
 def _file_size(path: Path) -> int:

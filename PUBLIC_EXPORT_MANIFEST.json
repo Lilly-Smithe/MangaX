@@ -13,7 +13,7 @@
     },
     {
       "path": "app_gui.py",
-      "sha256": "a80dd07ee05572e28831cb106049e9bb594ce8845c1ac94198ad68fa5d93d007"
+      "sha256": "3bc9c81468a06c75bc12f039217d0c80ee4227e7a552a3f85004c8bab152faa8"
     },
     {
       "path": "build_reader.bat",
@@ -37,7 +37,7 @@
     },
     {
       "path": "mangax/core/config.py",
-      "sha256": "8ed41692e7e265ae43be402982f74a8e16bb0e9013c32de194463331e6ff5425"
+      "sha256": "317b3073b69bc9d88def59f23b82460b2efa39885198a60f9c8fd5c11cf05713"
     },
     {
       "path": "mangax/core/database.py",
@@ -61,11 +61,15 @@
     },
     {
       "path": "mangax/core/preferences_manager.py",
-      "sha256": "aec53dd69790859b036a10b139cfb6903ef6669fb7839518845b25fe7f6fe2a1"
+      "sha256": "d39c74d62135c3f1e2283487044112a6542b69707b813b5f48c4f60bc1d8e468"
     },
     {
       "path": "mangax/integrations/__init__.py",
       "sha256": "b69dddfc8a082a05c6ef3f2bde63e7cfc7c286ce03801380ddbef51c8e76b3b8"
+    },
+    {
+      "path": "mangax/integrations/app_update.py",
+      "sha256": "237084143b4411e89ac08efbfbcd2f28ad858e5d27f9b76d48e3ea46566fc4cb"
     },
     {
       "path": "mangax/integrations/full_release.py",
@@ -113,11 +117,11 @@
     },
     {
       "path": "packaging/windows/mangax_reader.spec",
-      "sha256": "fc8e8c96d450ab51b3ec532141a0d68c7367510bd14176a2200850377da6e82b"
+      "sha256": "ad7f50c5eb8aeb9fcfbda7d250207f1c0c794c549de2d63c709d444030e780c5"
     },
     {
       "path": "packaging/windows/mangax_reader_installer.iss",
-      "sha256": "8d2e1bc94464fcf49dbd3ac4e56cf34fbef8d67e39fbc10bd336b191222a6375"
+      "sha256": "17f8f4e6dea014452e6e5e0f9ada2ad0d060eabf089fd36d5a36ab6ac395cf10"
     },
     {
       "path": "requirements-build.txt",
@@ -157,7 +161,11 @@
     },
     {
       "path": "routers/preferences.py",
-      "sha256": "22aa6e177c94cfc2d441a17d32d40151de13156e60dfa1a8d7bcfa27200f9414"
+      "sha256": "be5cc98eb3ff149c979452b29b8e44ef697b062451c5ace18695f371a40a59af"
+    },
+    {
+      "path": "routers/updates.py",
+      "sha256": "aa4aca9b9c6b2846940af26e73305073c9eeb0d36c4a2e006441863895e5215f"
     },
     {
       "path": "scripts/windows/build_reader_installer.ps1",
@@ -209,11 +217,15 @@
     },
     {
       "path": "static/index.html",
-      "sha256": "9598ff4baf561d86feda514c50639c5443b5c88483bd41ae5165ff347019cee8"
+      "sha256": "27ebb55b4aea453e81177fc37fae0105c90ee2e8fd3e8b954becd284586031bd"
+    },
+    {
+      "path": "static/js/app-update.js",
+      "sha256": "0b88441dca31823fff4ad45254a7b222de1d88be420969788b1fbe318bdd3c99"
     },
     {
       "path": "static/js/app.js",
-      "sha256": "676a148cf10aeab5730408aac91c58f0888902aa969347bfc328fd18e2cee1c9"
+      "sha256": "70cc2bb28e8c2ee8d0559cbaeb3dfa664265512eb225f691497c95734d164c84"
     },
     {
       "path": "static/js/backup.js",
@@ -249,7 +261,7 @@
     },
     {
       "path": "static/js/settings.js",
-      "sha256": "3127117dfe4d7df866fc2a5bfda22404ccfc281d3a0df001b54fec5b18781574"
+      "sha256": "8d9b9e9ae6f86c3c29d1c2fc2ce3697d908207d1089a6cf052c7e78c18d362e2"
     },
     {
       "path": "tests/test_public_reader_export.py",

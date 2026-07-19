@@ -271,9 +271,19 @@
 </div>
 <div class="about-info">
 <div class="about-row"><span>Uygulama</span><span>MangaX</span></div>
-<div class="about-row"><span>Versiyon</span><span>v0.11.64</span></div>
+<div class="about-row"><span>Versiyon</span><span>v0.12.0</span></div>
 
 </div>
+<section aria-labelledby="app-update-title" class="recovery-settings-panel app-update-settings">
+<h3 id="app-update-title"><i class="fa-solid fa-arrows-rotate"></i> Uygulama Güncellemeleri</h3>
+<div class="settings-toggle-row"><div class="settings-toggle-copy"><span>Açılışta güncellemeleri kontrol et</span><small>Yeni sürüm bulunduğunda indirmeden önce onayınızı ister.</small></div><label class="toggle-switch"><input checked="" id="settings-automatic-update-checks" onchange="saveAdvancedPreferences()" type="checkbox"/><span class="toggle-slider"></span></label></div>
+<div class="settings-danger-actions">
+<button class="btn btn-primary" id="app-update-check-btn" onclick="checkForAppUpdate({ manual: true })" type="button"><i class="fa-solid fa-rotate"></i> Şimdi Kontrol Et</button>
+<button class="btn btn-secondary hidden" id="app-update-cancel-btn" onclick="cancelAppUpdate()" type="button"><i class="fa-solid fa-xmark"></i> İptal Et</button>
+</div>
+<div aria-live="polite" class="settings-inline-empty" id="app-update-status" role="status">Henüz güncelleme kontrolü yapılmadı.</div>
+<div aria-hidden="true" class="system-check-progress-track hidden" id="app-update-progress"><span id="app-update-progress-bar" style="width:0"></span></div>
+</section>
 <button class="btn btn-secondary settings-onboarding-btn" onclick="openOnboarding()" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Başlangıç Sihirbazını Aç</button>
 <section class="recovery-settings-panel">
 <h3><i class="fa-solid fa-life-ring"></i> Kurtarma ve Güvenli Mod</h3>
@@ -689,14 +699,15 @@
 
 <div class="toast-container" id="toast-container"></div>
 
-<script src="/static/js/app.js?v=20260718r"></script>
+<script src="/static/js/app.js?v=20260719a"></script>
 <script src="/static/js/edition-gate.js?v=20260719a"></script>
 <script src="/static/js/library.js?v=20260718r"></script>
 <script src="/static/js/local-import.js?v=20260718b"></script>
 
 <script src="/static/js/manga-detail.js?v=20260718q"></script>
 
-<script src="/static/js/settings.js?v=20260718s"></script>
+<script src="/static/js/settings.js?v=20260719a"></script>
+<script src="/static/js/app-update.js?v=20260719a"></script>
 
 <script src="/static/js/reader.js?v=20260718u"></script>
 
