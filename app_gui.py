@@ -178,17 +178,11 @@ class MangaXDesktopBridge:
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
+from mangax.core.local_api_security import configure_local_api_security
 
 api = FastAPI(title="MangaX API", description="Manga Downloader and Reader Backend")
 
-api.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+configure_local_api_security(api, host=HOST, port=PORT)
 
 register_edition_routers(api)
 

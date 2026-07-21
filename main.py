@@ -10,7 +10,6 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 
 from mangax.core.config import STATIC_DIR, DOWNLOADS_DIR, LOCAL_MANGA_DIR, HOST, PORT, APP_URL
 from mangax.runtime.shared_data_migration import migrate_shared_user_data
@@ -21,6 +20,7 @@ from mangax.runtime.edition_runtime import start_services, close_services
 from mangax.core.backup_service import local_backup_manager
 from mangax.core.migrate_folders import migrate_downloads
 from mangax.runtime.router_registry import register_edition_routers
+from mangax.core.local_api_security import configure_local_api_security
 
 
 # ============================================
@@ -72,13 +72,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+configure_local_api_security(app, host=HOST, port=PORT)
 
 # ============================================
 # ROUTER'LARI EKLE
