@@ -20,6 +20,8 @@ DEFAULT_PREFERENCES = {
     "backup_before_extension_update": True,
     "fallback_mode": "ask",
     "automatic_update_checks": True,
+    "last_app_update_check": "",
+    "skipped_app_update_version": "",
     "onboarding_completed": None,
     "last_seen_release_notes_version": "",
     "last_run_version": "",

@@ -32,7 +32,7 @@
 }
 
 body {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
     background-color: var(--bg-main);
     color: var(--text-primary);
     overflow-x: hidden;

@@ -10,6 +10,20 @@ import shutil
 
 from mangax.core.config import BASE_DIR, DATA_DIR, DOWNLOADS_DIR
 LIBRARY_FILE = os.path.join(DATA_DIR, "library.json")
+DOWNLOAD_LAYOUT_MIGRATION_MARKER = os.path.join(DATA_DIR, ".download_layout_v1_complete")
+
+
+def _mark_download_layout_migrated() -> None:
+    temporary = DOWNLOAD_LAYOUT_MIGRATION_MARKER + ".tmp"
+    try:
+        with open(temporary, "w", encoding="utf-8") as handle:
+            handle.write("1\n")
+        os.replace(temporary, DOWNLOAD_LAYOUT_MIGRATION_MARKER)
+    except OSError:
+        try:
+            os.remove(temporary)
+        except OSError:
+            pass
 
 
 def migrate_internal_files_to_root():
@@ -159,7 +173,14 @@ def migrate_downloads():
     # Önce _internal altındaki eski dosyaları taşı
     migrate_internal_files_to_root()
 
+    # Bu eski JSON/UUID düzeni yalnız bir kez taranır. Yeni indirmeler zaten
+    # güncel klasör sözleşmesiyle oluşturulduğundan her açılışta bütün bölüm
+    # ağacını yeniden dolaşmak gereksiz ve büyük kütüphanelerde pahalıdır.
+    if os.path.exists(DOWNLOAD_LAYOUT_MIGRATION_MARKER):
+        return
+
     if not os.path.exists(LIBRARY_FILE):
+        _mark_download_layout_migrated()
         return
 
     try:
@@ -255,6 +276,8 @@ def migrate_downloads():
             print("[Migrate] library.json updated.")
         except Exception as e:
             print(f"[Migrate] library.json save error: {e}")
+            return
+    _mark_download_layout_migrated()
 
 
 if __name__ == "__main__":

@@ -16,9 +16,15 @@ from pydantic import BaseModel, Field
 from mangax.core.backup_service import validate_backup_payload
 from mangax.core.config import APP_VERSION, BACKUPS_DIR, DATA_DIR, DOWNLOADS_DIR, IS_FULL_EDITION, SOURCE_REPORTS_DIR
 from mangax.core.database import DB_PATH
+from mangax.runtime.startup_metrics import startup_metrics
 router = APIRouter(prefix='/api/diagnostics', tags=['Diagnostics'])
 DOWNLOAD_QUEUE_FILE = os.path.join(DATA_DIR, 'download_queue.json')
 VALID_STATUSES = {'healthy', 'warning', 'broken', 'timeout'}
+
+@router.get('/startup')
+def startup_timing_snapshot() -> dict[str, Any]:
+    """Return only fixed-name monotonic markers; no user or credential data."""
+    return startup_metrics.snapshot()
 
 class DiagnosticResult(BaseModel):
     id: str = Field(max_length=64)

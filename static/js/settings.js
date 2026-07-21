@@ -106,6 +106,10 @@ async function loadAdvancedPreferences() {
         setControlValue('settings-download-directory', advancedSettingsState.download_directory || data.storage?.downloads_directory || '');
         setControlValue('settings-safe-mode', advancedSettingsState.safe_mode, true);
         setControlValue('settings-automatic-update-checks', advancedSettingsState.automatic_update_checks !== false, true);
+        const lastUpdateCheck = document.getElementById('app-update-last-check');
+        if (lastUpdateCheck && advancedSettingsState.last_app_update_check) {
+            lastUpdateCheck.textContent = new Date(advancedSettingsState.last_app_update_check).toLocaleString('tr-TR');
+        }
         renderStorageOverview(data.storage || {});
     } catch (error) {
         console.warn('Gelişmiş ayarlar yüklenemedi:', error);

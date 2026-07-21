@@ -594,14 +594,23 @@ function renderLibrarySnapshot(data) {
 }
 
 async function loadLibrary({ silent = false } = {}) {
+    const initialRequest = !initialLibraryRequestCompleted;
+    if (initialRequest && typeof markStartupMilestone === 'function') {
+        markStartupMilestone('library_request_started');
+    }
     try {
         const response = await fetch('/api/library', { cache: 'no-store' });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const freshLibrary = await response.json();
         renderLibrarySnapshot(freshLibrary);
         cacheLibrarySnapshot(libraryData);
+        if (initialRequest && typeof markStartupMilestone === 'function') {
+            markStartupMilestone('library_rendered');
+        }
     } catch (e) {
         console.error('Library failed to load', e);
         if (!silent) showToast('Kütüphane yüklenirken hata oluştu.', 'error');
+    } finally {
+        if (initialRequest) initialLibraryRequestCompleted = true;
     }
 }

@@ -23,6 +23,10 @@ class InstallRequest(BaseModel):
     confirmed: bool = False
 
 
+class SkipRequest(BaseModel):
+    version: str
+
+
 def _error(error: Exception) -> HTTPException:
     return HTTPException(status_code=getattr(error, "status_code", 502), detail=str(error), headers={"X-MangaX-Update-Error": getattr(error, "code", "update_error")})
 
@@ -32,7 +36,12 @@ def check_update(startup: bool = Query(default=False)) -> dict[str, Any]:
     if startup and not preferences_manager.get_all().get("automatic_update_checks", True):
         return {"skipped": True, "current_version": APP_VERSION, "edition": APP_EDITION, "update_available": False}
     try:
-        return app_update_manager.check()
+        result = app_update_manager.check()
+        preferences_manager.update({"last_app_update_check": result.get("checked_at", "")})
+        skipped = str(preferences_manager.get_all().get("skipped_app_update_version") or "")
+        if startup and result.get("latest_version") == skipped:
+            result.update(update_available=False, skipped_version=True, update_id="")
+        return result
     except (AppUpdateError, GitHubIntegrationError) as error:
         raise _error(error) from error
 
@@ -61,9 +70,33 @@ def cancel_download(job_id: str = Path(min_length=16, max_length=200)) -> dict[s
         raise _error(error) from error
 
 
+@router.post("/download/{job_id}/resume")
+def resume_download(job_id: str = Path(min_length=16, max_length=200)) -> dict[str, Any]:
+    try:
+        return app_update_manager.resume(job_id)
+    except AppUpdateError as error:
+        raise _error(error) from error
+
+
 @router.post("/download/{job_id}/install")
 def install_update(request: InstallRequest, job_id: str = Path(min_length=16, max_length=200)) -> dict[str, Any]:
     try:
         return app_update_manager.install(job_id, confirmed=request.confirmed)
     except AppUpdateError as error:
         raise _error(error) from error
+
+
+@router.post("/skip")
+def skip_update(request: SkipRequest) -> dict[str, Any]:
+    from mangax.integrations.app_update import version_tuple
+    try:
+        version_tuple(request.version)
+    except AppUpdateError as error:
+        raise _error(error) from error
+    preferences_manager.update({"skipped_app_update_version": request.version})
+    return {"status": "skipped", "version": request.version}
+
+
+@router.get("/result")
+def update_result(consume: bool = Query(default=False)) -> dict[str, Any]:
+    return app_update_manager.last_result(consume=consume)

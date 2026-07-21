@@ -5,6 +5,11 @@ import socket
 import os
 import io
 import traceback
+import shutil
+_PROCESS_STARTED_AT = time.perf_counter()
+from mangax.runtime.startup_metrics import startup_metrics
+startup_metrics.reset(started_at=_PROCESS_STARTED_AT)
+startup_metrics.mark('python_bootstrap_complete')
 if getattr(sys, 'frozen', False):
     _exe_dir = os.path.dirname(sys._MEIPASS)
     os.chdir(_exe_dir)
@@ -33,13 +38,15 @@ if getattr(sys, 'frozen', False):
             os.environ.setdefault('SSL_CERT_FILE', _cacert)
             os.environ.setdefault('REQUESTS_CA_BUNDLE', _cacert)
 from mangax.core.config import HOST, PORT, APP_URL, DOWNLOADS_DIR, LOCAL_MANGA_DIR, STATIC_DIR, BASE_DIR, IS_FULL_EDITION
+startup_metrics.mark('edition_and_data_paths_ready')
 from mangax.runtime.shared_data_migration import migrate_shared_user_data
 try:
     migrate_shared_user_data()
 except Exception as _migration_error:
     print(f'[MangaX] Ortak veri geçişi atlandı: {_migration_error}', flush=True)
     traceback.print_exc()
-from mangax.runtime.edition_runtime import start_services, close_services
+startup_metrics.mark('data_migrations_complete')
+from mangax.runtime.edition_runtime import configure_services, start_services, close_services
 from mangax.core.backup_service import local_backup_manager
 from mangax.core.migrate_folders import migrate_downloads
 print(f"[MangaX DEBUG] sys.frozen: {getattr(sys, 'frozen', False)}", flush=True)
@@ -92,8 +99,40 @@ class MangaXDesktopBridge:
     def _launch_full_installer(self, installer_path: str) -> bool:
         return self._launch_verified_installer(installer_path, 'before_full_install')
 
-    def _launch_app_update_installer(self, installer_path: str) -> bool:
-        return self._launch_verified_installer(installer_path, 'before_app_update')
+    def _launch_app_update_installer(self, launch: dict) -> bool:
+        """Doğrulanmış güncellemeyi görünmeyen, tek amaçlı helper'a devreder."""
+        from pathlib import Path
+        import subprocess
+        from mangax.integrations.app_update import create_protected_update_plan
+        installer = Path(str(launch.get('path') or '')).resolve()
+        helper_source = (Path(BASE_DIR) / 'MangaX-Updater.exe').resolve()
+        if self._installer_started or not installer.is_file() or installer.suffix.lower() != '.exe' or (not helper_source.is_file()):
+            return False
+        helper_copy = (installer.parent / 'MangaX-Updater.exe').resolve()
+        if helper_copy.parent != installer.parent:
+            return False
+        shutil.copy2(helper_source, helper_copy)
+        plan, pipe_secret = create_protected_update_plan(launch, install_dir=BASE_DIR, updater_copy=helper_copy)
+        try:
+            local_backup_manager.create('before_app_update')
+            process = subprocess.Popen([str(helper_copy), '--apply-plan', str(plan)], cwd=str(installer.parent), shell=False, close_fds=True, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+            if process.stdin is None:
+                raise RuntimeError('Güncelleme yardımcısı başlatılamadı.')
+            process.stdin.write((pipe_secret + '\n').encode('ascii'))
+            process.stdin.close()
+        except Exception as error:
+            print(f'[MangaX] Güncelleme devri tamamlanamadı: {error}', flush=True)
+            return False
+        self._installer_started = True
+
+        def close_for_update() -> None:
+            if self._window is not None:
+                try:
+                    self._window.destroy()
+                except Exception:
+                    pass
+        threading.Thread(target=close_for_update, name='MangaXUpdateHandoff', daemon=False).start()
+        return True
 
     def _launch_verified_installer(self, installer_path: str, backup_label: str) -> bool:
         from pathlib import Path
@@ -125,6 +164,8 @@ from mangax.core.local_api_security import configure_local_api_security
 api = FastAPI(title='MangaX API', description='Manga Downloader and Reader Backend')
 configure_local_api_security(api, host=HOST, port=PORT)
 register_edition_routers(api)
+configure_services()
+startup_metrics.mark('routers_registered')
 api.mount('/downloads', StaticFiles(directory=DOWNLOADS_DIR), name='downloads')
 api.mount('/local-manga', StaticFiles(directory=LOCAL_MANGA_DIR), name='local-manga')
 api.mount('/static', StaticFiles(directory=STATIC_DIR), name='static')
@@ -243,6 +284,16 @@ def _stop_server():
         _uvicorn_server.should_exit = True
 _shutdown_lock = threading.Lock()
 _shutdown_complete = False
+_shutdown_event = threading.Event()
+_background_startup_thread: threading.Thread | None = None
+
+def _start_noncritical_services() -> None:
+    """Start maintenance and network-capable workers after local readiness."""
+    for label, action in (('edition servisleri', start_services), ('yerel yedekleme', local_backup_manager.start), ('eski indirmeleri taşıma', migrate_downloads), ('tarayıcı temizliği', _close_headless_chrome)):
+        if _shutdown_event.is_set():
+            return
+        _run_startup_step(label, action)
+    startup_metrics.mark('background_services_started')
 
 def _on_window_closed():
     """Kullanici pencereyi kapatinca temizlik yap."""
@@ -251,6 +302,7 @@ def _on_window_closed():
         if _shutdown_complete:
             return
         _shutdown_complete = True
+    _shutdown_event.set()
     print('[MangaX] Pencere kapatildi. Sunucu durduruluyor...')
     for label, action in (('son yedek', lambda: local_backup_manager.stop(create_final=True)), ('servisler', close_services), ('tarayıcı temizliği', _close_headless_chrome), ('yerel sunucu', _stop_server), ('tek örnek kilidi', _release_single_instance)):
         try:
@@ -259,6 +311,7 @@ def _on_window_closed():
             print(f'[MangaX] Kapanış adımı tamamlanamadı ({label}): {error}', flush=True)
 
 def main():
+    global _background_startup_thread
     if not _acquire_single_instance():
         print('[MangaX] Uygulama zaten çalışıyor; ikinci örnek açılmadı.', flush=True)
         return
@@ -266,12 +319,9 @@ def main():
         print(f'[MangaX HATA] {PORT} portu başka bir uygulama tarafından kullanılıyor.', flush=True)
         _release_single_instance()
         return
-    _close_headless_chrome()
-    _run_startup_step('eski indirmeleri taşıma', migrate_downloads)
-    _run_startup_step('edition servisleri', start_services)
-    _run_startup_step('yerel yedekleme', local_backup_manager.start)
     server_thread = threading.Thread(target=_run_server, daemon=True)
     server_thread.start()
+    startup_metrics.mark('server_thread_started')
     print(f'[MangaX] Sunucu baslatiliyor: {APP_URL}')
     if not _wait_for_server(HOST, PORT, timeout=30):
         print('[MangaX HATA] Sunucu 30 saniye icinde baslamadi!')
@@ -284,6 +334,10 @@ def main():
         _on_window_closed()
         sys.exit(1)
     print('[MangaX] Sunucu hazir. Pencere aciliyor...')
+    startup_metrics.mark('backend_ready')
+    _background_startup_thread = threading.Thread(target=_start_noncritical_services, name='MangaXDeferredStartup', daemon=True)
+    _background_startup_thread.start()
+    startup_metrics.mark('background_services_scheduled')
     try:
         import webview
     except ImportError:
@@ -294,6 +348,7 @@ def main():
     window = webview.create_window(title='MangaX', url=APP_URL, width=1400, height=900, min_size=(900, 600), resizable=True, text_select=True, confirm_close=False, js_api=desktop_bridge)
     desktop_bridge._attach_window(window)
     window.events.closed += _on_window_closed
+    startup_metrics.mark('webview_created')
     _gui_backends = ['edgechromium', 'winforms']
     _started = False
     for _backend in _gui_backends:

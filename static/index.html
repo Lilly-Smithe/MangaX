@@ -8,15 +8,12 @@
 <meta content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' http: https: data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" http-equiv="Content-Security-Policy"/>
 <title>MangaX Reader</title>
 
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link data-deferred-style="" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&amp;display=swap" media="print" rel="stylesheet"/>
+<link data-deferred-style="" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" rel="stylesheet"/>
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
-
-<link href="/static/css/styles.css?v=20260719g" rel="stylesheet"/>
+<link href="/static/css/styles.css?v=20260721p" rel="stylesheet"/>
 </head>
-<body data-app-edition="reader" data-app-version="v0.13.6" data-github-extensions-available="false">
+<body data-app-edition="reader" data-app-version="v0.14.0" data-github-extensions-available="false">
 <div class="app-container">
 
 <aside class="sidebar" id="app-sidebar">
@@ -44,7 +41,7 @@
 </div>
 </nav>
 <div class="sidebar-footer">
-<span class="app-version">v0.13.6</span>
+<span class="app-version">v0.14.0</span>
 </div>
 </aside>
 
@@ -349,7 +346,7 @@
 </div>
 <div class="about-info">
 <div class="about-row"><span>Uygulama</span><span>MangaX</span></div>
-<div class="about-row"><span>Versiyon</span><span class="app-version">v0.13.6</span></div>
+<div class="about-row"><span>Versiyon</span><span class="app-version">v0.14.0</span></div>
 
 </div>
 <section aria-labelledby="app-update-title" class="recovery-settings-panel app-update-settings">
@@ -361,6 +358,7 @@
 </div>
 <div aria-live="polite" class="settings-inline-empty" id="app-update-status" role="status">Henüz güncelleme kontrolü yapılmadı.</div>
 <div aria-hidden="true" class="system-check-progress-track hidden" id="app-update-progress"><span id="app-update-progress-bar" style="width:0"></span></div>
+<div class="app-update-settings-meta"><span>Kurulu sürüm <strong class="app-version">v0.14.0</strong></span><span>Son kontrol <strong id="app-update-last-check">Henüz yok</strong></span></div>
 </section>
 <button class="btn btn-secondary settings-onboarding-btn" onclick="openOnboarding()" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Başlangıç Sihirbazını Aç</button>
 <section class="recovery-settings-panel">
@@ -784,6 +782,34 @@
 </div>
 </div>
 </div>
+<div aria-hidden="true" class="app-update-overlay" id="app-update-overlay">
+<section aria-describedby="app-update-dialog-description" aria-labelledby="app-update-dialog-title" aria-modal="true" class="app-update-dialog" role="dialog">
+<button aria-label="Güncelleme penceresini kapat" class="app-update-close" id="app-update-close" title="Kapat" type="button"><i aria-hidden="true" class="fa-solid fa-xmark"></i></button>
+<div aria-hidden="true" class="app-update-hero-icon" id="app-update-hero-icon"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+<span class="app-update-kicker" id="app-update-kicker">MANGAX GÜNCELLEMESİ</span>
+<h2 id="app-update-dialog-title">Yeni sürüm hazır</h2>
+<p id="app-update-dialog-description">Güncelleme MangaX içinde güvenli biçimde indirilecek ve doğrulanacak.</p>
+<div class="app-update-version-card" id="app-update-version-card">
+<div><small>Mevcut</small><strong id="app-update-current-version">—</strong></div>
+<i aria-hidden="true" class="fa-solid fa-arrow-right"></i>
+<div><small>Yeni</small><strong id="app-update-latest-version">—</strong></div>
+<span id="app-update-file-size">—</span>
+</div>
+<div class="app-update-notes" id="app-update-notes-wrap"><strong>Neler geliştirildi?</strong><ul id="app-update-notes"></ul></div>
+<div aria-live="off" class="app-update-live hidden" id="app-update-live">
+<div class="app-update-stage"><span id="app-update-stage">İndirmeye hazırlanıyor…</span><strong id="app-update-percent">0%</strong></div>
+<div aria-label="Güncelleme indirme ilerlemesi" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="app-update-track" id="app-update-dialog-progress" role="progressbar"><span id="app-update-dialog-progress-bar"></span></div>
+<div class="app-update-transfer"><span id="app-update-transferred">0 MB / 0 MB</span><span id="app-update-speed">—</span><span id="app-update-eta">—</span></div>
+</div>
+<div class="app-update-ready hidden" id="app-update-ready" role="status"><i aria-hidden="true" class="fa-solid fa-circle-check"></i><div><strong>Güncelleme hazır</strong><span>Kurulumun tamamlanması için MangaX yeniden başlatılacak.</span></div></div>
+<div class="app-update-error hidden" id="app-update-error" role="alert"></div>
+<div class="app-update-actions">
+<button class="btn btn-ghost" id="app-update-skip" type="button">Bu Sürümü Atla</button>
+<button class="btn btn-secondary" id="app-update-later" type="button">Daha Sonra</button>
+<button class="btn btn-primary" id="app-update-primary" type="button"><i aria-hidden="true" class="fa-solid fa-download"></i><span>Şimdi Güncelle</span></button>
+</div>
+</section>
+</div>
 <div aria-hidden="true" class="release-notes-overlay" id="release-notes-overlay">
 <section aria-labelledby="release-notes-title" aria-modal="true" class="release-notes-panel" role="dialog">
 <div aria-hidden="true" class="release-notes-icon"><i class="fa-solid fa-sparkles"></i></div>
@@ -799,7 +825,7 @@
 <div class="toast-container" id="toast-container"></div>
 
 <script src="/static/js/safe-dom.js?v=20260721a"></script>
-<script src="/static/js/app.js?v=20260719d"></script>
+<script src="/static/js/app.js?v=20260721p"></script>
 <script src="/static/js/edition-gate.js?v=20260719c"></script>
 <script src="/static/js/library.js?v=20260719g"></script>
 <script src="/static/js/local-import.js?v=20260718b"></script>
@@ -808,7 +834,7 @@
 
 
 <script src="/static/js/settings.js?v=20260719d"></script>
-<script src="/static/js/app-update.js?v=20260719b"></script>
+<script src="/static/js/app-update.js?v=20260721u"></script>
 <script src="/static/js/integrations.js?v=20260719f"></script>
 
 <script src="/static/js/release-notes.js?v=20260719d"></script>

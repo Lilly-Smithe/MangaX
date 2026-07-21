@@ -4,6 +4,22 @@ const SETTINGS_CATEGORY_STORAGE_KEY = 'mangax-settings-category-v1';
 const SIDEBAR_COLLAPSED_STORAGE_KEY = 'mangax-sidebar-collapsed-v1';
 const LIBRARY_SNAPSHOT_STORAGE_KEY = 'mangax-library-snapshot-v1';
 const LIBRARY_SNAPSHOT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const mangaxStartupStartedAt = performance.now();
+const mangaxStartupMarks = { process_started: 0 };
+let initialLibraryRequestCompleted = false;
+
+function markStartupMilestone(name) {
+    if (!name || Object.prototype.hasOwnProperty.call(mangaxStartupMarks, name)) return;
+    mangaxStartupMarks[name] = Math.max(0, performance.now() - mangaxStartupStartedAt);
+    window.mangaxStartupTimeline = { ...mangaxStartupMarks };
+}
+
+function activateDeferredStyles() {
+    document.querySelectorAll('link[data-deferred-style]').forEach(link => {
+        link.media = 'all';
+        link.removeAttribute('data-deferred-style');
+    });
+}
 
 function runWhenAppIdle(callback, timeout = 1200) {
     if (typeof requestIdleCallback === 'function') {
@@ -172,6 +188,7 @@ let detailRequestCounter = 0; // Request ID tracker to prevent UI race condition
 
 // Initialization
 if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
+    markStartupMilestone('dom_ready');
     setSidebarCollapsed(getSavedSidebarCollapsed(), { persist: false });
     setupTabNavigation();
     setPreferredAppLanguage(activeDiscoverLang, { render: false });
@@ -179,12 +196,16 @@ if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded
     const restoredLibrarySnapshot = hydrateLibraryFromSnapshot();
     loadLibrary({ silent: restoredLibrarySnapshot });
     if (typeof syncMangaNewsSetting === 'function') syncMangaNewsSetting();
-    runWhenAppIdle(() => {
+    setTimeout(() => runWhenAppIdle(() => {
         if (typeof startDownloadStatusPolling === 'function') startDownloadStatusPolling();
         if (typeof scheduleStartupUpdateCheck === 'function') scheduleStartupUpdateCheck();
         fetch('/api/library/maintenance', { method: 'POST' }).catch(error => {
             console.warn('Kütüphane arka plan bakımı başlatılamadı:', error);
         });
+    }, 2000), 2500);
+    requestAnimationFrame(() => {
+        markStartupMilestone('first_frame_ready');
+        activateDeferredStyles();
     });
     
     // NSFW toggle switch durumunu güncelle
@@ -346,6 +367,7 @@ function switchTab(tabId, { resetDiscover = true } = {}) {
     }
     if (tabId === 'browse') {
         discoverScreenLoaded = true;
+        if (typeof prepareDiscoverSourceRuntime === 'function') prepareDiscoverSourceRuntime();
         if (resetDiscover && typeof resetDiscoverState === 'function') {
             resetDiscoverState({ reload: true });
         } else if (typeof resetDiscoverState !== 'function' && !document.querySelector('#browse-grid .manga-card')) {
