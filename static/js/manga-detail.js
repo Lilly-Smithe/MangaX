@@ -53,7 +53,10 @@ function toggleChapterSort() {
 
 function buildReaderOnlyChapterActions(chapter, downloadedChapters) {
     const isLocal = Object.prototype.hasOwnProperty.call(downloadedChapters, chapter.id);
-    return `<div class="chapters-actions"><button class="btn btn-secondary btn-sm" onclick="startReading('${activeManga.id}', '${chapter.id}', ${isLocal ? 'false' : 'true'})"><i class="fa-solid fa-book-open"></i> Oku</button></div>`;
+    const { element, icon, text } = window.MangaXSafeDOM;
+    const button = element('button', { className: 'btn btn-secondary btn-sm', type: 'button' }, [icon('fa-solid fa-book-open'), text(' Oku')]);
+    button.addEventListener('click', () => startReading(activeManga.id, chapter.id, !isLocal));
+    return element('div', { className: 'chapters-actions' }, [button]);
 }
 
 async function viewMangaDetails(mangaId, options = {}) {
@@ -140,10 +143,10 @@ async function viewMangaDetails(mangaId, options = {}) {
         let coverSrc = localManga.cover_local_url || (localManga.cover_path
             ? '/' + localManga.cover_path.split('/').map(s => encodeURIComponent(s)).join('/')
             : (localManga.cover_url || (searchManga ? searchManga.cover_url : '')));
-        document.getElementById('manga-detail-cover').src = coverSrc || '/static/img/no-cover.jpg';
+        window.MangaXSafeDOM.setImageSource(document.getElementById('manga-detail-cover'), coverSrc);
         
         const bannerImg = localManga.banner_url || (searchManga ? searchManga.banner_url : '') || coverSrc || '';
-        document.getElementById('manga-detail-banner').style.backgroundImage = bannerImg ? `url('${bannerImg}')` : '';
+        window.MangaXSafeDOM.setBackgroundImage(document.getElementById('manga-detail-banner'), bannerImg);
         document.getElementById('manga-detail-year').textContent = displayYear;
         
         const statusBadge = document.getElementById('manga-detail-status');
@@ -183,10 +186,10 @@ async function viewMangaDetails(mangaId, options = {}) {
         if (searchManga) {
             document.getElementById('manga-detail-title').textContent = searchManga.title || "Bilinmeyen Başlık";
             document.getElementById('manga-detail-desc').textContent = searchManga.description || "Açıklama bulunmuyor.";
-            document.getElementById('manga-detail-cover').src = searchManga.cover_url || '/static/img/no-cover.jpg';
+            window.MangaXSafeDOM.setImageSource(document.getElementById('manga-detail-cover'), searchManga.cover_url);
             
             const bannerImg = searchManga.banner_url || searchManga.cover_url || '';
-            document.getElementById('manga-detail-banner').style.backgroundImage = bannerImg ? `url('${bannerImg}')` : '';
+            window.MangaXSafeDOM.setBackgroundImage(document.getElementById('manga-detail-banner'), bannerImg);
             document.getElementById('manga-detail-year').textContent = searchManga.year || "";
             
             const statusBadge = document.getElementById('manga-detail-status');
@@ -242,10 +245,10 @@ async function viewMangaDetails(mangaId, options = {}) {
             
             document.getElementById('manga-detail-title').textContent = activeManga.title;
             document.getElementById('manga-detail-desc').textContent = activeManga.description || "Açıklama bulunmuyor.";
-            document.getElementById('manga-detail-cover').src = activeManga.cover_url || '/static/img/no-cover.jpg';
+            window.MangaXSafeDOM.setImageSource(document.getElementById('manga-detail-cover'), activeManga.cover_url);
             
             const bannerImg = activeManga.banner_url || activeManga.cover_url || '';
-            document.getElementById('manga-detail-banner').style.backgroundImage = bannerImg ? `url('${bannerImg}')` : '';
+            window.MangaXSafeDOM.setBackgroundImage(document.getElementById('manga-detail-banner'), bannerImg);
             document.getElementById('manga-detail-year').textContent = activeManga.year || "";
             
             const statusBadge = document.getElementById('manga-detail-status');
@@ -373,8 +376,8 @@ async function viewMangaDetails(mangaId, options = {}) {
         // Render details
         document.getElementById('manga-detail-title').textContent = activeManga.title;
         document.getElementById('manga-detail-desc').textContent = activeManga.description || "Açıklama bulunmuyor.";
-        document.getElementById('manga-detail-cover').src = activeManga.cover_url;
-        document.getElementById('manga-detail-banner').style.backgroundImage = `url('${activeManga.banner_url || activeManga.cover_url}')`;
+        window.MangaXSafeDOM.setImageSource(document.getElementById('manga-detail-cover'), activeManga.cover_url);
+        window.MangaXSafeDOM.setBackgroundImage(document.getElementById('manga-detail-banner'), activeManga.banner_url || activeManga.cover_url);
         document.getElementById('manga-detail-year').textContent = activeManga.year || "";
         
         const statusBadge = document.getElementById('manga-detail-status');
@@ -493,9 +496,9 @@ function applyProgressiveMetadata(mangaId, searchManga, metadata) {
 
     document.getElementById('manga-detail-title').textContent = manga.title || 'Bilinmeyen Başlık';
     document.getElementById('manga-detail-desc').textContent = manga.description || 'Açıklama bulunmuyor.';
-    document.getElementById('manga-detail-cover').src = manga.cover_url || '/static/img/no-cover.jpg';
+    window.MangaXSafeDOM.setImageSource(document.getElementById('manga-detail-cover'), manga.cover_url);
     const banner = manga.banner_url || manga.cover_url || '';
-    document.getElementById('manga-detail-banner').style.backgroundImage = banner ? `url('${banner}')` : '';
+    window.MangaXSafeDOM.setBackgroundImage(document.getElementById('manga-detail-banner'), banner);
     document.getElementById('manga-detail-year').textContent = manga.year || '';
 
     const statusBadge = document.getElementById('manga-detail-status');
@@ -560,7 +563,14 @@ async function loadAniListSourcesProgressively(
         const detail = tried
             ? 'Kaynaklar çalışmaya devam ediyor olabilir; Eklentiler bölümünden durumlarını test edebilirsin.'
             : 'Eklentiler bölümünden en az bir kaynak kurup yeniden deneyebilirsin.';
-        listBody.innerHTML = `<tr><td colspan="4"><div class="source-resolution-message"><i class="fa-solid fa-circle-info"></i><div><strong>${escapeHtml(title)}</strong><small>${escapeHtml(detail)}</small></div></div></td></tr>`;
+        const { element, icon } = window.MangaXSafeDOM;
+        const cell = element('td', { attributes: { colspan: '4' } }, [
+            element('div', { className: 'source-resolution-message' }, [
+                icon('fa-solid fa-circle-info'),
+                element('div', {}, [element('strong', { text: title }), element('small', { text: detail })]),
+            ]),
+        ]);
+        listBody.replaceChildren(element('tr', {}, [cell]));
     };
 
     const loadResolvedSource = resolvedSource => {
@@ -741,8 +751,8 @@ function changeMangaSource(sourceId, preferredLang = null) {
         // Re-render details immediately
         document.getElementById('manga-detail-title').textContent = activeManga.title;
         document.getElementById('manga-detail-desc').textContent = activeManga.description || "Açıklama bulunmuyor.";
-        document.getElementById('manga-detail-cover').src = activeManga.cover_url;
-        document.getElementById('manga-detail-banner').style.backgroundImage = `url('${activeManga.banner_url || activeManga.cover_url}')`;
+        window.MangaXSafeDOM.setImageSource(document.getElementById('manga-detail-cover'), activeManga.cover_url);
+        window.MangaXSafeDOM.setBackgroundImage(document.getElementById('manga-detail-banner'), activeManga.banner_url || activeManga.cover_url);
         document.getElementById('manga-detail-year').textContent = activeManga.year || "";
         
         const statusBadge = document.getElementById('manga-detail-status');
@@ -921,12 +931,17 @@ function renderChapters() {
     filtered.forEach(ch => {
         const tr = document.createElement('tr');
         tr.dataset.chapterId = ch.id;
-        tr.innerHTML = `
-            <td style="font-weight: 700;">Bölüm ${ch.chapter}</td>
-            <td>${ch.title || 'Başlıksız Bölüm'}</td>
-            <td style="color:var(--text-secondary);">${ch.group || 'Scanlation Group'}</td>
-            <td class="chapter-actions-cell">${typeof buildChapterActions === 'function' ? buildChapterActions(ch, downloadedChapters) : buildReaderOnlyChapterActions(ch, downloadedChapters)}</td>
-        `;
+        const { element } = window.MangaXSafeDOM;
+        const numberCell = element('td', { text: `Bölüm ${ch.chapter ?? ''}` });
+        numberCell.style.fontWeight = '700';
+        const titleCell = element('td', { text: ch.title || 'Başlıksız Bölüm' });
+        const groupCell = element('td', { text: ch.group || 'Scanlation Group' });
+        groupCell.style.color = 'var(--text-secondary)';
+        const actionsCell = element('td', { className: 'chapter-actions-cell' });
+        actionsCell.appendChild(typeof buildChapterActions === 'function'
+            ? buildChapterActions(ch, downloadedChapters)
+            : buildReaderOnlyChapterActions(ch, downloadedChapters));
+        tr.append(numberCell, titleCell, groupCell, actionsCell);
         listBody.appendChild(tr);
     });
 }

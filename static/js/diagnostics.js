@@ -26,20 +26,19 @@ function setSystemCheckProgress(current, total, label) {
     if (progressBar) progressBar.style.width = `${percent}%`;
 }
 
-function systemCheckResultMarkup(item, kind = 'core') {
+function createSystemCheckResult(item, kind = 'core') {
     const status = normalizeSystemCheckStatus(item.status);
     const meta = systemCheckStatusMeta[status];
     const eyebrow = kind === 'source' ? 'KAYNAK' : 'SİSTEM';
-    return `
-        <article class="system-check-result ${status}">
-            <span class="system-check-result-icon"><i class="fa-solid ${meta.icon}"></i></span>
-            <div class="system-check-result-copy">
-                <span>${eyebrow} · ${meta.label}</span>
-                <strong>${escapeHtml(item.label || item.name || item.source_id || 'Kontrol')}</strong>
-                <small>${escapeHtml(item.message || 'Ayrıntı bulunmuyor.')}</small>
-            </div>
-        </article>
-    `;
+    const { element, icon } = window.MangaXSafeDOM;
+    return element('article', { className: `system-check-result ${status}` }, [
+        element('span', { className: 'system-check-result-icon' }, [icon(`fa-solid ${meta.icon}`)]),
+        element('div', { className: 'system-check-result-copy' }, [
+            element('span', { text: `${eyebrow} · ${meta.label}` }),
+            element('strong', { text: item.label || item.name || item.source_id || 'Kontrol' }),
+            element('small', { text: item.message || 'Ayrıntı bulunmuyor.' }),
+        ]),
+    ]);
 }
 
 function renderSystemCheckResults() {
@@ -61,11 +60,12 @@ function renderSystemCheckResults() {
     const problemCount = counts.warning + counts.broken + counts.timeout;
     const summaryStatus = counts.broken > 0 ? 'broken' : problemCount > 0 ? 'warning' : 'healthy';
     summary.className = `system-check-summary ${summaryStatus}`;
-    summary.innerHTML = `
-        <div><i class="fa-solid ${systemCheckStatusMeta[summaryStatus].icon}"></i><strong>${problemCount ? `${problemCount} konu dikkat istiyor` : 'MangaX sağlıklı görünüyor'}</strong></div>
-        <span>${counts.healthy} sağlıklı · ${counts.warning} uyarı · ${counts.broken + counts.timeout} hata</span>
-    `;
-    container.innerHTML = combined.map(item => systemCheckResultMarkup(item, item.kind)).join('');
+    const { element, icon } = window.MangaXSafeDOM;
+    summary.replaceChildren(
+        element('div', {}, [icon(`fa-solid ${systemCheckStatusMeta[summaryStatus].icon}`), element('strong', { text: problemCount ? `${problemCount} konu dikkat istiyor` : 'MangaX sağlıklı görünüyor' })]),
+        element('span', { text: `${counts.healthy} sağlıklı · ${counts.warning} uyarı · ${counts.broken + counts.timeout} hata` }),
+    );
+    container.replaceChildren(...combined.map(item => createSystemCheckResult(item, item.kind)));
 }
 
 async function readSystemCheckResponse(response, fallback) {

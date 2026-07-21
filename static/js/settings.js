@@ -155,7 +155,12 @@ function renderStorageOverview(storage) {
     const target = document.getElementById('settings-storage-overview');
     if (!target) return;
     const rows = (storage.mangas || []).slice(0, 8);
-    target.innerHTML = `<div class="storage-summary"><span><strong>${formatStorageBytes(storage.total_download_bytes || 0)}</strong> İndirilenler</span><span><strong>${formatStorageBytes(storage.cache_bytes || 0)}</strong> Önbellek</span></div>${rows.map(item => `<div class="storage-manga-row"><span>${escapeHtml(item.title)}</span><strong>${formatStorageBytes(item.bytes)}</strong></div>`).join('')}`;
+    const { element, text } = window.MangaXSafeDOM;
+    const metric = (value, label) => element('span', {}, [element('strong', { text: value }), text(` ${label}`)]);
+    target.replaceChildren(
+        element('div', { className: 'storage-summary' }, [metric(formatStorageBytes(storage.total_download_bytes || 0), 'İndirilenler'), metric(formatStorageBytes(storage.cache_bytes || 0), 'Önbellek')]),
+        ...rows.map(item => element('div', { className: 'storage-manga-row' }, [element('span', { text: item.title || '' }), element('strong', { text: formatStorageBytes(item.bytes) })])),
+    );
 }
 
 async function clearApplicationCache() {

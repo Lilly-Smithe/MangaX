@@ -323,19 +323,20 @@ async function loadMalImportPreview(force = false) {
     const button = document.getElementById('mal-preview-btn');
     const list = document.getElementById('mal-import-list');
     if (button) button.disabled = true;
-    if (list) list.innerHTML = '<div class="settings-inline-empty"><i class="fa-solid fa-spinner fa-spin"></i> MyAnimeList okuma listesi hazırlanıyor…</div>';
+    if (list) list.replaceChildren(window.MangaXSafeDOM.element('div', { className: 'settings-inline-empty' }, [window.MangaXSafeDOM.icon('fa-solid fa-spinner fa-spin'), window.MangaXSafeDOM.text(' MyAnimeList okuma listesi hazırlanıyor…')]));
     try {
         const data = await malApi(`/api/integrations/mal/preview?force=${force ? 'true' : 'false'}`);
         malImportEntries = Array.isArray(data.entries) ? data.entries : [];
         const summary = document.getElementById('mal-import-summary');
         if (summary) {
             summary.classList.remove('hidden');
-            summary.innerHTML = `<span><strong>${data.total || 0}</strong> MAL kaydı</span><span class="matched"><strong>${data.matched || 0}</strong> kesin eşleşme</span><span class="unmatched"><strong>${data.unmatched || 0}</strong> eşleşmedi</span>`;
+            const metric = (className, value, label) => window.MangaXSafeDOM.element('span', { className }, [window.MangaXSafeDOM.element('strong', { text: Number(value) || 0 }), window.MangaXSafeDOM.text(` ${label}`)]);
+            summary.replaceChildren(metric('', data.total, 'MAL kaydı'), metric('matched', data.matched, 'kesin eşleşme'), metric('unmatched', data.unmatched, 'eşleşmedi'));
         }
         document.getElementById('mal-import-toolbar')?.classList.remove('hidden');
         renderMalImportEntries();
     } catch (error) {
-        if (list) list.innerHTML = `<div class="settings-inline-empty">${escapeHtml(error.message)}</div>`;
+        if (list) list.replaceChildren(window.MangaXSafeDOM.element('div', { className: 'settings-inline-empty', text: error.message || 'MAL listesi yüklenemedi.' }));
         showToast(error.message, 'error');
     } finally {
         if (button) button.disabled = false;
@@ -345,21 +346,32 @@ async function loadMalImportPreview(force = false) {
 function renderMalImportEntries() {
     const list = document.getElementById('mal-import-list');
     if (!list) return;
+    const { clear, element, icon, setImageSource, text } = window.MangaXSafeDOM;
+    clear(list);
     if (!malImportEntries.length) {
-        list.innerHTML = '<div class="settings-inline-empty">Liste henüz yüklenmedi.</div>';
+        list.appendChild(element('div', { className: 'settings-inline-empty', text: 'Liste henüz yüklenmedi.' }));
         return;
     }
-    list.innerHTML = malImportEntries.map(entry => {
+    malImportEntries.forEach(entry => {
         const matched = Boolean(entry.matched && entry.manga);
         const cover = entry.manga?.cover_url || entry.cover_url || '/static/img/no-cover.jpg';
         const progress = Number(entry.num_chapters_read) > 0 ? ` · ${Number(entry.num_chapters_read)} bölüm` : '';
-        return `<label class="mal-import-row ${matched ? 'matched' : 'unmatched'}">
-            <input class="mal-entry-checkbox" type="checkbox" value="${Number(entry.mal_id)}" ${matched ? 'checked' : 'disabled'}>
-            <img src="${escapeHtml(cover)}" alt="" loading="lazy" decoding="async">
-            <span><strong>${escapeHtml(entry.manga?.title || entry.title)}</strong><small>${escapeHtml(malStatusLabels[entry.status] || entry.status)}${progress}${Number(entry.score) ? ` · ${Number(entry.score)}/10` : ''}</small></span>
-            <em>${matched ? '<i class="fa-solid fa-link"></i> Manga kaydı hazır' : '<i class="fa-solid fa-triangle-exclamation"></i> Eşleşmedi'}</em>
-        </label>`;
-    }).join('');
+        const checkbox = element('input', { className: 'mal-entry-checkbox', type: 'checkbox' });
+        checkbox.value = String(Number(entry.mal_id) || 0);
+        checkbox.checked = matched;
+        checkbox.disabled = !matched;
+        const image = element('img', { attributes: { alt: '', loading: 'lazy', decoding: 'async' } });
+        setImageSource(image, cover);
+        const details = element('span', {}, [
+            element('strong', { text: entry.manga?.title || entry.title || '' }),
+            element('small', { text: `${malStatusLabels[entry.status] || entry.status || ''}${progress}${Number(entry.score) ? ` · ${Number(entry.score)}/10` : ''}` }),
+        ]);
+        const match = element('em', {}, [
+            icon(`fa-solid ${matched ? 'fa-link' : 'fa-triangle-exclamation'}`),
+            text(matched ? ' Manga kaydı hazır' : ' Eşleşmedi'),
+        ]);
+        list.appendChild(element('label', { className: `mal-import-row ${matched ? 'matched' : 'unmatched'}` }, [checkbox, image, details, match]));
+    });
 }
 
 function toggleAllMalEntries(checked) {
@@ -443,15 +455,21 @@ function renderMalOutboundStatus(status = {}) {
     retry?.classList.toggle('hidden', !status.enabled || (!pending && !failed));
     const conflictItems = (Array.isArray(status.items) ? status.items : [])
         .filter(item => item.state === 'conflict');
-    list.innerHTML = conflictItems.map(item => `
-        <article class="mal-conflict-row">
-            <div><strong>${escapeHtml(item.title || 'Manga')}</strong><small>MAL ve MangaX’te aynı kayıt değişmiş. Hangi sürüm korunsun?</small></div>
-            <div>
-                <button class="btn btn-secondary" type="button" onclick="resolveMalConflict('${escapeHtml(item.manga_id)}', 'remote')">MAL’daki sürümü kullan</button>
-                <button class="btn btn-primary" type="button" onclick="resolveMalConflict('${escapeHtml(item.manga_id)}', 'local')">MangaX sürümünü kullan</button>
-            </div>
-        </article>
-    `).join('');
+    const { clear, element } = window.MangaXSafeDOM;
+    clear(list);
+    conflictItems.forEach(item => {
+        const remote = element('button', { className: 'btn btn-secondary', type: 'button', text: 'MAL’daki sürümü kullan' });
+        const local = element('button', { className: 'btn btn-primary', type: 'button', text: 'MangaX sürümünü kullan' });
+        remote.addEventListener('click', () => resolveMalConflict(String(item.manga_id ?? ''), 'remote'));
+        local.addEventListener('click', () => resolveMalConflict(String(item.manga_id ?? ''), 'local'));
+        list.appendChild(element('article', { className: 'mal-conflict-row' }, [
+            element('div', {}, [
+                element('strong', { text: item.title || 'Manga' }),
+                element('small', { text: 'MAL ve MangaX’te aynı kayıt değişmiş. Hangi sürüm korunsun?' }),
+            ]),
+            element('div', {}, [remote, local]),
+        ]));
+    });
 }
 
 async function loadMalOutboundStatus() {

@@ -117,7 +117,7 @@ def _local_backup_path(backup_id: str) -> Path:
 
 def _backup_filename(now: datetime | None=None) -> str:
     value = now or datetime.now(timezone.utc)
-    return f'mangax-auto-{value.strftime('%Y%m%d-%H%M%S-%f')}.json'
+    return f"mangax-auto-{value.strftime('%Y%m%d-%H%M%S-%f')}.json"
 
 def list_local_backups() -> list[dict]:
     backup_dir = Path(BACKUPS_DIR)

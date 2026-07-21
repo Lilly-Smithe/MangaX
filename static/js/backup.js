@@ -158,20 +158,24 @@ function localBackupSize(bytes) {
 function renderLocalBackups(backups) {
     const list = document.getElementById('local-backup-list');
     if (!list) return;
+    const { clear, element, icon, text } = window.MangaXSafeDOM;
+    clear(list);
     if (!Array.isArray(backups) || backups.length === 0) {
-        list.innerHTML = '<div class="local-backup-empty"><i class="fa-solid fa-box-open"></i> Henüz yerel yedek oluşturulmadı.</div>';
+        list.appendChild(element('div', { className: 'local-backup-empty' }, [icon('fa-solid fa-box-open'), text(' Henüz yerel yedek oluşturulmadı.')]));
         return;
     }
-    list.innerHTML = backups.map(backup => `
-        <article class="local-backup-item">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            <div class="local-backup-item-copy">
-                <strong>${escapeHtml(localBackupDate(backup.created_at))}</strong>
-                <span>${escapeHtml(localBackupReasonLabel(backup.reason))} · ${Number(backup.manga_count) || 0} manga · ${escapeHtml(localBackupSize(backup.size_bytes))}</span>
-            </div>
-            <button class="btn btn-secondary local-backup-restore" type="button" onclick="restoreLocalBackup('${escapeHtml(backup.id)}')"><i class="fa-solid fa-rotate-left"></i> Geri Dön</button>
-        </article>
-    `).join('');
+    backups.forEach(backup => {
+        const restore = element('button', { className: 'btn btn-secondary local-backup-restore', type: 'button' }, [icon('fa-solid fa-rotate-left'), text(' Geri Dön')]);
+        restore.addEventListener('click', () => restoreLocalBackup(String(backup.id ?? '')));
+        list.appendChild(element('article', { className: 'local-backup-item' }, [
+            icon('fa-solid fa-clock-rotate-left'),
+            element('div', { className: 'local-backup-item-copy' }, [
+                element('strong', { text: localBackupDate(backup.created_at) }),
+                element('span', { text: `${localBackupReasonLabel(backup.reason)} · ${Number(backup.manga_count) || 0} manga · ${localBackupSize(backup.size_bytes)}` }),
+            ]),
+            restore,
+        ]));
+    });
 }
 
 function syncLocalBackupControls() {

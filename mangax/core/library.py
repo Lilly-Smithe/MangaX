@@ -182,7 +182,7 @@ class LibraryManager:
                 updates.append('updated_at = ?')
                 params.extend([chapter_id, max(0, int(page_index)), chapter_num, chapter_title, source_id, language, bool(online), at_time, page_offset, chapter_percent, at_time])
                 params.append(manga_id)
-                query = f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?'
+                query = f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?"
                 conn.execute(query, params)
             conn.commit()
         self._refresh_unread_count(manga_id, chapter_num)
@@ -279,7 +279,7 @@ class LibraryManager:
                 updates.append('mal_num_volumes_read = ?')
                 params.append(max(0, int(mal_num_volumes_read)))
             params.append(manga_id)
-            result = conn.execute(f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?', params)
+            result = conn.execute(f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?", params)
             conn.commit()
             if result.rowcount == 0:
                 return None
@@ -304,7 +304,7 @@ class LibraryManager:
                     updates.append('collections = ?')
                     params.append(json.dumps(self._clean_collections([*existing, collection[0]]), ensure_ascii=False))
                 params.append(manga_id)
-                conn.execute(f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?', params)
+                conn.execute(f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?", params)
                 updated_ids.append(manga_id)
             conn.commit()
         return [manga for manga_id in updated_ids if (manga := self.get_manga(manga_id))]
@@ -355,13 +355,13 @@ class LibraryManager:
     def get_library(self, *, include_storage: bool=True) -> Dict[str, Any]:
         lib = {'mangas': {}}
         with db.get_connection() as conn:
-            cur = conn.execute('SELECT * FROM mangas')
-            mangas_rows = cur.fetchall()
+            mangas_rows = conn.execute('SELECT * FROM mangas').fetchall()
+            chapters_by_manga: Dict[str, List[sqlite3.Row]] = {}
+            for chapter_row in conn.execute('SELECT * FROM downloaded_chapters ORDER BY manga_id').fetchall():
+                chapters_by_manga.setdefault(chapter_row['manga_id'], []).append(chapter_row)
             for m_row in mangas_rows:
                 m_id = m_row['id']
-                c_cur = conn.execute('SELECT * FROM downloaded_chapters WHERE manga_id = ?', (m_id,))
-                c_rows = c_cur.fetchall()
-                manga = self._row_to_dict(m_row, c_rows, include_pages=False)
+                manga = self._row_to_dict(m_row, chapters_by_manga.get(m_id, []), include_pages=False)
                 if include_storage:
                     manga['storage_bytes'] = self.get_manga_storage_bytes(manga)
                 lib['mangas'][m_id] = manga
@@ -466,10 +466,17 @@ class LibraryManager:
                     print(f'Error deleting manga directory {safe_dir}: {e}')
                     return False
         with db.get_connection() as conn:
-            conn.execute('DELETE FROM downloaded_chapters WHERE manga_id = ?', (manga_id,))
-            conn.execute('DELETE FROM mangas WHERE id = ?', (manga_id,))
+            self._delete_manga_rows(conn, manga_id)
             conn.commit()
         return True
+
+    @staticmethod
+    def _delete_manga_rows(conn: sqlite3.Connection, manga_id: str) -> None:
+        """Remove every database-owned relation in the caller's transaction."""
+        conn.execute('DELETE FROM downloaded_chapters WHERE manga_id = ?', (manga_id,))
+        conn.execute('DELETE FROM manga_source_bindings WHERE manga_id = ?', (manga_id,))
+        conn.execute('DELETE FROM mal_outbound_queue WHERE manga_id = ?', (manga_id,))
+        conn.execute('DELETE FROM mangas WHERE id = ?', (manga_id,))
 
     def remove_downloaded_chapter(self, manga_id: str, chapter_id: str) -> bool:
         manga = self.get_manga(manga_id)
@@ -516,7 +523,7 @@ class LibraryManager:
                     if not chapter_path or not os.path.isdir(chapter_path):
                         conn.execute('DELETE FROM downloaded_chapters WHERE id = ? AND manga_id = ?', (chapter_id, manga_id))
                         changed = True
-                        print(f'[Library] Kayip bolum kaydi temizlendi: {m_row['title']} / {chapter_id}')
+                        print(f"[Library] Kayip bolum kaydi temizlendi: {m_row['title']} / {chapter_id}")
                 if changed:
                     c_cur = conn.execute('SELECT * FROM downloaded_chapters WHERE manga_id = ?', (manga_id,))
                     c_rows_after = c_cur.fetchall()
@@ -524,7 +531,7 @@ class LibraryManager:
                         if m_row['last_read_chapter']:
                             conn.execute("UPDATE mangas SET cover_path = '', folder_name = '' WHERE id = ?", (manga_id,))
                         else:
-                            self.remove_manga(manga_id)
+                            self._delete_manga_rows(conn, manga_id)
                             changed = True
             if changed:
                 conn.commit()
@@ -585,7 +592,7 @@ class LibraryManager:
                                         except Exception as dl_err:
                                             print(f'Error downloading cover for repaired manga {manga_id}: {dl_err}')
                                     params.append(manga_id)
-                                    conn.execute(f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?', params)
+                                    conn.execute(f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?", params)
                                     changed = True
                         except Exception as e:
                             print(f'Error repairing metadata for {manga_id}: {e}')
@@ -636,7 +643,7 @@ class LibraryManager:
                     rel_path = os.path.relpath(repaired_cover_path, BASE_DIR).replace('\\', '/')
                     conn.execute('UPDATE mangas SET cover_path = ?, folder_name = ? WHERE id = ?', (rel_path, safe_name, manga_id))
                     changed = True
-                    print(f'[Library] Eksik kapak onarildi: {manga_dict.get('title', manga_id)}')
+                    print(f"[Library] Eksik kapak onarildi: {manga_dict.get('title', manga_id)}")
                 except Exception as e:
                     print(f'Error repairing cover for {manga_id}: {e}')
             if changed:

@@ -10,7 +10,8 @@ from mangax.core.models import LIBRARY_STATUS_VALUES
 from typing import Dict, Any, List, Optional
 
 DB_PATH = os.path.join(DATA_DIR, "library.db")
-DATABASE_SCHEMA_VERSION = 4
+DATABASE_SCHEMA_VERSION = 5
+SQLITE_BUSY_TIMEOUT_MS = 5000
 LIBRARY_STATUS_SQL_VALUES = ", ".join(
     f"'{value}'" for value in sorted(LIBRARY_STATUS_VALUES)
 )
@@ -22,8 +23,14 @@ class DatabaseManager:
 
     @contextmanager
     def get_connection(self):
-        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        conn = sqlite3.connect(
+            DB_PATH,
+            check_same_thread=False,
+            timeout=SQLITE_BUSY_TIMEOUT_MS / 1000,
+        )
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON")
+        conn.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
         try:
             yield conn
         except Exception:
@@ -34,6 +41,9 @@ class DatabaseManager:
 
     def init_db(self):
         with self.get_connection() as conn:
+            # WAL is persistent for the database file. Set it during schema
+            # initialization instead of renegotiating it on every connection.
+            conn.execute("PRAGMA journal_mode = WAL")
             conn.execute(f"""
                 CREATE TABLE IF NOT EXISTS mangas (
                     id TEXT PRIMARY KEY,
@@ -233,6 +243,22 @@ class DatabaseManager:
                 CREATE INDEX IF NOT EXISTS idx_mal_outbound_due
                 ON mal_outbound_queue(account_key, state, available_at)
             """)
+            if schema_version < 5:
+                # Older builds did not consistently enforce foreign keys, so
+                # interrupted deletes could leave relation rows behind. Only
+                # rows whose parent is certainly absent are removed.
+                for table in (
+                    "downloaded_chapters",
+                    "manga_source_bindings",
+                    "mal_outbound_queue",
+                ):
+                    conn.execute(
+                        f"DELETE FROM {table} "
+                        "WHERE NOT EXISTS ("
+                        f"SELECT 1 FROM mangas WHERE mangas.id = {table}.manga_id"
+                        ")"
+                    )
+                conn.execute("PRAGMA user_version = 5")
             conn.commit()
 
 db = DatabaseManager()

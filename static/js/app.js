@@ -290,10 +290,11 @@ function showToast(message, type = 'info') {
     if (type === 'success') iconClass = 'fa-circle-check';
     if (type === 'error') iconClass = 'fa-circle-exclamation';
     
-    toast.innerHTML = `
-        <i class="fa-solid ${iconClass}"></i>
-        <span>${message}</span>
-    `;
+    const { element, icon } = window.MangaXSafeDOM;
+    toast.append(
+        icon(`fa-solid ${iconClass}`),
+        element('span', { text: message }),
+    );
     
     container.appendChild(toast);
     
