@@ -1,0 +1,327 @@
+/* Siyah ve turuncu, yüksek kontrastlı MangaX tema varyantı. */
+:root[data-theme="pornhub"] {
+    color-scheme: dark;
+    --bg-app: #000000;
+    --bg-main: #000000;
+    --bg-sidebar: #090909;
+    --bg-surface: #111111;
+    --bg-surface-secondary: #181818;
+    --bg-elevated: #202020;
+    --bg-hover: #252525;
+    --bg-input: #0b0b0b;
+    --bg-card: #141414;
+    --border-color: #303030;
+    --border-glow: rgba(255, 153, 0, .32);
+    --primary-grad: linear-gradient(135deg, #ffad22, #ff9000);
+    --primary-glow: rgba(255, 153, 0, .34);
+    --primary-solid: #ff9900;
+    --primary-hover: #ffad22;
+    --accent: #ff9900;
+    --accent-hover: #ffad22;
+    --secondary-color: #ff9900;
+    --secondary-glow: rgba(255, 153, 0, .25);
+    --text-primary: #ffffff;
+    --text-secondary: #c7c7c7;
+    --text-muted: #818181;
+    --text-on-accent: #080808;
+    --success: #50b848;
+    --warning: #ffb52e;
+    --danger: #ef4444;
+    --danger-color: #ef4444;
+    --shadow-color: rgba(0, 0, 0, .58);
+    --overlay-color: rgba(0, 0, 0, .78);
+    --focus-ring: rgba(255, 153, 0, .72);
+    --cover-border: #353535;
+}
+
+:root[data-theme="pornhub"] body {
+    background: #000;
+    font-family: Arial, "Segoe UI", sans-serif;
+}
+
+:root[data-theme="pornhub"] .main-content { background: #000; }
+:root[data-theme="pornhub"] .sidebar {
+    border-color: #242424;
+    background: linear-gradient(180deg, #101010, #050505);
+    box-shadow: 5px 0 24px rgba(0, 0, 0, .52);
+}
+:root[data-theme="pornhub"] .logo,
+:root[data-theme="pornhub"] .logo-manga { color: #fff; }
+:root[data-theme="pornhub"] .logo-x {
+    display: inline-block;
+    margin-left: 3px;
+    padding: 1px 5px 2px;
+    border-radius: 4px;
+    background: #ff9900;
+    color: #080808;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    -webkit-text-fill-color: #080808;
+    text-shadow: none;
+}
+:root[data-theme="pornhub"] .sidebar-collapse-btn,
+:root[data-theme="pornhub"] .nav-btn { border-radius: 7px; }
+:root[data-theme="pornhub"] .nav-btn:hover { background: #1d1d1d; color: #fff; }
+:root[data-theme="pornhub"] .nav-btn.active {
+    border-color: #ff9900;
+    background: #ff9900;
+    color: #080808;
+    box-shadow: 0 7px 20px rgba(255, 153, 0, .18);
+}
+:root[data-theme="pornhub"] .nav-btn.active i { color: #080808; }
+:root[data-theme="pornhub"] .notification-badge { background: #ff9900; color: #080808; box-shadow: none; }
+
+:root[data-theme="pornhub"] .tab-header h1,
+:root[data-theme="pornhub"] .browse-section-header h2,
+:root[data-theme="pornhub"] .manga-row-title { letter-spacing: -.025em; }
+:root[data-theme="pornhub"] .btn-primary,
+:root[data-theme="pornhub"] .search-btn,
+:root[data-theme="pornhub"] .app-confirm-accept {
+    border-color: #ff9900;
+    background: linear-gradient(180deg, #ffad22, #ff9000);
+    color: #080808;
+    box-shadow: 0 7px 20px rgba(255, 153, 0, .2);
+    text-shadow: none;
+}
+:root[data-theme="pornhub"] .btn-primary:hover,
+:root[data-theme="pornhub"] .search-btn:hover,
+:root[data-theme="pornhub"] .app-confirm-accept:hover { background: #ffb638; color: #000; }
+:root[data-theme="pornhub"] .btn-secondary,
+:root[data-theme="pornhub"] .btn-ghost,
+:root[data-theme="pornhub"] .reader-btn {
+    border-color: #363636;
+    background: #1b1b1b;
+    color: #eee;
+}
+:root[data-theme="pornhub"] .btn-secondary:hover,
+:root[data-theme="pornhub"] .btn-ghost:hover,
+:root[data-theme="pornhub"] .reader-btn:hover { border-color: #ff9900; background: #242424; }
+
+:root[data-theme="pornhub"] input,
+:root[data-theme="pornhub"] select,
+:root[data-theme="pornhub"] textarea,
+:root[data-theme="pornhub"] .search-box {
+    border-color: #353535;
+    background: #0c0c0c;
+    color: #fff;
+}
+:root[data-theme="pornhub"] input:focus,
+:root[data-theme="pornhub"] select:focus,
+:root[data-theme="pornhub"] textarea:focus {
+    border-color: #ff9900;
+    outline: 2px solid rgba(255, 153, 0, .22);
+}
+
+:root[data-theme="pornhub"] .settings-card,
+:root[data-theme="pornhub"] .settings-category-nav,
+:root[data-theme="pornhub"] .library-catalog-toolbar,
+:root[data-theme="pornhub"] .library-bulk-bar,
+:root[data-theme="pornhub"] .library-view-tabs,
+:root[data-theme="pornhub"] .discover-filter-panel,
+:root[data-theme="pornhub"] .downloads-panel,
+:root[data-theme="pornhub"] .notifications-panel,
+:root[data-theme="pornhub"] .extensions-panel,
+:root[data-theme="pornhub"] .integration-card {
+    border-color: #303030;
+    background: #121212;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, .3);
+}
+:root[data-theme="pornhub"] .settings-card-header,
+:root[data-theme="pornhub"] .chapter-list-header { border-color: #303030; }
+:root[data-theme="pornhub"] .settings-card-header i,
+:root[data-theme="pornhub"] .settings-category-btn.active { color: #ff9900; }
+:root[data-theme="pornhub"] .settings-category-btn.active {
+    border-color: rgba(255, 153, 0, .42);
+    background: rgba(255, 153, 0, .1);
+}
+
+:root[data-theme="pornhub"] .manga-card,
+:root[data-theme="pornhub"] .library-catalog-card,
+:root[data-theme="pornhub"] .continue-card,
+:root[data-theme="pornhub"] .news-card,
+:root[data-theme="pornhub"] .category-card {
+    border-color: #292929;
+    background: #121212;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, .42);
+}
+:root[data-theme="pornhub"] .manga-card:hover,
+:root[data-theme="pornhub"] .library-catalog-card:hover {
+    border-color: #ff9900;
+    box-shadow: 0 0 0 1px rgba(255, 153, 0, .32), 0 18px 34px rgba(0, 0, 0, .55);
+}
+:root[data-theme="pornhub"] .card-content,
+:root[data-theme="pornhub"] .library-card-content { background: #121212; }
+:root[data-theme="pornhub"] #discover-tab .card-chapters {
+    border-color: rgba(255, 153, 0, .4);
+    background: #ff9900;
+    color: #080808;
+}
+:root[data-theme="pornhub"] #discover-tab .card-chapters strong { color: #080808; }
+:root[data-theme="pornhub"] .row-scroll-btn { color: #ff9900; }
+:root[data-theme="pornhub"] .row-scroll-btn--left { background: linear-gradient(to right, #000 12%, transparent); }
+:root[data-theme="pornhub"] .row-scroll-btn--right { background: linear-gradient(to left, #000 12%, transparent); }
+
+:root[data-theme="pornhub"] .modal-content,
+:root[data-theme="pornhub"] .details-modal-content,
+:root[data-theme="pornhub"] .local-import-panel,
+:root[data-theme="pornhub"] .app-confirm-panel,
+:root[data-theme="pornhub"] .app-update-dialog,
+:root[data-theme="pornhub"] .release-notes-panel,
+:root[data-theme="pornhub"] .onboarding-container,
+:root[data-theme="pornhub"] .library-editor-panel,
+:root[data-theme="pornhub"] .reader-shortcuts-card {
+    border-color: #343434;
+    background: #121212;
+    color: #fff;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, .72);
+}
+:root[data-theme="pornhub"] .details-modal-bg { background: rgba(0, 0, 0, .8); }
+:root[data-theme="pornhub"] .manga-detail-title { color: #fff; }
+:root[data-theme="pornhub"] .source-binding-panel { border-color: #383838; background: #181818; }
+:root[data-theme="pornhub"] .lang-tab.active { background: #ff9900; color: #080808; }
+:root[data-theme="pornhub"] .modal-close { border-color: #3c3c3c; background: #1b1b1b; color: #fff; }
+:root[data-theme="pornhub"] .modal-close:hover { border-color: #ff9900; color: #ff9900; }
+:root[data-theme="pornhub"] .reader-header { border-color: #292929; background: rgba(7, 7, 7, .96); }
+
+:root[data-theme="pornhub"] .release-notes-icon,
+:root[data-theme="pornhub"] .app-update-hero-icon,
+:root[data-theme="pornhub"] .system-check-heading-icon { background: #ff9900; color: #080808; box-shadow: 0 10px 28px rgba(255, 153, 0, .22); }
+:root[data-theme="pornhub"] .release-notes-copy > span,
+:root[data-theme="pornhub"] .app-update-kicker,
+:root[data-theme="pornhub"] .app-update-version-card > i,
+:root[data-theme="pornhub"] .app-update-stage strong { color: #ff9900; }
+:root[data-theme="pornhub"] .app-update-notes li::before { background: #ff9900; }
+:root[data-theme="pornhub"] .app-update-track span,
+:root[data-theme="pornhub"] .local-import-progress-track span,
+:root[data-theme="pornhub"] .mal-sync-progress span,
+:root[data-theme="pornhub"] .system-check-progress-track span,
+:root[data-theme="pornhub"] .mal-repair-progress span {
+    background: linear-gradient(90deg, #ff8500, #ffb52e);
+    box-shadow: 0 0 14px rgba(255, 153, 0, .34);
+}
+:root[data-theme="pornhub"] .reader-setting-slider input,
+:root[data-theme="pornhub"] .reader-toggle-row input { accent-color: #ff9900; }
+
+/* Eski bileşenlerde kalan sabit MangaX kırmızısını tema turuncusuna çevir. */
+:root[data-theme="pornhub"] .sidebar-collapse-btn:hover,
+:root[data-theme="pornhub"] .sidebar-collapse-btn:focus-visible {
+    border-color: rgba(255, 153, 0, .62);
+    background: rgba(255, 153, 0, .12);
+}
+:root[data-theme="pornhub"] .logo:focus-visible { outline-color: #ff9900; }
+:root[data-theme="pornhub"] .library-status-filters button:hover,
+:root[data-theme="pornhub"] .library-status-filters button.active,
+:root[data-theme="pornhub"] .library-layout-toggle button:hover,
+:root[data-theme="pornhub"] .library-layout-toggle button.active {
+    border-color: #ff9900;
+    background: rgba(255, 153, 0, .16);
+    color: #fff;
+}
+:root[data-theme="pornhub"] .library-status-filters button.active,
+:root[data-theme="pornhub"] .library-layout-toggle button.active {
+    background: #ff9900;
+    color: #080808;
+}
+:root[data-theme="pornhub"] .library-status-filters button.active [data-library-status-count] {
+    background: rgba(0, 0, 0, .2);
+    color: #080808;
+}
+:root[data-theme="pornhub"] .library-select-toggle.active { border-color: #ff9900; color: #ff9900; }
+:root[data-theme="pornhub"] .library-bulk-bar { border-color: rgba(255, 153, 0, .42); background: rgba(15, 15, 15, .97); }
+:root[data-theme="pornhub"] .library-catalog-card:hover { border-color: #ff9900; }
+:root[data-theme="pornhub"] .library-catalog-card.selected {
+    border-color: #ff9900;
+    box-shadow: inset 0 0 0 1px #ff9900, 0 12px 28px rgba(255, 153, 0, .14);
+}
+:root[data-theme="pornhub"] .library-unread-badge { background: #ff9900; color: #080808; box-shadow: none; }
+:root[data-theme="pornhub"] .library-card-resume { background: #ff9900; color: #080808; box-shadow: 0 6px 18px rgba(255, 153, 0, .22); }
+:root[data-theme="pornhub"] .library-card-resume:hover,
+:root[data-theme="pornhub"] .library-card-resume:focus-visible { background: #ffb52e; color: #000; }
+:root[data-theme="pornhub"] .library-delete-btn { background: #ff9900; color: #080808; }
+:root[data-theme="pornhub"] .library-editor-panel { border-color: rgba(255, 153, 0, .38); }
+
+:root[data-theme="pornhub"] .toggle-switch input:checked + .toggle-slider,
+:root[data-theme="pornhub"] .onboarding-progress-dot.active,
+:root[data-theme="pornhub"] .onboarding-language-card.selected .onboarding-language-code,
+:root[data-theme="pornhub"] .onboarding-source-card.selected .onboarding-source-check {
+    border-color: #ff9900;
+    background: #ff9900;
+    color: #080808;
+    box-shadow: none;
+}
+:root[data-theme="pornhub"] .local-import-options button:hover,
+:root[data-theme="pornhub"] .onboarding-language-card.selected,
+:root[data-theme="pornhub"] .onboarding-source-card.selected {
+    border-color: rgba(255, 153, 0, .58);
+    background: rgba(255, 153, 0, .1);
+    box-shadow: none;
+}
+:root[data-theme="pornhub"] .backup-summary-icon,
+:root[data-theme="pornhub"] .onboarding-brand strong,
+:root[data-theme="pornhub"] .onboarding-hero-icon,
+:root[data-theme="pornhub"] .onboarding-success-orbit,
+:root[data-theme="pornhub"] .onboarding-recommended,
+:root[data-theme="pornhub"] .mal-account-avatar,
+:root[data-theme="pornhub"] .system-check-empty > i { color: #ff9900; }
+:root[data-theme="pornhub"] .onboarding-hero-icon,
+:root[data-theme="pornhub"] .onboarding-success-orbit,
+:root[data-theme="pornhub"] .github-settings-code,
+:root[data-theme="pornhub"] .mal-sync-panel,
+:root[data-theme="pornhub"] .manga-source-summary {
+    border-color: rgba(255, 153, 0, .32);
+    background: rgba(255, 153, 0, .08);
+    box-shadow: none;
+}
+:root[data-theme="pornhub"] .onboarding-github-code > strong,
+:root[data-theme="pornhub"] .onboarding-recommended { background: rgba(255, 153, 0, .15); color: #ffb52e; }
+
+:root[data-theme="pornhub"] .extension-category-btn.active {
+    border-color: rgba(255, 153, 0, .4);
+    background: rgba(255, 153, 0, .12);
+    box-shadow: inset 2px 0 0 #ff9900;
+}
+:root[data-theme="pornhub"] .extension-category-btn.active .extension-category-icon,
+:root[data-theme="pornhub"] .extension-category-btn.active em,
+:root[data-theme="pornhub"] .panel-icon {
+    border-color: rgba(255, 153, 0, .34);
+    background: rgba(255, 153, 0, .16);
+    color: #ff9900;
+    box-shadow: none;
+}
+:root[data-theme="pornhub"] .extension-item:hover { border-color: rgba(255, 153, 0, .34); }
+:root[data-theme="pornhub"] .extension-item.notification-target {
+    border-color: #ff9900;
+    background: rgba(255, 153, 0, .1);
+    box-shadow: 0 0 0 2px rgba(255, 153, 0, .13);
+}
+:root[data-theme="pornhub"] .ext-icon { background: rgba(255, 153, 0, .14); color: #ff9900; }
+
+:root[data-theme="pornhub"] .library-download-manager {
+    border-color: rgba(255, 153, 0, .28);
+    background: linear-gradient(135deg, rgba(255, 153, 0, .1), rgba(255, 255, 255, .015) 44%);
+}
+:root[data-theme="pornhub"] .download-item-downloading { border-color: rgba(255, 153, 0, .42); }
+:root[data-theme="pornhub"] .dl-downloading { background: rgba(255, 153, 0, .15); color: #ffad22; }
+:root[data-theme="pornhub"] .download-control-btn.primary,
+:root[data-theme="pornhub"] .download-control-btn.retry {
+    border-color: rgba(255, 153, 0, .42);
+    background: rgba(255, 153, 0, .14);
+    color: #ffad22;
+}
+:root[data-theme="pornhub"] .settings-card:hover,
+:root[data-theme="pornhub"] #reader-preview-toggle.active,
+:root[data-theme="pornhub"] .reader-preview-navigation button:hover,
+:root[data-theme="pornhub"] .source-priority-actions button:not(:disabled):hover { border-color: rgba(255, 153, 0, .46); }
+:root[data-theme="pornhub"] .badge-info,
+:root[data-theme="pornhub"] .source-type-badge.builtin { border-color: rgba(255, 153, 0, .3); background: rgba(255, 153, 0, .1); color: #ffad22; }
+:root[data-theme="pornhub"] .preview-action-burst i,
+:root[data-theme="pornhub"] .system-check-heading-icon { background: #ff9900; color: #080808; box-shadow: none; }
+:root[data-theme="pornhub"] .preview-end-mark { color: #ff9900; }
+
+:root[data-theme="pornhub"][data-nav-position="right"] .sidebar { box-shadow: -5px 0 24px rgba(0, 0, 0, .52); }
+:root[data-theme="pornhub"][data-nav-position="top"] .sidebar,
+:root[data-theme="pornhub"][data-nav-position="bottom"] .sidebar { background: #090909; }
+
+@media (max-width: 720px) {
+    :root[data-theme="pornhub"] .theme-options { grid-template-columns: 1fr; }
+}

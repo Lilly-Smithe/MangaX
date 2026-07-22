@@ -8,12 +8,15 @@
 <meta content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' http: https: data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'" http-equiv="Content-Security-Policy"/>
 <title>MangaX Reader</title>
 
+<script src="/static/js/theme-manager.js?v=20260722f"></script>
+<script src="/static/js/layout-manager.js?v=20260722c"></script>
+
 <link data-deferred-style="" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&amp;display=swap" media="print" rel="stylesheet"/>
 <link data-deferred-style="" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" rel="stylesheet"/>
 
-<link href="/static/css/styles.css?v=20260721p" rel="stylesheet"/>
+<link href="/static/css/styles.css?v=20260722k" rel="stylesheet"/>
 </head>
-<body data-app-edition="reader" data-app-version="v0.14.2" data-github-extensions-available="false">
+<body data-app-edition="reader" data-app-version="v0.14.19" data-github-extensions-available="false">
 <div class="app-container">
 
 <aside class="sidebar" id="app-sidebar">
@@ -21,7 +24,7 @@
 <div class="logo">
 <span class="logo-manga">Manga</span><span class="logo-x">X</span>
 </div>
-<button aria-expanded="true" aria-label="Sol menüyü daralt" class="sidebar-collapse-btn" id="sidebar-collapse-btn" onclick="toggleSidebarCollapsed()" title="Menüyü daralt" type="button">
+<button aria-expanded="true" aria-label="Navigasyonu daralt" class="sidebar-collapse-btn" id="sidebar-collapse-btn" onclick="toggleSidebarCollapsed()" title="Navigasyonu daralt" type="button">
 <i aria-hidden="true" class="fa-solid fa-angles-left"></i>
 </button>
 </div>
@@ -41,7 +44,7 @@
 </div>
 </nav>
 <div class="sidebar-footer">
-<span class="app-version">v0.14.2</span>
+<span class="app-version">v0.14.19</span>
 </div>
 </aside>
 
@@ -125,6 +128,7 @@
 <button class="btn btn-secondary" onclick="clearLibrarySelection()" type="button">Seçimi Temizle</button>
 </div>
 <div class="library-grid library-catalog-grid" id="library-catalog-grid"></div>
+<div class="mangax-pagination hidden" id="library-catalog-pagination"></div>
 <div class="empty-state" id="library-catalog-empty">
 <i class="fa-solid fa-layer-group"></i>
 <h3>Bu görünümde seri yok</h3>
@@ -147,6 +151,10 @@
 <nav aria-label="Ayar kategorileri" class="settings-category-nav">
 
 
+<button class="settings-category-btn" data-settings-category="appearance" onclick="switchSettingsCategory('appearance')" type="button">
+<span class="settings-category-icon"><i class="fa-solid fa-palette"></i></span>
+<span><strong>Görünüm</strong><small>Uygulama teması</small></span>
+</button>
 <button class="settings-category-btn active" data-settings-category="reader" onclick="switchSettingsCategory('reader')" type="button">
 <span class="settings-category-icon"><i class="fa-solid fa-book-open-reader"></i></span>
 <span><strong>Okuyucu</strong><small>Varsayılan görünüm</small></span>
@@ -168,6 +176,83 @@
 </nav>
 <div class="settings-layout settings-preferences-layout">
 <div class="settings-column settings-preferences-grid">
+<div class="settings-card settings-category-panel" data-settings-panel="appearance">
+<div class="settings-card-header">
+<i class="fa-solid fa-palette"></i>
+<h2>Uygulama Teması</h2>
+</div>
+<p class="settings-card-desc">MangaX görünümünü anında değiştirin. Okuyucu parlaklığı ve sayfa arka planı bu seçimden bağımsız kalır.</p>
+<div aria-label="Uygulama teması" class="theme-options" role="radiogroup">
+<button aria-checked="true" class="theme-option" data-app-theme-option="dark" onclick="MangaXTheme.selectTheme('dark')" role="radio" type="button">
+<span aria-hidden="true" class="theme-option-preview theme-preview-dark"><i></i><i></i></span>
+<span class="theme-option-copy"><strong>MangaX Koyu</strong><small>Sinematik kırmızı ve siyah özgün MangaX görünümü.</small></span>
+<span aria-hidden="false" class="theme-option-indicator"><i class="fa-solid fa-check"></i></span>
+</button>
+<button aria-checked="false" class="theme-option" data-app-theme-option="light" onclick="MangaXTheme.selectTheme('light')" role="radio" type="button">
+<span aria-hidden="true" class="theme-option-preview theme-preview-light"><i></i><i></i></span>
+<span class="theme-option-copy"><strong>MangaX Açık</strong><small>Kırık beyaz yüzeyler ve okunaklı koyu metinlerle ferah görünüm.</small></span>
+<span aria-hidden="true" class="theme-option-indicator"><i class="fa-solid fa-check"></i></span>
+</button>
+<button aria-checked="false" class="theme-option" data-app-theme-option="cover_grid" onclick="MangaXTheme.selectTheme('cover_grid')" role="radio" type="button">
+<span aria-hidden="true" class="theme-option-preview theme-preview-cover-grid"><i></i><i></i><i></i><i></i></span>
+<span class="theme-option-copy"><strong>MangaX Grid</strong><small>Kapak odaklı sık ızgara, yüzer araçlar ve modern masaüstü görünümü.</small></span>
+<span aria-hidden="true" class="theme-option-indicator"><i class="fa-solid fa-check"></i></span>
+</button>
+<button aria-checked="false" class="theme-option" data-app-theme-option="windows_xp" onclick="MangaXTheme.selectTheme('windows_xp')" role="radio" type="button">
+<span aria-hidden="true" class="theme-option-preview theme-preview-windows-xp"><i></i><i></i><i></i></span>
+<span class="theme-option-copy"><strong>MangaX XP</strong><small>Klasik mavi pencere başlıkları, yeşil vurgular ve nostaljik masaüstü görünümü.</small></span>
+<span aria-hidden="true" class="theme-option-indicator"><i class="fa-solid fa-check"></i></span>
+</button>
+<button aria-checked="false" class="theme-option" data-app-theme-option="pornhub" hidden="" onclick="MangaXTheme.selectTheme('pornhub')" role="radio" type="button">
+<span aria-hidden="true" class="theme-option-preview theme-preview-pornhub"><i></i><i></i><i></i></span>
+<span class="theme-option-copy"><strong>Pornhub</strong><small>Siyah yüzeyler, turuncu blok vurgular ve yüksek kontrastlı modern görünüm.</small></span>
+<span aria-hidden="true" class="theme-option-indicator"><i class="fa-solid fa-check"></i></span>
+</button>
+</div>
+<span aria-live="polite" class="theme-selection-status" id="app-theme-status" role="status">MangaX Koyu etkin</span>
+<section aria-labelledby="navigation-position-title" class="layout-settings-section">
+<h3 id="navigation-position-title">Navigasyon konumu</h3>
+<div aria-label="Navigasyon konumu" class="layout-setting-options" role="radiogroup">
+<button aria-checked="true" class="layout-setting-option" data-layout-key="nav_position" data-layout-value="left" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-table-columns"></i><span>Sol</span></button>
+<button aria-checked="false" class="layout-setting-option" data-layout-key="nav_position" data-layout-value="right" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-table-columns fa-flip-horizontal"></i><span>Sağ</span></button>
+<button aria-checked="false" class="layout-setting-option" data-layout-key="nav_position" data-layout-value="top" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-window-maximize"></i><span>Üst</span></button>
+<button aria-checked="false" class="layout-setting-option" data-layout-key="nav_position" data-layout-value="bottom" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-grip-lines"></i><span>Alt</span></button>
+</div>
+</section>
+<section aria-labelledby="navigation-mode-title" class="layout-settings-section">
+<h3 id="navigation-mode-title">Navigasyon görünümü</h3>
+<div aria-label="Navigasyon görünümü" class="layout-setting-options three" role="radiogroup">
+<button aria-checked="true" class="layout-setting-option" data-layout-key="nav_mode" data-layout-value="wide" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-bars-staggered"></i><span>Geniş</span></button>
+<button aria-checked="false" class="layout-setting-option" data-layout-key="nav_mode" data-layout-value="compact" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-bars"></i><span>Kompakt</span></button>
+<button aria-checked="false" class="layout-setting-option" data-layout-key="nav_mode" data-layout-value="icons" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-grip-vertical"></i><span>Yalnız simge</span></button>
+</div>
+<label class="layout-toggle-row">
+<span><strong>Otomatik gizle</strong><small>Menü ekran kenarında bekler; üzerine gelince veya odaklanınca açılır.</small></span>
+<input aria-label="Navigasyonu otomatik gizle" data-layout-boolean="nav_auto_hide" type="checkbox"/>
+</label>
+</section>
+<section aria-labelledby="library-density-title" class="layout-settings-section">
+<h3 id="library-density-title">Kütüphane yoğunluğu</h3>
+<div aria-label="Kütüphane kart yoğunluğu" class="layout-setting-options three" role="radiogroup">
+<button aria-checked="false" class="layout-setting-option" data-layout-key="library_density" data-layout-value="comfortable" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-border-all"></i><span>Rahat</span></button>
+<button aria-checked="true" class="layout-setting-option" data-layout-key="library_density" data-layout-value="balanced" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-grip"></i><span>Dengeli</span></button>
+<button aria-checked="false" class="layout-setting-option" data-layout-key="library_density" data-layout-value="dense" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-braille"></i><span>Yoğun</span></button>
+</div>
+</section>
+<section aria-labelledby="ui-scale-title" class="layout-settings-section">
+<h3 id="ui-scale-title">Arayüz ölçeği</h3>
+<div aria-label="Arayüz ölçeği" class="layout-setting-options three" role="radiogroup">
+<button aria-checked="false" class="layout-setting-option" data-layout-key="ui_scale" data-layout-value="small" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-minimize"></i><span>Küçük</span></button>
+<button aria-checked="true" class="layout-setting-option" data-layout-key="ui_scale" data-layout-value="normal" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-expand"></i><span>Normal</span></button>
+<button aria-checked="false" class="layout-setting-option" data-layout-key="ui_scale" data-layout-value="large" role="radio" type="button"><i aria-hidden="true" class="fa-solid fa-maximize"></i><span>Büyük</span></button>
+</div>
+<label class="layout-toggle-row">
+<span><strong>Animasyonları azalt</strong><small>Geçiş ve hareket efektlerini erişilebilir, kısa bir görünüme indirir.</small></span>
+<input aria-label="Arayüz animasyonlarını azalt" data-layout-boolean="reduce_motion" type="checkbox"/>
+</label>
+</section>
+<span aria-live="polite" class="layout-selection-status" id="layout-selection-status" role="status">Navigasyon: Sol, geniş</span>
+</div>
 
 
 
@@ -354,7 +439,7 @@
 </div>
 <div class="about-info">
 <div class="about-row"><span>Uygulama</span><span>MangaX</span></div>
-<div class="about-row"><span>Versiyon</span><span class="app-version">v0.14.2</span></div>
+<div class="about-row"><span>Versiyon</span><span class="app-version">v0.14.19</span></div>
 
 </div>
 <section aria-labelledby="app-update-title" class="recovery-settings-panel app-update-settings">
@@ -366,7 +451,7 @@
 </div>
 <div aria-live="polite" class="settings-inline-empty" id="app-update-status" role="status">Henüz güncelleme kontrolü yapılmadı.</div>
 <div aria-hidden="true" class="system-check-progress-track hidden" id="app-update-progress"><span id="app-update-progress-bar" style="width:0"></span></div>
-<div class="app-update-settings-meta"><span>Kurulu sürüm <strong class="app-version">v0.14.2</strong></span><span>Son kontrol <strong id="app-update-last-check">Henüz yok</strong></span></div>
+<div class="app-update-settings-meta"><span>Kurulu sürüm <strong class="app-version">v0.14.19</strong></span><span>Son kontrol <strong id="app-update-last-check">Henüz yok</strong></span></div>
 </section>
 <button class="btn btn-secondary settings-onboarding-btn" onclick="openOnboarding()" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Başlangıç Sihirbazını Aç</button>
 <section class="recovery-settings-panel">
@@ -630,6 +715,9 @@
 <button aria-label="Klavye kısayollarını göster" class="reader-btn reader-icon-btn" onclick="openReaderShortcuts()" title="Klavye kısayolları" type="button">
 <i class="fa-regular fa-keyboard"></i>
 </button>
+<button aria-label="Bu sayfaya yer imi ekle" class="reader-btn reader-icon-btn" id="reader-bookmark-btn" onclick="toggleCurrentPageBookmark()" title="Bu sayfaya yer imi ekle" type="button"><i class="fa-regular fa-bookmark"></i></button>
+<button aria-label="Odak modunu aç veya kapat" class="reader-btn reader-icon-btn" id="reader-focus-btn" onclick="toggleReaderFocusMode()" title="Odak modu" type="button"><i class="fa-solid fa-eye"></i></button>
+<button aria-label="Tam ekranı aç veya kapat" class="reader-btn reader-icon-btn" id="reader-fullscreen-btn" onclick="toggleReaderFullscreen()" title="Tam ekran" type="button"><i class="fa-solid fa-expand"></i></button>
 <div aria-label="Bölüm gezinme kontrolleri" class="reader-chapter-nav">
 <button class="reader-btn" id="reader-prev-chap" onclick="prevChapter()" title="Önceki bölüme git">
 <i class="fa-solid fa-chevron-left"></i>
@@ -647,9 +735,21 @@
 <div><span>OKUYUCU PROFİLİ</span><h3>Görünüm ayarları</h3></div>
 <button aria-label="Ayarları kapat" class="reader-panel-close" onclick="toggleReaderSettings(false)" type="button"><i class="fa-solid fa-xmark"></i></button>
 </div>
+<label class="reader-toggle-row" for="reader-use-manga-profile">
+<span><strong>Bu mangaya özel profil</strong><small>Görünüm ayarlarını yalnız bu seri için saklar</small></span>
+<input id="reader-use-manga-profile" onchange="toggleMangaReaderProfile(this.checked)" type="checkbox"/>
+</label>
 <div class="reader-setting-row classic-only-setting">
 <label for="reader-spread">Sayfa düzeni</label>
 <select id="reader-spread" onchange="setReaderPreference('spread', this.value)"><option value="single">Tek sayfa</option><option value="double">Çift sayfa</option></select>
+</div>
+<label class="reader-toggle-row classic-only-setting" for="reader-cover-single">
+<span><strong>Kapağı tek göster</strong><small>İlk sayfayı çift sayfa eşleşmesine katmaz</small></span>
+<input id="reader-cover-single" onchange="setReaderPreference('coverSingle', this.checked)" type="checkbox"/>
+</label>
+<div class="reader-setting-row classic-only-setting">
+<label for="reader-spread-offset">Çift sayfa hizası</label>
+<select id="reader-spread-offset" onchange="setReaderPreference('spreadOffset', Number(this.value))"><option value="0">Standart</option><option value="1">Bir sayfa kaydır</option></select>
 </div>
 <div class="reader-setting-row">
 <label for="reader-fit">Görsel yerleşimi</label>
@@ -676,6 +776,10 @@
 <input id="reader-auto-next" onchange="setReaderPreference('autoNext', this.checked)" type="checkbox"/>
 </label>
 <button class="reader-reset-btn" onclick="resetReaderPreferences()" type="button"><i class="fa-solid fa-rotate-left"></i> Görünümü sıfırla</button>
+<section aria-labelledby="reader-bookmarks-title" class="reader-bookmarks">
+<div class="reader-bookmarks-heading"><strong id="reader-bookmarks-title">Yer imleri</strong><small id="reader-bookmarks-count">0</small></div>
+<div class="reader-bookmarks-list" id="reader-bookmarks-list"><p>Henüz yer imi yok.</p></div>
+</section>
 </aside>
 <div aria-hidden="true" class="reader-shortcuts-modal" id="reader-shortcuts-modal">
 <button aria-label="Kısayolları kapat" class="reader-shortcuts-backdrop" onclick="closeReaderShortcuts()" type="button"></button>
@@ -688,7 +792,8 @@
 <span><kbd>←</kbd><kbd>→</kbd> Sayfa değiştir</span><span><kbd>↑</kbd><kbd>↓</kbd> Dikey kaydır</span>
 <span><kbd>M</kbd> Okuma modu</span><span><kbd>F</kbd> Sığdırma biçimi</span>
 <span><kbd>+</kbd><kbd>−</kbd> Yakınlaştır</span><span><kbd>0</kbd> Yakınlaştırmayı sıfırla</span>
-<span><kbd>P</kbd> Ayar paneli</span><span><kbd>?</kbd> Bu yardım ekranı</span>
+<span><kbd>P</kbd> Ayar paneli</span><span><kbd>B</kbd> Sayfaya yer imi</span>
+<span><kbd>F11</kbd> Tam ekran</span><span><kbd>?</kbd> Bu yardım ekranı</span>
 <span><kbd>Esc</kbd> Kapat / okuyucudan çık</span>
 </div>
 </section>
@@ -700,6 +805,16 @@
 </div>
 
 <div class="reader-viewport webtoon-mode" id="reader-viewport">
+<section aria-live="polite" class="reader-error-state hidden" id="reader-error-state" role="alert">
+<i class="fa-solid fa-triangle-exclamation"></i>
+<h3 id="reader-error-title">Bölüm yüklenemedi</h3>
+<p id="reader-error-message">Sayfalar alınırken bir sorun oluştu.</p>
+<div class="reader-error-actions">
+<button class="btn btn-primary" onclick="retryReaderChapter()" type="button"><i class="fa-solid fa-rotate-right"></i> Tekrar Dene</button>
+<button class="btn btn-secondary reader-online-recovery" onclick="retryReaderWithAlternativeSource()" type="button"><i class="fa-solid fa-shuffle"></i> Alternatif Kaynak</button>
+<button class="btn btn-secondary" onclick="exitReader()" type="button">Kütüphaneye Dön</button>
+</div>
+</section>
 <div class="pages-wrapper" id="pages-wrapper">
 
 </div>
@@ -835,10 +950,11 @@
 <script src="/static/js/safe-dom.js?v=20260721a"></script>
 <script src="/static/js/app.js?v=20260721p"></script>
 <script src="/static/js/edition-gate.js?v=20260719c"></script>
+<script src="/static/js/pagination.js?v=20260722a"></script>
 <script src="/static/js/library.js?v=20260719g"></script>
 <script src="/static/js/local-import.js?v=20260718b"></script>
 
-<script src="/static/js/manga-detail.js?v=20260718q"></script>
+<script src="/static/js/manga-detail.js?v=20260722a"></script>
 
 
 

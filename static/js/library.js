@@ -1,6 +1,24 @@
 // Library Management: online reading history and offline downloads.
 const deletingLibraryMangaIds = new Set();
 let libraryBulkDeleteInFlight = false;
+const LIBRARY_GRID_PAGE_SIZE = 30;
+let libraryGridPage = 1;
+
+function isLibraryGridPaginationActive() {
+    return document.documentElement.dataset.theme === 'cover_grid' && libraryCatalogView === 'cover';
+}
+
+function setLibraryGridPage(page) {
+    libraryGridPage = page;
+    renderLibraryCatalog();
+    document.querySelector('#library-catalog-panel .library-catalog-toolbar')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+
+function hideLibraryPagination() {
+    const host = document.getElementById('library-catalog-pagination');
+    host?.replaceChildren();
+    host?.classList.add('hidden');
+}
 
 function isReaderEdition() {
     return document.body?.dataset.appEdition === 'reader';
@@ -331,11 +349,27 @@ function renderLibraryCatalog() {
         if (librarySortOrder === 'unread_desc') return (b[1].unread_count || 0) - (a[1].unread_count || 0) || a[1].title.localeCompare(b[1].title, 'tr');
         return (b[1].updated_at || b[1].last_read_at || 0) - (a[1].updated_at || a[1].last_read_at || 0);
     });
-    visibleLibraryMangaIds = entries.map(([id]) => id);
+    let renderedEntries = entries;
+    if (isLibraryGridPaginationActive()) {
+        const page = window.MangaXPagination.paginate(entries, libraryGridPage, LIBRARY_GRID_PAGE_SIZE);
+        libraryGridPage = page.currentPage;
+        renderedEntries = page.items;
+        window.MangaXPagination.render({
+            host: document.getElementById('library-catalog-pagination'),
+            currentPage: page.currentPage,
+            totalItems: entries.length,
+            pageSize: LIBRARY_GRID_PAGE_SIZE,
+            onPageChange: setLibraryGridPage,
+            label: 'Kütüphane sayfaları',
+        });
+    } else {
+        hideLibraryPagination();
+    }
+    visibleLibraryMangaIds = renderedEntries.map(([id]) => id);
     grid.classList.toggle('compact-list', libraryCatalogView === 'list');
     grid.classList.toggle('selection-mode', librarySelectionMode);
     grid.innerHTML = '';
-    entries.forEach(([id, manga]) => grid.appendChild(buildLibraryCatalogCard(id, manga)));
+    renderedEntries.forEach(([id, manga]) => grid.appendChild(buildLibraryCatalogCard(id, manga)));
     document.getElementById('library-catalog-empty').style.display = entries.length ? 'none' : 'block';
     document.getElementById('library-catalog-count').textContent = allEntries.length;
     document.getElementById('library-cover-view-btn')?.classList.toggle('active', libraryCatalogView === 'cover');
@@ -353,21 +387,25 @@ function renderLibraryCatalog() {
 }
 
 function setLibraryStatusFilter(status) {
+    libraryGridPage = 1;
     activeLibraryStatus = Object.prototype.hasOwnProperty.call(libraryStatusLabels, status) ? status : 'all';
     renderLibraryCatalog();
 }
 
 function setLibraryCollectionFilter(collection) {
+    libraryGridPage = 1;
     activeLibraryCollection = collection || '';
     renderLibraryCatalog();
 }
 
 function setLibrarySortOrder(order) {
+    libraryGridPage = 1;
     librarySortOrder = ['updated_desc', 'title_asc', 'rating_desc', 'unread_desc'].includes(order) ? order : 'updated_desc';
     renderLibraryCatalog();
 }
 
 function setLibraryCatalogView(view) {
+    libraryGridPage = 1;
     libraryCatalogView = view === 'list' ? 'list' : 'cover';
     try { localStorage.setItem('mangax-library-view', libraryCatalogView); } catch (_) { /* non-persistent fallback */ }
     renderLibraryCatalog();
@@ -714,3 +752,8 @@ async function loadLibrary({ silent = false } = {}) {
         if (initialRequest) initialLibraryRequestCompleted = true;
     }
 }
+
+window.addEventListener('mangax:theme-change', () => {
+    libraryGridPage = 1;
+    if (document.getElementById('library-tab')?.classList.contains('active')) renderLibraryCatalog();
+});

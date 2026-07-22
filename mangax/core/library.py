@@ -182,7 +182,7 @@ class LibraryManager:
                 updates.append('updated_at = ?')
                 params.extend([chapter_id, max(0, int(page_index)), chapter_num, chapter_title, source_id, language, bool(online), at_time, page_offset, chapter_percent, at_time])
                 params.append(manga_id)
-                query = f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?'
+                query = f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?"
                 conn.execute(query, params)
             conn.commit()
         self._refresh_unread_count(manga_id, chapter_num)
@@ -202,6 +202,14 @@ class LibraryManager:
         m['collections'] = json.loads(m.get('collections') or '[]')
         m['known_chapters'] = json.loads(m.get('known_chapters') or '[]')
         m['external_titles'] = json.loads(m.get('external_titles') or '[]')
+        try:
+            m['reader_profile'] = json.loads(m.get('reader_profile') or '{}')
+        except (TypeError, ValueError):
+            m['reader_profile'] = {}
+        try:
+            m['page_bookmarks'] = json.loads(m.get('page_bookmarks') or '[]')
+        except (TypeError, ValueError):
+            m['page_bookmarks'] = []
         m['last_read_online'] = bool(m.get('last_read_online'))
         m['tracking_enabled'] = bool(m.get('tracking_enabled'))
         m['tracking_notifications'] = bool(m.get('tracking_notifications', 1))
@@ -279,10 +287,56 @@ class LibraryManager:
                 updates.append('mal_num_volumes_read = ?')
                 params.append(max(0, int(mal_num_volumes_read)))
             params.append(manga_id)
-            result = conn.execute(f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?', params)
+            result = conn.execute(f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?", params)
             conn.commit()
             if result.rowcount == 0:
                 return None
+        return self.get_manga(manga_id)
+
+    @staticmethod
+    def _clean_reader_profile(profile: Dict[str, Any]) -> Dict[str, Any]:
+        allowed = {'enabled': bool(profile.get('enabled')), 'mode': profile.get('mode') if profile.get('mode') in {'webtoon', 'classic'} else 'webtoon', 'spread': profile.get('spread') if profile.get('spread') in {'single', 'double'} else 'single', 'fit': profile.get('fit') if profile.get('fit') in {'page', 'width'} else 'page', 'zoom': max(50, min(250, int(profile.get('zoom') or 100))), 'brightness': max(35, min(140, int(profile.get('brightness') or 100))), 'background': profile.get('background') if profile.get('background') in {'black', 'charcoal', 'sepia'} else 'black', 'autoNext': bool(profile.get('autoNext', profile.get('auto_next', False))), 'coverSingle': bool(profile.get('coverSingle', profile.get('cover_single', True))), 'spreadOffset': 1 if int(profile.get('spreadOffset', profile.get('spread_offset', 0)) or 0) == 1 else 0}
+        return allowed
+
+    def update_reader_profile(self, manga_id: str, profile: Dict[str, Any]) -> Dict[str, Any] | None:
+        cleaned = self._clean_reader_profile(profile)
+        with db.get_connection() as conn:
+            result = conn.execute('UPDATE mangas SET reader_profile = ?, updated_at = ? WHERE id = ?', (json.dumps(cleaned, ensure_ascii=False), int(time.time()), manga_id))
+            conn.commit()
+            if result.rowcount == 0:
+                return None
+        return self.get_manga(manga_id)
+
+    def add_page_bookmark(self, manga_id: str, bookmark: Dict[str, Any]) -> Dict[str, Any] | None:
+        with db.get_connection() as conn:
+            row = conn.execute('SELECT page_bookmarks FROM mangas WHERE id = ?', (manga_id,)).fetchone()
+            if not row:
+                return None
+            try:
+                bookmarks = json.loads(row['page_bookmarks'] or '[]')
+            except (TypeError, ValueError):
+                bookmarks = []
+            chapter_id = str(bookmark.get('chapter_id') or '')[:500]
+            page_index = max(0, int(bookmark.get('page_index') or 0))
+            bookmarks = [item for item in bookmarks if not (str(item.get('chapter_id')) == chapter_id and int(item.get('page_index') or 0) == page_index)]
+            bookmarks.append({'chapter_id': chapter_id, 'page_index': page_index, 'chapter_num': str(bookmark.get('chapter_num') or '')[:80], 'chapter_title': str(bookmark.get('chapter_title') or '')[:300], 'label': str(bookmark.get('label') or '')[:120], 'created_at': int(time.time())})
+            bookmarks = sorted(bookmarks[-500:], key=lambda item: (int(item.get('created_at') or 0), item['page_index']))
+            conn.execute('UPDATE mangas SET page_bookmarks = ?, updated_at = ? WHERE id = ?', (json.dumps(bookmarks, ensure_ascii=False), int(time.time()), manga_id))
+            conn.commit()
+        return self.get_manga(manga_id)
+
+    def remove_page_bookmark(self, manga_id: str, chapter_id: str, page_index: int) -> Dict[str, Any] | None:
+        with db.get_connection() as conn:
+            row = conn.execute('SELECT page_bookmarks FROM mangas WHERE id = ?', (manga_id,)).fetchone()
+            if not row:
+                return None
+            try:
+                bookmarks = json.loads(row['page_bookmarks'] or '[]')
+            except (TypeError, ValueError):
+                bookmarks = []
+            filtered = [item for item in bookmarks if not (str(item.get('chapter_id')) == str(chapter_id) and int(item.get('page_index') or 0) == int(page_index))]
+            conn.execute('UPDATE mangas SET page_bookmarks = ?, updated_at = ? WHERE id = ?', (json.dumps(filtered, ensure_ascii=False), int(time.time()), manga_id))
+            conn.commit()
         return self.get_manga(manga_id)
 
     def bulk_update_library(self, manga_ids: list[str], *, library_status: str | None=None, add_collection: str='') -> list[Dict[str, Any]]:
@@ -304,7 +358,7 @@ class LibraryManager:
                     updates.append('collections = ?')
                     params.append(json.dumps(self._clean_collections([*existing, collection[0]]), ensure_ascii=False))
                 params.append(manga_id)
-                conn.execute(f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?', params)
+                conn.execute(f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?", params)
                 updated_ids.append(manga_id)
             conn.commit()
         return [manga for manga_id in updated_ids if (manga := self.get_manga(manga_id))]
@@ -537,7 +591,7 @@ class LibraryManager:
                     if not chapter_path or not os.path.isdir(chapter_path):
                         conn.execute('DELETE FROM downloaded_chapters WHERE id = ? AND manga_id = ?', (chapter_id, manga_id))
                         changed = True
-                        print(f'[Library] Kayip bolum kaydi temizlendi: {m_row['title']} / {chapter_id}')
+                        print(f"[Library] Kayip bolum kaydi temizlendi: {m_row['title']} / {chapter_id}")
                 if changed:
                     c_cur = conn.execute('SELECT * FROM downloaded_chapters WHERE manga_id = ?', (manga_id,))
                     c_rows_after = c_cur.fetchall()
@@ -606,7 +660,7 @@ class LibraryManager:
                                         except Exception as dl_err:
                                             print(f'Error downloading cover for repaired manga {manga_id}: {dl_err}')
                                     params.append(manga_id)
-                                    conn.execute(f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?', params)
+                                    conn.execute(f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?", params)
                                     changed = True
                         except Exception as e:
                             print(f'Error repairing metadata for {manga_id}: {e}')
@@ -657,7 +711,7 @@ class LibraryManager:
                     rel_path = os.path.relpath(repaired_cover_path, BASE_DIR).replace('\\', '/')
                     conn.execute('UPDATE mangas SET cover_path = ?, folder_name = ? WHERE id = ?', (rel_path, safe_name, manga_id))
                     changed = True
-                    print(f'[Library] Eksik kapak onarildi: {manga_dict.get('title', manga_id)}')
+                    print(f"[Library] Eksik kapak onarildi: {manga_dict.get('title', manga_id)}")
                 except Exception as e:
                     print(f'Error repairing cover for {manga_id}: {e}')
             if changed:

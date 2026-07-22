@@ -9,6 +9,8 @@ from mangax.core.models import (
     LibraryBulkUpdateRequest,
     LibraryMetadataRequest,
     ProgressRequest,
+    ReaderBookmarkRequest,
+    ReaderProfileRequest,
 )
 from mangax.core.dependencies import library_manager
 from mangax.integrations.mal_outbound import mal_outbound_service
@@ -130,3 +132,27 @@ def update_known_chapters(manga_id: str, req: KnownChaptersRequest):
     if not manga:
         raise HTTPException(status_code=404, detail="Kütüphane kaydı bulunamadı.")
     return {"status": "success", "manga": manga}
+
+
+@router.put("/library/{manga_id}/reader-profile")
+def update_reader_profile(manga_id: str, req: ReaderProfileRequest):
+    manga = library_manager.update_reader_profile(manga_id, req.model_dump())
+    if not manga:
+        raise HTTPException(status_code=404, detail="Kütüphane kaydı bulunamadı.")
+    return {"status": "success", "manga": manga}
+
+
+@router.post("/library/{manga_id}/bookmarks")
+def add_reader_bookmark(manga_id: str, req: ReaderBookmarkRequest):
+    manga = library_manager.add_page_bookmark(manga_id, req.model_dump())
+    if not manga:
+        raise HTTPException(status_code=404, detail="Kütüphane kaydı bulunamadı.")
+    return {"status": "success", "bookmarks": manga.get("page_bookmarks", []), "manga": manga}
+
+
+@router.delete("/library/{manga_id}/bookmarks/{chapter_id}/{page_index}")
+def delete_reader_bookmark(manga_id: str, chapter_id: str, page_index: int):
+    manga = library_manager.remove_page_bookmark(manga_id, chapter_id, page_index)
+    if not manga:
+        raise HTTPException(status_code=404, detail="Kütüphane kaydı bulunamadı.")
+    return {"status": "success", "bookmarks": manga.get("page_bookmarks", []), "manga": manga}

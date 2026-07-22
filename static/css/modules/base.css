@@ -1,15 +1,24 @@
 /* Core Variables */
 :root {
-    --bg-main: #000000;
+    color-scheme: dark;
+    --bg-app: #000000;
     --bg-sidebar: #000000;
-    --bg-card: #141414;
+    --bg-surface: #141414;
+    --bg-surface-secondary: #0d0d0d;
+    --bg-elevated: #1b1b1b;
+    --bg-hover: rgba(255, 255, 255, 0.05);
+    --bg-input: rgba(255, 255, 255, 0.035);
+    --bg-main: var(--bg-app);
+    --bg-card: var(--bg-surface);
     --border-color: rgba(255, 255, 255, 0.08);
     --border-glow: rgba(229, 9, 20, 0.2);
     
     --primary-grad: linear-gradient(135deg, #e50914 0%, #b81d24 100%);
     --primary-glow: rgba(229, 9, 20, 0.4);
-    --primary-solid: #e50914;
-    --primary-hover: #f40b17;
+    --accent: #e50914;
+    --accent-hover: #f40b17;
+    --primary-solid: var(--accent);
+    --primary-hover: var(--accent-hover);
     
     --secondary-color: #e50914;
     --secondary-glow: rgba(229, 9, 20, 0.3);
@@ -17,11 +26,51 @@
     --text-primary: #f5f5f5;
     --text-secondary: #a3a3a3;
     --text-muted: #737373;
-    
-    --danger-color: #e50914;
+    --text-on-accent: #ffffff;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #e50914;
+    --danger-color: var(--danger);
+    --shadow-color: rgba(0, 0, 0, 0.55);
+    --overlay-color: rgba(0, 0, 0, 0.72);
+    --focus-ring: rgba(229, 9, 20, 0.72);
+    --cover-border: rgba(255, 255, 255, 0.08);
     
     --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     --glass-blur: none;
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+    --bg-app: #f4f6f9;
+    --bg-sidebar: #ffffff;
+    --bg-surface: #ffffff;
+    --bg-surface-secondary: #eef1f5;
+    --bg-elevated: #ffffff;
+    --bg-hover: #e9edf2;
+    --bg-input: #f8fafc;
+    --border-color: #dce1e8;
+    --border-glow: rgba(196, 18, 28, 0.18);
+    --primary-grad: linear-gradient(135deg, #d90916 0%, #a80f18 100%);
+    --primary-glow: rgba(217, 9, 22, 0.2);
+    --primary-solid: #c9121d;
+    --primary-hover: #a90f18;
+    --accent: #c9121d;
+    --accent-hover: #a90f18;
+    --secondary-color: #c9121d;
+    --secondary-glow: rgba(201, 18, 29, 0.16);
+    --text-primary: #171a21;
+    --text-secondary: #4f5968;
+    --text-muted: #6f7988;
+    --text-on-accent: #ffffff;
+    --success: #087f4b;
+    --warning: #9a5b00;
+    --danger: #b91c2b;
+    --danger-color: var(--danger);
+    --shadow-color: rgba(31, 41, 55, 0.12);
+    --overlay-color: rgba(43, 49, 60, 0.38);
+    --focus-ring: rgba(185, 28, 43, 0.62);
+    --cover-border: #d6dbe3;
 }
 
 /* Reset and Global Styles */
@@ -37,6 +86,16 @@ body {
     color: var(--text-primary);
     overflow-x: hidden;
     height: 100vh;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
 }
 
 /* Scrollbar Customization */

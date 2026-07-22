@@ -10,6 +10,14 @@ from mangax.core.config import DATA_DIR, DOWNLOADS_DIR, DEFAULT_DOWNLOADS_DIR
 
 PREFERENCES_PATH = Path(DATA_DIR) / "app_preferences.json"
 DEFAULT_PREFERENCES = {
+    "app_theme": "dark",
+    "pornhub_theme_unlocked": False,
+    "nav_position": "left",
+    "nav_mode": "wide",
+    "nav_auto_hide": False,
+    "library_density": "balanced",
+    "reduce_motion": False,
+    "ui_scale": "normal",
     "request_timeout_seconds": 15,
     "download_concurrency": 3,
     "low_bandwidth_mode": False,
@@ -46,6 +54,23 @@ class PreferencesManager:
             if merged.get("catalog_provider_preference") not in {"myanimelist", "anilist"}:
                 merged["catalog_provider_preference"] = "anilist"
                 self._migration_required = True
+            if merged.get("app_theme") not in {"dark", "light", "cover_grid", "windows_xp", "pornhub"}:
+                merged["app_theme"] = "dark"
+                self._migration_required = True
+            layout_options = {
+                "nav_position": ({"left", "right", "top", "bottom"}, "left"),
+                "nav_mode": ({"wide", "compact", "icons"}, "wide"),
+                "library_density": ({"comfortable", "balanced", "dense"}, "balanced"),
+                "ui_scale": ({"small", "normal", "large"}, "normal"),
+            }
+            for key, (allowed, fallback) in layout_options.items():
+                if merged.get(key) not in allowed:
+                    merged[key] = fallback
+                    self._migration_required = True
+            for key in ("nav_auto_hide", "reduce_motion", "pornhub_theme_unlocked"):
+                if not isinstance(merged.get(key), bool):
+                    merged[key] = False
+                    self._migration_required = True
             return merged
         except (OSError, ValueError, TypeError):
             return dict(DEFAULT_PREFERENCES)
@@ -69,7 +94,7 @@ class PreferencesManager:
                 normalized["download_concurrency"] = max(1, min(8, int(normalized["download_concurrency"])))
             if "image_cache_limit_mb" in normalized:
                 normalized["image_cache_limit_mb"] = max(64, min(4096, int(normalized["image_cache_limit_mb"])))
-            for key in ("low_bandwidth_mode", "safe_mode", "backup_before_extension_update", "automatic_update_checks"):
+            for key in ("low_bandwidth_mode", "safe_mode", "backup_before_extension_update", "automatic_update_checks", "nav_auto_hide", "reduce_motion", "pornhub_theme_unlocked"):
                 if key in normalized:
                     normalized[key] = bool(normalized[key])
             if normalized.get("extension_update_mode", "notify") not in {"manual", "notify", "auto"}:
@@ -78,6 +103,17 @@ class PreferencesManager:
                 raise ValueError("Geçersiz kaynak geçiş modu")
             if normalized.get("catalog_provider_preference", "anilist") not in {"myanimelist", "anilist"}:
                 raise ValueError("Geçersiz katalog sağlayıcısı tercihi")
+            if normalized.get("app_theme", "dark") not in {"dark", "light", "cover_grid", "windows_xp", "pornhub"}:
+                raise ValueError("Geçersiz uygulama teması")
+            allowed_layout_values = {
+                "nav_position": {"left", "right", "top", "bottom"},
+                "nav_mode": {"wide", "compact", "icons"},
+                "library_density": {"comfortable", "balanced", "dense"},
+                "ui_scale": {"small", "normal", "large"},
+            }
+            for key, allowed in allowed_layout_values.items():
+                if key in normalized and normalized[key] not in allowed:
+                    raise ValueError(f"Geçersiz görünüm tercihi: {key}")
             if "download_directory" in normalized:
                 path = Path(str(normalized["download_directory"] or DOWNLOADS_DIR)).expanduser().resolve()
                 if path == Path(path.anchor):
@@ -89,7 +125,9 @@ class PreferencesManager:
 
     def reset(self) -> dict[str, Any]:
         with self._lock:
+            pornhub_theme_unlocked = self.data.get("pornhub_theme_unlocked") is True
             self.data = dict(DEFAULT_PREFERENCES)
+            self.data["pornhub_theme_unlocked"] = pornhub_theme_unlocked
             self._save()
             return dict(self.data)
 

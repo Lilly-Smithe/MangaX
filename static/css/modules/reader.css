@@ -20,6 +20,10 @@
     display: flex;
 }
 
+.reader-overlay.reader-focus-mode .reader-header,
+.reader-overlay.reader-focus-mode .reader-footer { transform: translateY(-110%); }
+.reader-overlay.reader-focus-mode .reader-footer { transform: translateY(110%); }
+
 .reader-header {
     background-color: rgba(6, 9, 15, 0.95);
     border-bottom: 1px solid var(--border-color);
@@ -164,6 +168,33 @@
     display: block;
 }
 
+.reader-page-shell {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    min-height: 120px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+}
+.reader-viewport.webtoon-mode.reader-fit-width .reader-page-shell { max-width: none; }
+.reader-page-shell .manga-page { grid-area: 1 / 1; }
+.reader-page-shell.page-failed .manga-page { opacity: .16; }
+.reader-page-failure {
+    grid-area: 1 / 1;
+    z-index: 2;
+    width: min(420px, calc(100% - 32px));
+    padding: 18px;
+    border: 1px solid color-mix(in srgb, var(--primary-color) 45%, var(--border-color));
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+    color: var(--text-primary);
+    text-align: center;
+}
+.reader-page-failure p { margin: 8px 0 14px; color: var(--text-secondary); font-size: 12px; }
+.reader-page-failure-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.reader-page-failure-actions button { padding: 8px 10px; }
+
 .reader-viewport.webtoon-mode.reader-fit-width .manga-page { max-width: none; }
 
 /* Classic mode structure */
@@ -199,6 +230,7 @@
 }
 
 .reader-overlay[data-reader-spread="double"] .reader-viewport.classic-mode .manga-page.active { max-width: 50%; }
+.reader-overlay[data-reader-spread="double"] .reader-viewport.classic-mode .manga-page.reader-wide-page { max-width: 100%; }
 .reader-viewport.classic-mode.reader-fit-width { overflow: auto; }
 .reader-viewport.classic-mode.reader-fit-width .pages-wrapper { width: max-content; min-width: 100%; }
 .reader-viewport.classic-mode.reader-fit-width .manga-page.active { width: auto; max-width: none; height: auto; max-height: none; }
@@ -365,6 +397,36 @@
 .reader-toggle-row input { width: 18px; height: 18px; accent-color: #e5091b; }
 .reader-reset-btn { width: 100%; margin-top: 6px; padding: 10px; border: 1px solid var(--border-color); border-radius: 9px; color: var(--text-secondary); background: rgba(255,255,255,.04); font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
 .setting-disabled { opacity: 0.38; }
+
+.reader-bookmarks { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color); }
+.reader-bookmarks-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; font-size: 12px; }
+.reader-bookmarks-heading small { min-width: 24px; padding: 2px 7px; border-radius: 999px; background: var(--primary-color); color: white; text-align: center; }
+.reader-bookmarks-list { display: grid; gap: 7px; max-height: 190px; overflow-y: auto; }
+.reader-bookmarks-list > p { color: var(--text-muted); font-size: 11px; }
+.reader-bookmark-row { display: grid; grid-template-columns: 1fr auto auto; gap: 7px; padding: 8px; border: 1px solid var(--border-color); border-radius: 9px; background: rgba(255,255,255,.035); }
+.reader-bookmark-jump { border: 0; color: var(--text-primary); background: none; text-align: left; cursor: pointer; font: inherit; font-size: 11px; }
+.reader-bookmark-jump small { display: block; margin-top: 2px; color: var(--text-muted); }
+.reader-bookmark-edit, .reader-bookmark-remove { width: 28px; border: 0; border-radius: 7px; color: var(--text-secondary); background: rgba(255,255,255,.05); cursor: pointer; }
+.reader-btn.active { color: white; border-color: var(--primary-color); background: var(--primary-color); }
+
+.reader-error-state {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 12px;
+    padding: 30px;
+    color: var(--text-primary);
+    background: var(--reader-error-bg, #080a0f);
+    text-align: center;
+}
+.reader-error-state.hidden { display: none; }
+.reader-error-state > i { font-size: 36px; color: var(--primary-color); }
+.reader-error-state p { max-width: 540px; color: var(--text-secondary); }
+.reader-error-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.reader-error-state[data-online="false"] .reader-online-recovery { display: none; }
 
 .reader-shortcuts-modal { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; opacity: 0; visibility: hidden; transition: opacity 160ms ease, visibility 160ms ease; }
 .reader-shortcuts-modal.active { opacity: 1; visibility: visible; }

@@ -35,7 +35,7 @@ function shouldShowNotification(kind) {
     return getNotificationPreference(kind) && !isNotificationQuietHours();
 }
 
-const SETTINGS_CATEGORIES = ['general', 'reader', 'backup', 'integrations', 'system'];
+const SETTINGS_CATEGORIES = ['general', 'appearance', 'sources', 'reader', 'downloads', 'backup', 'integrations', 'notifications', 'system'];
 const GITHUB_SETTINGS_CATEGORIES = new Set(['general', 'sources', 'downloads', 'notifications']);
 
 function settingsFullFeaturesAvailable() {
@@ -95,6 +95,9 @@ async function loadAdvancedPreferences() {
         const data = await response.json();
         advancedSettingsState = data.settings || {};
         sourcePriorityState = data.source_priority || [];
+        window.MangaXTheme?.syncFromPreferences(advancedSettingsState.app_theme || 'dark');
+        window.MangaXTheme?.syncUnlockFromPreferences(advancedSettingsState.pornhub_theme_unlocked === true);
+        window.MangaXLayout?.syncFromPreferences(advancedSettingsState);
         localStorage.setItem(ADVANCED_CLIENT_SETTINGS_KEY, JSON.stringify({ ...advancedSettingsState, source_priority: sourcePriorityState }));
         setControlValue('settings-fallback-mode', advancedSettingsState.fallback_mode || 'ask');
         setControlValue('settings-catalog-provider', advancedSettingsState.catalog_provider_preference || 'anilist');
@@ -309,7 +312,7 @@ function saveClientPreferenceControls() {
 async function resetAllPreferences() {
     if (!await showAppConfirm({ title: 'Ayarları Sıfırla', message: 'Okuyucu, ağ, kaynak sırası ve bildirim tercihleri varsayılana dönecek.', confirmText: 'Sıfırla', icon: 'fa-rotate-left' })) return;
     await fetch('/api/preferences/reset', { method: 'POST' });
-    [ADVANCED_CLIENT_SETTINGS_KEY, NOTIFICATION_PREFERENCES_KEY, 'downloadCompressionProfile', READER_PREFERENCES_STORAGE_KEY, READER_MODE_STORAGE_KEY].forEach(key => localStorage.removeItem(key));
+    [ADVANCED_CLIENT_SETTINGS_KEY, NOTIFICATION_PREFERENCES_KEY, window.MangaXTheme?.STORAGE_KEY, window.MangaXLayout?.STORAGE_KEY, 'downloadCompressionProfile', READER_PREFERENCES_STORAGE_KEY, READER_MODE_STORAGE_KEY].filter(Boolean).forEach(key => localStorage.removeItem(key));
     location.reload();
 }
 

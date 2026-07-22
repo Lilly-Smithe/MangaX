@@ -1,0 +1,484 @@
+/* MangaX Grid: kapak odaklı, sık ve pencere-benzeri alternatif çalışma alanı. */
+:root[data-theme="cover_grid"] {
+    color-scheme: dark;
+    --bg-app: #040506;
+    --bg-sidebar: #0b0c0f;
+    --bg-surface: #0d0f12;
+    --bg-surface-secondary: #111319;
+    --bg-elevated: #151820;
+    --bg-hover: rgba(255, 255, 255, .065);
+    --bg-input: #0a0c10;
+    --bg-main: #040506;
+    --bg-card: #0c0e12;
+    --border-color: rgba(255, 255, 255, .105);
+    --border-glow: rgba(229, 9, 20, .28);
+    --text-primary: #f6f7f9;
+    --text-secondary: #adb2bd;
+    --text-muted: #737985;
+    --shadow-color: rgba(0, 0, 0, .66);
+    --overlay-color: rgba(0, 0, 0, .76);
+    --cover-border: rgba(255, 255, 255, .12);
+    --nav-wide-size: 204px;
+    --nav-compact-size: 154px;
+    --nav-icon-size: 66px;
+    --nav-horizontal-size: 62px;
+    --content-padding: 16px;
+    --content-max-width: 1920px;
+    --library-card-min: 136px;
+    --library-card-gap: 4px;
+}
+
+:root[data-theme="cover_grid"][data-library-density="comfortable"] {
+    --library-card-min: 164px;
+    --library-card-gap: 6px;
+}
+
+:root[data-theme="cover_grid"][data-library-density="balanced"] {
+    --library-card-min: 136px;
+    --library-card-gap: 4px;
+}
+
+:root[data-theme="cover_grid"][data-library-density="dense"] {
+    --library-card-min: 116px;
+    --library-card-gap: 2px;
+}
+
+:root[data-theme="cover_grid"] body {
+    background:
+        radial-gradient(circle at 20% -20%, rgba(229, 9, 20, .12), transparent 31%),
+        radial-gradient(circle at 95% 110%, rgba(93, 30, 38, .12), transparent 34%),
+        var(--bg-app);
+}
+
+:root[data-theme="cover_grid"] .app-container {
+    padding: 9px;
+    gap: 7px;
+    background: transparent;
+}
+
+:root[data-theme="cover_grid"] .main-content,
+:root[data-theme="cover_grid"] .sidebar {
+    border-color: rgba(255, 255, 255, .11);
+    border-radius: 13px;
+    background: rgba(8, 9, 12, .97);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .48);
+}
+
+:root[data-theme="cover_grid"] .main-content {
+    padding: var(--content-padding);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, .016), transparent 130px),
+        rgba(5, 6, 8, .985);
+}
+
+:root[data-theme="cover_grid"] .sidebar { padding: 10px 8px; }
+:root[data-theme="cover_grid"] .sidebar-header { margin-bottom: 14px; padding-inline: 3px; }
+:root[data-theme="cover_grid"] .logo { font-size: 20px; letter-spacing: -.02em; }
+:root[data-theme="cover_grid"] .sidebar-collapse-btn {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+    border-radius: 9px;
+    background: #111319;
+}
+:root[data-theme="cover_grid"] .sidebar-menu,
+:root[data-theme="cover_grid"] .sidebar-bottom-menu { gap: 5px; }
+:root[data-theme="cover_grid"] .nav-btn {
+    min-height: 42px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    color: #aeb3bd;
+}
+:root[data-theme="cover_grid"] .nav-btn i { width: 20px; text-align: center; }
+:root[data-theme="cover_grid"] .nav-btn:hover { background: #15171d; color: #fff; }
+:root[data-theme="cover_grid"] .nav-btn.active {
+    border-color: rgba(255, 255, 255, .88);
+    background: #f4f5f7;
+    color: #15171b;
+    box-shadow: none;
+}
+:root[data-theme="cover_grid"] .nav-btn.active i { color: var(--accent); }
+:root[data-theme="cover_grid"][data-nav-position="right"] .nav-btn.active,
+:root[data-theme="cover_grid"][data-nav-position="top"] .nav-btn.active,
+:root[data-theme="cover_grid"][data-nav-position="bottom"] .nav-btn.active { box-shadow: none; }
+:root[data-theme="cover_grid"] .sidebar-footer { color: #666c77; }
+
+:root[data-theme="cover_grid"][data-nav-position="top"] .sidebar,
+:root[data-theme="cover_grid"][data-nav-position="bottom"] .sidebar {
+    padding: 7px 10px;
+}
+:root[data-theme="cover_grid"][data-nav-position="top"] .sidebar-header,
+:root[data-theme="cover_grid"][data-nav-position="bottom"] .sidebar-header { margin-right: 12px; }
+:root[data-theme="cover_grid"][data-nav-position="top"] .nav-btn,
+:root[data-theme="cover_grid"][data-nav-position="bottom"] .nav-btn {
+    min-height: 42px;
+    border-radius: 10px;
+}
+
+:root[data-theme="cover_grid"] .tab-panel { max-width: none; }
+:root[data-theme="cover_grid"] .tab-header {
+    min-height: 44px;
+    margin-bottom: 10px;
+}
+:root[data-theme="cover_grid"] .tab-header h1 {
+    font-size: clamp(20px, 1.8vw, 29px);
+    letter-spacing: -.035em;
+}
+:root[data-theme="cover_grid"] #library-tab .tab-subtitle,
+:root[data-theme="cover_grid"] #browse-tab > .tab-header .tab-subtitle { display: none; }
+:root[data-theme="cover_grid"] .library-main-header { align-items: center; }
+:root[data-theme="cover_grid"] .library-main-header .local-import-open-btn {
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+:root[data-theme="cover_grid"] .library-view-tabs {
+    gap: 5px;
+    margin-bottom: 10px;
+    padding: 4px;
+    border-radius: 12px;
+    background: #0b0d11;
+}
+:root[data-theme="cover_grid"] .library-view-tab {
+    min-height: 36px;
+    padding-inline: 13px;
+    border-radius: 9px;
+    font-size: 12px;
+}
+:root[data-theme="cover_grid"] .library-view-tab:hover { background: #171a20; }
+:root[data-theme="cover_grid"] .library-view-tab.active {
+    background: #f2f3f5;
+    color: #15171b;
+}
+:root[data-theme="cover_grid"] .library-view-tab.active i { color: var(--accent); }
+:root[data-theme="cover_grid"] .library-tab-count { background: rgba(0, 0, 0, .12); }
+
+:root[data-theme="cover_grid"] .library-catalog-toolbar,
+:root[data-theme="cover_grid"] .library-bulk-bar {
+    top: 6px;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 7px;
+    border-radius: 12px;
+    background: rgba(10, 12, 16, .91);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .34);
+    backdrop-filter: blur(20px);
+}
+:root[data-theme="cover_grid"] .library-status-filters { gap: 3px; }
+:root[data-theme="cover_grid"] .library-status-filters button,
+:root[data-theme="cover_grid"] .library-layout-toggle button {
+    min-height: 32px;
+    padding-inline: 9px;
+    border-radius: 8px;
+    font-size: 10px;
+}
+:root[data-theme="cover_grid"] .library-status-filters button.active,
+:root[data-theme="cover_grid"] .library-layout-toggle button.active {
+    border-color: rgba(255, 255, 255, .14);
+    background: #20232b;
+    color: #fff;
+}
+:root[data-theme="cover_grid"] .library-catalog-controls select,
+:root[data-theme="cover_grid"] .library-select-toggle {
+    min-height: 34px;
+    border-radius: 9px;
+    background: #101218;
+    font-size: 10px;
+}
+
+:root[data-theme="cover_grid"] .library-grid,
+:root[data-theme="cover_grid"] .manga-grid,
+:root[data-theme="cover_grid"] .library-catalog-grid {
+    align-items: start;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--library-card-min)), 1fr));
+    gap: var(--library-card-gap);
+}
+
+/* Kütüphane: kapak tüm kartı doldurur, bilgiler okunabilir katmanlara dönüşür. */
+:root[data-theme="cover_grid"] .library-catalog-grid:not(.compact-list) .library-catalog-card {
+    aspect-ratio: 2 / 3;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #0b0d10;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
+}
+:root[data-theme="cover_grid"] .library-catalog-card:hover {
+    z-index: 3;
+    transform: translateY(-4px) scale(1.018);
+    border-color: rgba(255, 255, 255, .28);
+    box-shadow: 0 18px 34px rgba(0, 0, 0, .58), 0 0 0 1px rgba(229, 9, 20, .14);
+}
+:root[data-theme="cover_grid"] .library-catalog-grid:not(.compact-list) .library-catalog-cover {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    aspect-ratio: auto;
+}
+:root[data-theme="cover_grid"] .library-catalog-cover::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(2, 3, 5, .72), transparent 24%, transparent 60%, rgba(2, 3, 5, .94));
+}
+:root[data-theme="cover_grid"] .library-catalog-cover img { transition: transform 220ms ease, filter 220ms ease; }
+:root[data-theme="cover_grid"] .library-catalog-card:hover .library-catalog-cover img { transform: scale(1.035); }
+:root[data-theme="cover_grid"] .library-catalog-grid:not(.compact-list) .library-catalog-copy {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 10px;
+    pointer-events: none;
+}
+:root[data-theme="cover_grid"] .library-catalog-grid:not(.compact-list) .library-catalog-copy h3 {
+    position: absolute;
+    top: 8px;
+    right: 9px;
+    left: 9px;
+    margin: 0;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    text-shadow: 0 2px 8px #000;
+    white-space: nowrap;
+}
+:root[data-theme="cover_grid"] .library-catalog-grid:not(.compact-list) .library-catalog-heading {
+    justify-content: flex-start;
+    margin-bottom: 5px;
+}
+:root[data-theme="cover_grid"] .library-catalog-grid:not(.compact-list) .library-catalog-progress {
+    color: #d4d7de;
+    font-size: 10px;
+    text-shadow: 0 1px 5px #000;
+}
+:root[data-theme="cover_grid"] .library-catalog-grid:not(.compact-list) .library-collection-tags { display: none; }
+:root[data-theme="cover_grid"] .library-catalog-grid:not(.compact-list) .library-catalog-footer {
+    max-height: 0;
+    margin-top: 0;
+    padding-top: 0;
+    overflow: hidden;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 160ms ease, opacity 160ms ease, margin 160ms ease;
+}
+:root[data-theme="cover_grid"] .library-catalog-grid:not(.compact-list) .library-catalog-card:hover .library-catalog-footer,
+:root[data-theme="cover_grid"] .library-catalog-grid:not(.compact-list) .library-catalog-card:focus-within .library-catalog-footer {
+    max-height: 28px;
+    margin-top: 7px;
+    opacity: 1;
+    pointer-events: auto;
+}
+:root[data-theme="cover_grid"] .library-catalog-card .library-edit-btn { color: #fff; pointer-events: auto; }
+:root[data-theme="cover_grid"] .library-status-pill { padding: 3px 6px; background: rgba(8, 10, 14, .76); backdrop-filter: blur(8px); }
+:root[data-theme="cover_grid"] .library-rating,
+:root[data-theme="cover_grid"] .library-tracking-indicator { filter: drop-shadow(0 2px 4px #000); }
+:root[data-theme="cover_grid"] .library-catalog-actions { z-index: 4; padding: 40px 9px 38px; }
+
+/* Devam/indirilen kartları da aynı kapak diliyle sadeleştirir. */
+:root[data-theme="cover_grid"] .library-manga-card {
+    border-radius: 12px;
+    background: #0b0d10;
+}
+:root[data-theme="cover_grid"] .library-manga-card .card-content { padding: 8px 9px 9px; }
+:root[data-theme="cover_grid"] .library-manga-card .card-title { margin-bottom: 3px; font-size: 12px; }
+:root[data-theme="cover_grid"] .library-manga-card .card-status { margin-bottom: 4px; font-size: 8px; }
+:root[data-theme="cover_grid"] .library-manga-card .card-progress { font-size: 9px; }
+
+/* Keşfet: arama üstte ince bir pencere aracı, sonuçlar saf kapak ızgarasıdır. */
+:root[data-theme="cover_grid"] #browse-tab > .tab-header { display: none; }
+:root[data-theme="cover_grid"] #browse-tab .search-bar-container {
+    top: 5px;
+    margin-bottom: 12px;
+    padding: 6px;
+    border-radius: 12px;
+    background: rgba(9, 11, 15, .91);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .38);
+}
+:root[data-theme="cover_grid"] #browse-tab .search-input-wrapper {
+    min-height: 42px;
+    padding: 4px 5px 4px 14px;
+    border-radius: 10px;
+    background: #0b0d11;
+}
+:root[data-theme="cover_grid"] #browse-tab .discover-search-field input { font-size: 13px; }
+:root[data-theme="cover_grid"] #browse-tab .search-btn,
+:root[data-theme="cover_grid"] #browse-tab .discover-filter-toggle {
+    min-height: 34px;
+    border-radius: 9px;
+    box-shadow: none;
+}
+:root[data-theme="cover_grid"] #browse-tab .browse-section-header {
+    margin-bottom: 10px;
+    padding-bottom: 9px;
+}
+:root[data-theme="cover_grid"] #browse-tab .browse-section-header h2,
+:root[data-theme="cover_grid"] #browse-tab .manga-row-title { font-size: 15px; }
+:root[data-theme="cover_grid"] #browse-tab .manga-card {
+    aspect-ratio: 2 / 3;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid var(--cover-border);
+    border-radius: 12px;
+    background: #0b0d10;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
+}
+:root[data-theme="cover_grid"] #browse-tab .manga-card:hover {
+    z-index: 3;
+    transform: translateY(-4px) scale(1.018);
+    border-color: rgba(255, 255, 255, .28);
+    box-shadow: 0 18px 34px rgba(0, 0, 0, .58), 0 0 0 1px rgba(229, 9, 20, .14);
+}
+:root[data-theme="cover_grid"] #browse-tab .card-cover-wrapper {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    padding: 0;
+}
+:root[data-theme="cover_grid"] #browse-tab .card-cover-wrapper::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: linear-gradient(180deg, rgba(2, 3, 5, .68), transparent 22%, transparent 66%, rgba(2, 3, 5, .92));
+    pointer-events: none;
+}
+:root[data-theme="cover_grid"] #browse-tab .card-content {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    justify-content: flex-end;
+    padding: 9px;
+    pointer-events: none;
+}
+:root[data-theme="cover_grid"] #browse-tab .card-title {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    margin: 0;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: center;
+    text-shadow: 0 2px 8px #000;
+    white-space: nowrap;
+}
+:root[data-theme="cover_grid"] #browse-tab .card-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+:root[data-theme="cover_grid"] #browse-tab .card-status {
+    margin: 0;
+    color: #fff;
+    font-size: 8px;
+    text-shadow: 0 1px 4px #000;
+}
+:root[data-theme="cover_grid"] #browse-tab .card-chapters {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    padding: 4px 6px;
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 999px;
+    background: rgba(8, 10, 14, .74);
+    color: #f2f3f5;
+    font-size: 8px;
+    backdrop-filter: blur(8px);
+}
+:root[data-theme="cover_grid"] #browse-tab .card-chapters span { display: none; }
+:root[data-theme="cover_grid"] #browse-tab .manga-row-scroll { gap: var(--library-card-gap); padding: 6px 2px 14px; }
+:root[data-theme="cover_grid"] #browse-tab .manga-row-scroll .manga-card { width: var(--library-card-min); }
+
+/* Grid temasında kartlar yatay şerit değil, sayfalı ve kesintisiz bir raf oluşturur. */
+:root[data-theme="cover_grid"] #browse-grid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--library-card-min)), 1fr));
+    gap: var(--library-card-gap);
+}
+:root[data-theme="cover_grid"] .browse-results-section { min-width: 0; }
+:root[data-theme="cover_grid"] .mangax-pagination {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 12px 0 2px;
+}
+:root[data-theme="cover_grid"] .mangax-pagination.hidden { display: none; }
+:root[data-theme="cover_grid"] .mangax-pagination-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 5px;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 999px;
+    background: rgba(10, 12, 16, .94);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .36);
+}
+:root[data-theme="cover_grid"] .mangax-pagination-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+:root[data-theme="cover_grid"] .mangax-pagination-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, .08);
+    color: #fff;
+}
+:root[data-theme="cover_grid"] .mangax-pagination-btn[aria-current="page"] {
+    background: #f2f3f5;
+    color: #15171b;
+}
+:root[data-theme="cover_grid"] .mangax-pagination-btn:disabled { opacity: .35; cursor: default; }
+:root[data-theme="cover_grid"] .mangax-pagination-ellipsis { padding-inline: 2px; color: var(--text-muted); }
+:root[data-theme="cover_grid"] .mangax-pagination-loading {
+    margin-inline: 8px 4px;
+    color: var(--text-muted);
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+:root[data-theme="cover_grid"] .empty-state {
+    border: 1px dashed rgba(255, 255, 255, .12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .018);
+}
+
+@media (max-width: 1100px) {
+    :root[data-theme="cover_grid"] { --content-padding: 12px; }
+    :root[data-theme="cover_grid"] .library-catalog-toolbar { align-items: stretch; }
+}
+
+@media (max-width: 720px) {
+    :root[data-theme="cover_grid"] {
+        --content-padding: 9px;
+        --library-card-min: 112px;
+        --library-card-gap: 3px;
+    }
+    :root[data-theme="cover_grid"] .app-container { padding: 4px; gap: 4px; }
+    :root[data-theme="cover_grid"] .main-content,
+    :root[data-theme="cover_grid"] .sidebar { border-radius: 10px; }
+    :root[data-theme="cover_grid"] .library-main-header { align-items: flex-start; gap: 8px; }
+    :root[data-theme="cover_grid"] .library-main-header .local-import-open-btn { padding-inline: 10px; font-size: 11px; }
+    :root[data-theme="cover_grid"] .library-view-tab { padding-inline: 9px; }
+    :root[data-theme="cover_grid"] .library-view-tab { font-size: 0; }
+    :root[data-theme="cover_grid"] .library-view-tab i,
+    :root[data-theme="cover_grid"] .library-tab-count { font-size: 11px; }
+}

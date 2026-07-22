@@ -11,6 +11,7 @@ const BACKUP_CLIENT_SETTING_KEYS = Object.freeze([
     'mangax-advanced-settings-v1',
     'mangax-notification-preferences-v1',
     'mangax-sidebar-collapsed-v1',
+    'mangax-layout-preferences-v1',
 ]);
 let lastSyncedLocalBackupClientSettings = '';
 let localBackupClientSyncTimer = null;

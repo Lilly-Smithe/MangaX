@@ -1,7 +1,6 @@
 // Global App State
 const APP_LANGUAGE_STORAGE_KEY = 'mangax-preferred-language-v1';
 const SETTINGS_CATEGORY_STORAGE_KEY = 'mangax-settings-category-v1';
-const SIDEBAR_COLLAPSED_STORAGE_KEY = 'mangax-sidebar-collapsed-v1';
 const LIBRARY_SNAPSHOT_STORAGE_KEY = 'mangax-library-snapshot-v1';
 const LIBRARY_SNAPSHOT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const mangaxStartupStartedAt = performance.now();
@@ -68,14 +67,16 @@ function getPreferredAppLanguage() {
 }
 
 function getSavedSidebarCollapsed() {
-    try {
-        return localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true';
-    } catch (_) {
-        return false;
-    }
+    return window.MangaXLayout?.getState().nav_mode === 'icons';
 }
 
 function setSidebarCollapsed(collapsed, { persist = true } = {}) {
+    if (window.MangaXLayout) {
+        const mode = collapsed ? 'icons' : 'wide';
+        if (persist) window.MangaXLayout.selectOption('nav_mode', mode);
+        else window.MangaXLayout.apply({ nav_mode: mode }, { persist: false });
+        return;
+    }
     const sidebar = document.getElementById('app-sidebar');
     const button = document.getElementById('sidebar-collapse-btn');
     if (!sidebar || !button) return;
@@ -88,14 +89,13 @@ function setSidebarCollapsed(collapsed, { persist = true } = {}) {
     const icon = button.querySelector('i');
     if (icon) icon.className = `fa-solid ${isCollapsed ? 'fa-angles-right' : 'fa-angles-left'}`;
 
-    if (persist) {
-        try {
-            localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, isCollapsed ? 'true' : 'false');
-        } catch (_) { /* tercih bu oturumda çalışmaya devam eder */ }
-    }
 }
 
 function toggleSidebarCollapsed() {
+    if (window.MangaXLayout) {
+        window.MangaXLayout.toggleCollapsed();
+        return;
+    }
     const sidebar = document.getElementById('app-sidebar');
     if (!sidebar) return;
     setSidebarCollapsed(!sidebar.classList.contains('sidebar-collapsed'));
@@ -190,7 +190,8 @@ let detailRequestCounter = 0; // Request ID tracker to prevent UI race condition
 // Initialization
 if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => {
     markStartupMilestone('dom_ready');
-    setSidebarCollapsed(getSavedSidebarCollapsed(), { persist: false });
+    if (window.MangaXLayout) window.MangaXLayout.apply(window.MangaXLayout.getState(), { persist: false });
+    else setSidebarCollapsed(getSavedSidebarCollapsed(), { persist: false });
     setupTabNavigation();
     setPreferredAppLanguage(activeDiscoverLang, { render: false });
     if (typeof configureLibraryEditionLayout === 'function') configureLibraryEditionLayout();
@@ -347,11 +348,10 @@ function switchTab(tabId, { resetDiscover = true } = {}) {
     
     // Update active nav button
     document.querySelectorAll('.nav-btn').forEach(btn => {
-        if (btn.getAttribute('data-tab') === tabId) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
+        const active = btn.getAttribute('data-tab') === tabId;
+        btn.classList.toggle('active', active);
+        if (active) btn.setAttribute('aria-current', 'page');
+        else btn.removeAttribute('aria-current');
     });
     
     // Update active panel

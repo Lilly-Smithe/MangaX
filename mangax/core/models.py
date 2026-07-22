@@ -37,6 +37,27 @@ class ProgressRequest(BaseModel):
     chapter_percent: float = 0.0
 
 
+class ReaderProfileRequest(BaseModel):
+    enabled: bool = False
+    mode: Literal["webtoon", "classic"] = "webtoon"
+    spread: Literal["single", "double"] = "single"
+    fit: Literal["page", "width"] = "page"
+    zoom: int = Field(default=100, ge=50, le=250)
+    brightness: int = Field(default=100, ge=35, le=140)
+    background: Literal["black", "charcoal", "sepia"] = "black"
+    auto_next: bool = False
+    cover_single: bool = True
+    spread_offset: Literal[0, 1] = 0
+
+
+class ReaderBookmarkRequest(BaseModel):
+    chapter_id: str = Field(min_length=1, max_length=500)
+    page_index: int = Field(ge=0, le=100000)
+    chapter_num: str = Field(default="", max_length=80)
+    chapter_title: str = Field(default="", max_length=300)
+    label: str = Field(default="", max_length=120)
+
+
 class DeleteRequest(BaseModel):
     manga_id: str
     chapter_id: str

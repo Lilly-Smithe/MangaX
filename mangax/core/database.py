@@ -10,7 +10,7 @@ from mangax.core.models import LIBRARY_STATUS_VALUES
 from typing import Dict, Any, List, Optional
 
 DB_PATH = os.path.join(DATA_DIR, "library.db")
-DATABASE_SCHEMA_VERSION = 7
+DATABASE_SCHEMA_VERSION = 8
 SQLITE_BUSY_TIMEOUT_MS = 5000
 LIBRARY_STATUS_SQL_VALUES = ", ".join(
     f"'{value}'" for value in sorted(LIBRARY_STATUS_VALUES)
@@ -89,7 +89,9 @@ class DatabaseManager:
                     mal_remote_updated_at TEXT DEFAULT '',
                     mal_sync_error TEXT DEFAULT '',
                     anilist_id INTEGER DEFAULT 0,
-                    external_titles TEXT DEFAULT '[]'
+                    external_titles TEXT DEFAULT '[]',
+                    reader_profile TEXT DEFAULT '{{}}',
+                    page_bookmarks TEXT DEFAULT '[]'
                 )
             """)
             existing_columns = {
@@ -124,6 +126,8 @@ class DatabaseManager:
                 "mal_sync_error": "TEXT DEFAULT ''",
                 "anilist_id": "INTEGER DEFAULT 0",
                 "external_titles": "TEXT DEFAULT '[]'",
+                "reader_profile": "TEXT DEFAULT '{}'",
+                "page_bookmarks": "TEXT DEFAULT '[]'",
             }
             for column, definition in library_columns.items():
                 if column not in existing_columns:
@@ -331,6 +335,12 @@ class DatabaseManager:
                 # parmak izi değiştiğinde servis bu kaydı kullanmayacağından eski bir
                 # başarısız sonuç yeni/yenilenmiş eklentileri engellemez.
                 conn.execute("PRAGMA user_version = 7")
+                schema_version = 7
+            if schema_version < 8:
+                # Okuyucu profili ve sayfa yer imleri ana manga kaydında JSON olarak
+                # tutulur. Böylece Reader/Full aynı DATA_DIR üzerinde ek tablo
+                # birleştirmesi gerektirmeden aynı kullanıcı verisini kullanır.
+                conn.execute("PRAGMA user_version = 8")
 
             # Her başlangıçta idempotent backfill yapılması, farklı sürümlerin aynı
             # DATA_DIR'ı kullanması halinde sonradan eklenen eski kayıtları da kapsar.

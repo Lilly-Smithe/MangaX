@@ -1,0 +1,394 @@
+/* Windows XP'den ilham alan, MangaX'e özgü nostaljik masaüstü teması. */
+:root[data-theme="windows_xp"] {
+    color-scheme: light;
+    --bg-app: #3a6ea5;
+    --bg-main: #3a6ea5;
+    --bg-sidebar: #245edb;
+    --bg-surface: #ffffff;
+    --bg-surface-secondary: #ece9d8;
+    --bg-elevated: #f7f5ea;
+    --bg-hover: #dbe9ff;
+    --bg-input: #ffffff;
+    --bg-card: #ffffff;
+    --border-color: #7f9db9;
+    --border-glow: rgba(0, 85, 204, .3);
+    --primary-grad: linear-gradient(180deg, #65b94d 0%, #3a9d23 48%, #2a8519 100%);
+    --primary-glow: rgba(52, 140, 35, .28);
+    --primary-solid: #3c9d27;
+    --primary-hover: #2e851d;
+    --accent: #0a62cc;
+    --accent-hover: #084da2;
+    --secondary-color: #3c9d27;
+    --secondary-glow: rgba(60, 157, 39, .22);
+    --text-primary: #12203b;
+    --text-secondary: #3f5068;
+    --text-muted: #66758a;
+    --text-on-accent: #ffffff;
+    --success: #268315;
+    --warning: #9a6200;
+    --danger: #9a6200;
+    --danger-color: #9a6200;
+    --shadow-color: rgba(22, 43, 79, .28);
+    --overlay-color: rgba(25, 55, 90, .46);
+    --focus-ring: rgba(10, 98, 204, .7);
+    --cover-border: #7f9db9;
+    --transition-smooth: all .16s ease;
+}
+
+:root[data-theme="windows_xp"] body {
+    font-family: Tahoma, "Segoe UI", sans-serif;
+    background: linear-gradient(180deg, #5b9fe4 0%, #3a79bd 62%, #245c99 100%) fixed;
+}
+
+:root[data-theme="windows_xp"] .app-container {
+    background: transparent;
+}
+
+:root[data-theme="windows_xp"] .main-content {
+    margin: 8px;
+    border: 2px solid #0b4fb3;
+    border-radius: 9px 9px 4px 4px;
+    background: #f5f3e8;
+    box-shadow: 0 6px 18px rgba(0, 38, 96, .38), inset 0 0 0 1px #fff;
+}
+
+:root[data-theme="windows_xp"] .sidebar {
+    border-color: #1148a0;
+    background: linear-gradient(180deg, #3d8cf0 0%, #1768d2 9%, #0a55bb 91%, #083e91 100%);
+    color: #fff;
+    box-shadow: inset -1px 0 rgba(255, 255, 255, .28), 3px 0 10px rgba(0, 43, 113, .28);
+}
+
+:root[data-theme="windows_xp"] .logo,
+:root[data-theme="windows_xp"] .logo-manga,
+:root[data-theme="windows_xp"] .logo-x { color: #fff; text-shadow: 1px 1px #063a8e; }
+:root[data-theme="windows_xp"] .logo-x { color: #f6dc49; }
+:root[data-theme="windows_xp"] .sidebar-collapse-btn {
+    border: 1px solid #fff;
+    border-radius: 5px;
+    background: linear-gradient(#4c98ee, #155fbd);
+    color: #fff;
+    box-shadow: inset 1px 1px rgba(255, 255, 255, .55), inset -1px -1px rgba(0, 45, 120, .5);
+}
+:root[data-theme="windows_xp"] .sidebar-bottom-menu { border-color: rgba(255, 255, 255, .26); }
+:root[data-theme="windows_xp"] .sidebar-footer { color: #d9e9ff; }
+:root[data-theme="windows_xp"] .nav-btn { border: 1px solid transparent; border-radius: 5px; color: #fff; }
+:root[data-theme="windows_xp"] .nav-btn:hover { border-color: rgba(255, 255, 255, .65); background: rgba(255, 255, 255, .16); }
+:root[data-theme="windows_xp"] .nav-btn.active {
+    border-color: #f0b83c;
+    background: linear-gradient(180deg, #fff8d2, #f0d173);
+    color: #17335d;
+    box-shadow: inset 1px 1px #fff, 0 1px 3px rgba(0, 0, 0, .25);
+}
+:root[data-theme="windows_xp"] .nav-btn.active i { color: #0a62cc; }
+
+:root[data-theme="windows_xp"] .tab-panel { padding: 22px; }
+:root[data-theme="windows_xp"] .tab-header {
+    margin: -22px -22px 18px;
+    padding: 9px 15px;
+    border-radius: 6px 6px 0 0;
+    background: linear-gradient(180deg, #3f95ef, #0864d5 52%, #0755bd);
+    color: #fff;
+    box-shadow: inset 0 1px rgba(255, 255, 255, .7), inset 0 -1px #003f9e;
+}
+:root[data-theme="windows_xp"] .tab-header h1,
+:root[data-theme="windows_xp"] .tab-header .tab-subtitle { color: #fff; text-shadow: 1px 1px #06429a; }
+
+:root[data-theme="windows_xp"] .btn,
+:root[data-theme="windows_xp"] button:not(.nav-btn):not(.theme-option-indicator) {
+    border-radius: 4px;
+    font-family: Tahoma, "Segoe UI", sans-serif;
+}
+:root[data-theme="windows_xp"] .btn-primary,
+:root[data-theme="windows_xp"] .search-btn,
+:root[data-theme="windows_xp"] .app-confirm-accept {
+    border: 1px solid #26720f;
+    background: var(--primary-grad);
+    color: #fff;
+    box-shadow: inset 1px 1px rgba(255, 255, 255, .65), inset -1px -1px rgba(29, 91, 14, .5), 0 1px 2px rgba(0, 0, 0, .2);
+    text-shadow: 1px 1px #246116;
+}
+:root[data-theme="windows_xp"] .btn-secondary,
+:root[data-theme="windows_xp"] .btn-ghost,
+:root[data-theme="windows_xp"] .reader-btn {
+    border: 1px solid #7f9db9;
+    background: linear-gradient(180deg, #fff 0%, #f3f1e7 48%, #dedbcf 100%);
+    color: #17243a;
+    box-shadow: inset 1px 1px #fff, inset -1px -1px #aca899;
+}
+:root[data-theme="windows_xp"] .btn-secondary:hover,
+:root[data-theme="windows_xp"] .btn-ghost:hover,
+:root[data-theme="windows_xp"] .reader-btn:hover { border-color: #e68b2c; background: #fff8d8; }
+
+:root[data-theme="windows_xp"] input,
+:root[data-theme="windows_xp"] select,
+:root[data-theme="windows_xp"] textarea,
+:root[data-theme="windows_xp"] .settings-input,
+:root[data-theme="windows_xp"] .search-box {
+    border: 1px solid #7f9db9;
+    border-radius: 2px;
+    background: #fff;
+    color: #10213d;
+    box-shadow: inset 1px 1px 2px rgba(0, 34, 85, .16);
+    font-family: Tahoma, "Segoe UI", sans-serif;
+}
+:root[data-theme="windows_xp"] input:focus,
+:root[data-theme="windows_xp"] select:focus,
+:root[data-theme="windows_xp"] textarea:focus { border-color: #0a62cc; outline: 1px solid #ffbd69; }
+
+:root[data-theme="windows_xp"] .settings-card,
+:root[data-theme="windows_xp"] .settings-category-nav,
+:root[data-theme="windows_xp"] .library-catalog-toolbar,
+:root[data-theme="windows_xp"] .library-bulk-bar,
+:root[data-theme="windows_xp"] .library-view-tabs,
+:root[data-theme="windows_xp"] .discover-filter-panel,
+:root[data-theme="windows_xp"] .downloads-panel,
+:root[data-theme="windows_xp"] .notifications-panel,
+:root[data-theme="windows_xp"] .extensions-panel,
+:root[data-theme="windows_xp"] .integration-card {
+    border: 1px solid #7f9db9;
+    border-radius: 4px;
+    background: #ece9d8;
+    box-shadow: inset 1px 1px #fff, 1px 2px 5px rgba(47, 66, 94, .16);
+}
+:root[data-theme="windows_xp"] .settings-card-header,
+:root[data-theme="windows_xp"] .chapter-list-header {
+    border-color: #7f9db9;
+    background: linear-gradient(90deg, #0a62cc, #5aa0ee);
+    color: #fff;
+}
+:root[data-theme="windows_xp"] .settings-card-header h2,
+:root[data-theme="windows_xp"] .settings-card-header i { color: #fff; }
+:root[data-theme="windows_xp"] .settings-category-btn.active { border-color: #f0b83c; background: #fff4c3; color: #153c75; }
+
+:root[data-theme="windows_xp"] .manga-card,
+:root[data-theme="windows_xp"] .library-catalog-card,
+:root[data-theme="windows_xp"] .continue-card,
+:root[data-theme="windows_xp"] .news-card,
+:root[data-theme="windows_xp"] .category-card {
+    border: 1px solid #7f9db9;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 2px 3px 6px rgba(45, 64, 92, .24);
+}
+:root[data-theme="windows_xp"] .manga-card:hover,
+:root[data-theme="windows_xp"] .library-catalog-card:hover {
+    border-color: #f09a2d;
+    box-shadow: 0 0 0 2px #ffe6a2, 3px 5px 10px rgba(25, 58, 109, .28);
+}
+:root[data-theme="windows_xp"] .card-content,
+:root[data-theme="windows_xp"] .library-card-content { background: linear-gradient(#fff, #ece9d8); color: #12203b; }
+:root[data-theme="windows_xp"] #discover-tab .card-meta-row { gap: 5px; }
+:root[data-theme="windows_xp"] #discover-tab .card-chapters {
+    padding: 3px 7px;
+    border-color: #7f9db9;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #f9fbff, #d9e8fa);
+    color: #29486f;
+    box-shadow: inset 1px 1px #fff;
+    text-transform: none;
+}
+:root[data-theme="windows_xp"] #discover-tab .card-chapters strong { color: #0756b3; }
+
+:root[data-theme="windows_xp"] .row-scroll-btn {
+    top: 40px;
+    bottom: 0;
+    width: 46px;
+    border: 0;
+    border-radius: 0;
+    color: #0756b3;
+    font-size: 30px;
+    text-shadow: 1px 1px #fff;
+}
+:root[data-theme="windows_xp"] .row-scroll-btn--left {
+    background: linear-gradient(to right, rgba(236, 233, 216, .96) 0%, rgba(236, 233, 216, .72) 46%, transparent 100%);
+}
+:root[data-theme="windows_xp"] .row-scroll-btn--right {
+    background: linear-gradient(to left, rgba(236, 233, 216, .96) 0%, rgba(236, 233, 216, .72) 46%, transparent 100%);
+}
+:root[data-theme="windows_xp"] .row-scroll-btn:hover { color: #e36f14; }
+:root[data-theme="windows_xp"] .row-scroll-btn:focus-visible {
+    opacity: 1;
+    outline: 2px solid #ffbd69;
+    outline-offset: -3px;
+}
+
+:root[data-theme="windows_xp"] .modal-overlay,
+:root[data-theme="windows_xp"] .local-import-backdrop,
+:root[data-theme="windows_xp"] .app-confirm-backdrop,
+:root[data-theme="windows_xp"] .app-update-overlay,
+:root[data-theme="windows_xp"] .release-notes-overlay,
+:root[data-theme="windows_xp"] .onboarding-overlay { background: var(--overlay-color); }
+:root[data-theme="windows_xp"] .modal-content,
+:root[data-theme="windows_xp"] .details-modal-content,
+:root[data-theme="windows_xp"] .local-import-panel,
+:root[data-theme="windows_xp"] .app-confirm-panel,
+:root[data-theme="windows_xp"] .app-update-dialog,
+:root[data-theme="windows_xp"] .release-notes-panel,
+:root[data-theme="windows_xp"] .onboarding-container,
+:root[data-theme="windows_xp"] .library-editor-panel,
+:root[data-theme="windows_xp"] .reader-shortcuts-card {
+    border: 2px solid #0a55be;
+    border-radius: 8px 8px 4px 4px;
+    background: #ece9d8;
+    color: #12203b;
+    box-shadow: inset 0 0 0 1px #fff, 5px 7px 20px rgba(0, 33, 82, .38);
+}
+:root[data-theme="windows_xp"] .details-modal-bg { background: rgba(25, 55, 90, .52); }
+:root[data-theme="windows_xp"] .details-modal-content {
+    border-color: #0a55be;
+    border-radius: 8px 8px 4px 4px;
+}
+:root[data-theme="windows_xp"] .manga-detail-title { color: #0a3b83; }
+:root[data-theme="windows_xp"] .manga-detail-cover { border-color: #7f9db9; border-radius: 5px; }
+:root[data-theme="windows_xp"] .tag-badge { border-color: #7f9db9; background: #f8f7f0; color: #29486f; }
+:root[data-theme="windows_xp"] .source-binding-panel { border-color: #7f9db9; background: #f7f5ea; }
+:root[data-theme="windows_xp"] .chapter-search-wrapper,
+:root[data-theme="windows_xp"] .chapter-group-wrapper,
+:root[data-theme="windows_xp"] .lang-selector { border-color: #7f9db9; border-radius: 3px; background: #fff; }
+:root[data-theme="windows_xp"] .lang-tab.active { background: linear-gradient(#65b94d, #2f8c1d); color: #fff; }
+:root[data-theme="windows_xp"] .modal-close {
+    border: 1px solid #fff;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #5da4f2, #1768d2 55%, #084b9f);
+    color: #fff;
+    box-shadow: inset 1px 1px rgba(255, 255, 255, .6);
+}
+:root[data-theme="windows_xp"] .modal-header,
+:root[data-theme="windows_xp"] .onboarding-header,
+:root[data-theme="windows_xp"] .reader-preview-toolbar {
+    border-color: #0750ad;
+    background: linear-gradient(180deg, #4ca0f2, #0864d5 55%, #0752b4);
+    color: #fff;
+}
+:root[data-theme="windows_xp"] .modal-header h2,
+:root[data-theme="windows_xp"] .modal-header h3 { color: #fff; text-shadow: 1px 1px #06429a; }
+:root[data-theme="windows_xp"] .chapter-row { border-color: #c2bfae; background: #fff; }
+:root[data-theme="windows_xp"] .chapter-row:hover { background: #dbe9ff; }
+
+:root[data-theme="windows_xp"] .reader-header {
+    border: 1px solid #07489e;
+    background: linear-gradient(180deg, #3d8eed, #0a5bc4);
+    color: #fff;
+    box-shadow: 0 3px 8px rgba(0, 37, 91, .3);
+}
+:root[data-theme="windows_xp"] .reader-header select { color: #12203b; }
+:root[data-theme="windows_xp"] .toast { border: 1px solid #7f9db9; background: #ffffe1; color: #12203b; box-shadow: 3px 4px 10px rgba(0, 34, 85, .3); }
+:root[data-theme="windows_xp"] .skeleton { background: linear-gradient(90deg, #d7d4c7 25%, #f5f3e8 50%, #d7d4c7 75%); }
+
+/* XP temasında MangaX'in kırmızı vurgu katmanını kullanma. Dekoratif ve
+   ilerleme durumları Luna mavi/yeşil, tehlikeli işlemler kehribar kalır. */
+:root[data-theme="windows_xp"] .release-notes-icon,
+:root[data-theme="windows_xp"] .app-update-hero-icon,
+:root[data-theme="windows_xp"] .system-check-heading-icon {
+    border: 1px solid #fff;
+    border-radius: 5px;
+    background: linear-gradient(180deg, #5aa0ee, #0a62cc 55%, #084b9f);
+    box-shadow: inset 1px 1px rgba(255, 255, 255, .65), 2px 3px 8px rgba(0, 48, 120, .28);
+}
+:root[data-theme="windows_xp"] .app-update-hero-icon.success {
+    border-color: #26720f;
+    background: linear-gradient(180deg, #76c75e, #3a9d23 55%, #26720f);
+    color: #fff;
+}
+:root[data-theme="windows_xp"] .release-notes-copy > span,
+:root[data-theme="windows_xp"] .app-update-kicker,
+:root[data-theme="windows_xp"] .app-update-version-card > i,
+:root[data-theme="windows_xp"] .app-update-stage strong,
+:root[data-theme="windows_xp"] .system-check-heading > div > span {
+    color: #0756b3;
+}
+:root[data-theme="windows_xp"] .release-notes-copy li { color: #3f5068; }
+:root[data-theme="windows_xp"] .release-notes-copy li i { color: #2f8c1d; }
+:root[data-theme="windows_xp"] .app-update-notes li { color: #3f5068; }
+:root[data-theme="windows_xp"] .app-update-notes li::before { background: #2f8c1d; }
+:root[data-theme="windows_xp"] .app-update-live,
+:root[data-theme="windows_xp"] .mal-sync-panel {
+    border-color: #7f9db9;
+    background: #f7f5ea;
+}
+:root[data-theme="windows_xp"] .app-update-track,
+:root[data-theme="windows_xp"] .local-import-progress-track,
+:root[data-theme="windows_xp"] .mal-sync-progress,
+:root[data-theme="windows_xp"] .system-check-progress-track { background: #d4d0c8; }
+:root[data-theme="windows_xp"] .app-update-track span,
+:root[data-theme="windows_xp"] .local-import-progress-track span,
+:root[data-theme="windows_xp"] .mal-sync-progress span,
+:root[data-theme="windows_xp"] .system-check-progress-track span,
+:root[data-theme="windows_xp"] .mal-repair-progress span {
+    background: linear-gradient(90deg, #0a62cc, #54b83c);
+    box-shadow: none;
+}
+:root[data-theme="windows_xp"] .app-update-close:hover,
+:root[data-theme="windows_xp"] .app-update-close:focus-visible,
+:root[data-theme="windows_xp"] .edition-secret-panel input:focus,
+:root[data-theme="windows_xp"] .mal-advanced-preview summary:focus-visible,
+:root[data-theme="windows_xp"] #reader-preview-toggle.active {
+    border-color: #0a62cc;
+    box-shadow: 0 0 0 2px #ffbd69;
+}
+:root[data-theme="windows_xp"] .app-update-error,
+:root[data-theme="windows_xp"] .source-resolution-message.error,
+:root[data-theme="windows_xp"] .onboarding-catalog-error,
+:root[data-theme="windows_xp"] .onboarding-github-status[data-state="error"] {
+    border-color: #c89521;
+    background: #fff4c3;
+    color: #5f4300;
+}
+:root[data-theme="windows_xp"] .app-confirm.danger .app-confirm-icon {
+    border-color: #c89521;
+    background: #fff4c3;
+    color: #795000;
+}
+:root[data-theme="windows_xp"] .app-confirm.danger .app-confirm-accept,
+:root[data-theme="windows_xp"] .btn-danger {
+    border-color: #916000;
+    background: linear-gradient(180deg, #f6cf62, #d89c18);
+    color: #382500;
+    box-shadow: inset 1px 1px rgba(255, 255, 255, .7), inset -1px -1px rgba(126, 80, 0, .35);
+    text-shadow: none;
+}
+:root[data-theme="windows_xp"] .app-confirm.danger .app-confirm-accept:hover,
+:root[data-theme="windows_xp"] .btn-danger:hover {
+    border-color: #704900;
+    background: linear-gradient(180deg, #ffe28a, #e5aa27);
+    color: #2d1e00;
+}
+:root[data-theme="windows_xp"] .onboarding-brand strong,
+:root[data-theme="windows_xp"] .onboarding-hero-icon,
+:root[data-theme="windows_xp"] .onboarding-success-orbit,
+:root[data-theme="windows_xp"] .backup-summary-icon,
+:root[data-theme="windows_xp"] .mal-account-avatar { color: #0756b3; }
+:root[data-theme="windows_xp"] .onboarding-progress-dot.active,
+:root[data-theme="windows_xp"] .onboarding-language-card.selected .onboarding-language-code,
+:root[data-theme="windows_xp"] .onboarding-source-card.selected .onboarding-source-check {
+    border-color: #26720f;
+    background: linear-gradient(180deg, #65b94d, #2f8c1d);
+    box-shadow: none;
+}
+:root[data-theme="windows_xp"] .onboarding-hero-icon,
+:root[data-theme="windows_xp"] .onboarding-success-orbit,
+:root[data-theme="windows_xp"] .onboarding-language-card.selected,
+:root[data-theme="windows_xp"] .onboarding-source-card.selected {
+    border-color: #7f9db9;
+    background: #f7f5ea;
+    box-shadow: none;
+}
+:root[data-theme="windows_xp"] .onboarding-recommended,
+:root[data-theme="windows_xp"] .onboarding-github-code > strong {
+    background: #dbe9ff;
+    color: #0756b3;
+}
+:root[data-theme="windows_xp"] .reader-setting-slider input,
+:root[data-theme="windows_xp"] .reader-toggle-row input { accent-color: #2f8c1d; }
+:root[data-theme="windows_xp"] .row-scroll-btn:hover { color: #2f8c1d; }
+
+:root[data-theme="windows_xp"][data-nav-position="right"] .sidebar { box-shadow: inset 1px 0 rgba(255, 255, 255, .28), -3px 0 10px rgba(0, 43, 113, .28); }
+:root[data-theme="windows_xp"][data-nav-position="top"] .sidebar,
+:root[data-theme="windows_xp"][data-nav-position="bottom"] .sidebar { background: linear-gradient(180deg, #3d8cf0, #0a55bb); }
+
+@media (max-width: 720px) {
+    :root[data-theme="windows_xp"] .main-content { margin: 4px; border-radius: 6px 6px 2px 2px; }
+    :root[data-theme="windows_xp"] .tab-panel { padding: 14px; }
+    :root[data-theme="windows_xp"] .tab-header { margin: -14px -14px 14px; }
+}

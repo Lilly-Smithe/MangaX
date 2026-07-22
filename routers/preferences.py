@@ -9,6 +9,14 @@ from mangax.core.preferences_manager import preferences_manager
 router = APIRouter(prefix='/api/preferences', tags=['Preferences'])
 
 class PreferencesUpdate(BaseModel):
+    app_theme: str | None = None
+    pornhub_theme_unlocked: bool | None = None
+    nav_position: str | None = None
+    nav_mode: str | None = None
+    nav_auto_hide: bool | None = None
+    library_density: str | None = None
+    reduce_motion: bool | None = None
+    ui_scale: str | None = None
     request_timeout_seconds: int | None = Field(default=None, ge=5, le=60)
     download_concurrency: int | None = Field(default=None, ge=1, le=8)
     low_bandwidth_mode: bool | None = None
