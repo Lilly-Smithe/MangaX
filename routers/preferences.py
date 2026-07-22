@@ -18,6 +18,7 @@ class PreferencesUpdate(BaseModel):
     extension_update_mode: str | None = None
     backup_before_extension_update: bool | None = None
     fallback_mode: str | None = None
+    catalog_provider_preference: str | None = None
     automatic_update_checks: bool | None = None
     source_priority: list[str] | None = Field(default=None, max_length=100)
 
@@ -40,7 +41,9 @@ def get_preferences() -> dict[str, Any]:
     storage.sort(key=lambda item: item['bytes'], reverse=True)
     source_priority = []
     sources = []
-    return {'settings': preferences_manager.get_all(), 'source_priority': source_priority, 'sources': sources, 'storage': {'downloads_directory': DOWNLOADS_DIR, 'cache_bytes': _cache_size(), 'mangas': storage, 'total_download_bytes': sum((item['bytes'] for item in storage))}}
+    settings = preferences_manager.get_all()
+    settings.pop('catalog_provider_preference', None)
+    return {'settings': settings, 'source_priority': source_priority, 'sources': sources, 'storage': {'downloads_directory': DOWNLOADS_DIR, 'cache_bytes': _cache_size(), 'mangas': storage, 'total_download_bytes': sum((item['bytes'] for item in storage))}}
 
 @router.get('/startup')
 def get_startup_experience(legacy_onboarding_completed: bool=Query(default=False)) -> dict[str, Any]:
@@ -62,12 +65,15 @@ def mark_release_notes_seen(request: ReleaseNotesSeenRequest) -> dict[str, Any]:
 @router.put('')
 def update_preferences(request: PreferencesUpdate) -> dict[str, Any]:
     values = request.model_dump(exclude_none=True)
+    values.pop('catalog_provider_preference', None)
     priority = values.pop('source_priority', None)
+    previous_catalog_provider = str(preferences_manager.get_all().get('catalog_provider_preference') or 'anilist')
     try:
         settings = preferences_manager.update(values)
     except (TypeError, ValueError) as error:
         raise HTTPException(status_code=422, detail=str(error))
     source_priority = []
+    settings.pop('catalog_provider_preference', None)
     return {'status': 'success', 'settings': settings, 'source_priority': source_priority}
 
 @router.post('/cache/clear')

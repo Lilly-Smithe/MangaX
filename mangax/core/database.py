@@ -10,7 +10,7 @@ from mangax.core.models import LIBRARY_STATUS_VALUES
 from typing import Dict, Any, List, Optional
 
 DB_PATH = os.path.join(DATA_DIR, "library.db")
-DATABASE_SCHEMA_VERSION = 5
+DATABASE_SCHEMA_VERSION = 7
 SQLITE_BUSY_TIMEOUT_MS = 5000
 LIBRARY_STATUS_SQL_VALUES = ", ".join(
     f"'{value}'" for value in sorted(LIBRARY_STATUS_VALUES)
@@ -175,6 +175,45 @@ class DatabaseManager:
                 ON mangas(anilist_id) WHERE anilist_id > 0
             """)
             conn.execute("""
+                CREATE TABLE IF NOT EXISTS manga_external_identities (
+                    manga_id TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    external_id TEXT NOT NULL,
+                    confidence TEXT NOT NULL DEFAULT 'exact'
+                        CHECK (confidence IN ('exact', 'high', 'low', 'manual')),
+                    match_method TEXT NOT NULL DEFAULT '',
+                    verified_at INTEGER NOT NULL DEFAULT 0,
+                    last_checked_at INTEGER NOT NULL DEFAULT 0,
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    updated_at INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY (manga_id, provider, external_id),
+                    FOREIGN KEY(manga_id) REFERENCES mangas(id) ON DELETE CASCADE
+                )
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_external_identity_lookup
+                ON manga_external_identities(provider, external_id, confidence)
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_external_identity_manga
+                ON manga_external_identities(manga_id, provider)
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS manga_identity_conflicts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    conflict_key TEXT NOT NULL UNIQUE,
+                    conflict_type TEXT NOT NULL,
+                    provider TEXT NOT NULL DEFAULT '',
+                    external_id TEXT NOT NULL DEFAULT '',
+                    manga_ids TEXT NOT NULL DEFAULT '[]',
+                    details TEXT NOT NULL DEFAULT '{}',
+                    status TEXT NOT NULL DEFAULT 'open'
+                        CHECK (status IN ('open', 'resolved', 'ignored')),
+                    created_at INTEGER NOT NULL DEFAULT 0,
+                    updated_at INTEGER NOT NULL DEFAULT 0
+                )
+            """)
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS manga_source_bindings (
                     manga_id TEXT NOT NULL,
                     source_id TEXT NOT NULL,
@@ -196,6 +235,22 @@ class DatabaseManager:
             conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_source_bindings_manga
                 ON manga_source_bindings(manga_id, status, confidence DESC)
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS manga_source_resolution_cache (
+                    manga_id TEXT PRIMARY KEY,
+                    status TEXT NOT NULL,
+                    title_signature TEXT NOT NULL DEFAULT '',
+                    plugin_fingerprint TEXT NOT NULL DEFAULT '',
+                    result_json TEXT NOT NULL DEFAULT '{}',
+                    searched_at INTEGER NOT NULL DEFAULT 0,
+                    expires_at INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY(manga_id) REFERENCES mangas(id) ON DELETE CASCADE
+                )
+            """)
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_source_resolution_cache_expiry
+                ON manga_source_resolution_cache(expires_at)
             """)
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS downloaded_chapters (
@@ -259,6 +314,98 @@ class DatabaseManager:
                         ")"
                     )
                 conn.execute("PRAGMA user_version = 5")
+                schema_version = 5
+            if schema_version < 6:
+                # Kimlik kolonları geriye uyumluluk için kalır; yeni tablo ana
+                # manga anahtarlarını değiştirmeden sağlayıcı kimliklerini indeksler.
+                conn.execute("""
+                    UPDATE mangas
+                    SET mal_id = CAST(SUBSTR(id, 5) AS INTEGER)
+                    WHERE id GLOB 'mal_[0-9]*'
+                      AND COALESCE(mal_id, 0) = 0
+                """)
+                conn.execute("PRAGMA user_version = 6")
+                schema_version = 6
+            if schema_version < 7:
+                # Kaynak bulunamayan katalog kayıtları kısa süreli saklanır. Eklenti
+                # parmak izi değiştiğinde servis bu kaydı kullanmayacağından eski bir
+                # başarısız sonuç yeni/yenilenmiş eklentileri engellemez.
+                conn.execute("PRAGMA user_version = 7")
+
+            # Her başlangıçta idempotent backfill yapılması, farklı sürümlerin aynı
+            # DATA_DIR'ı kullanması halinde sonradan eklenen eski kayıtları da kapsar.
+            identity_now = int(time.time())
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO manga_external_identities (
+                    manga_id, provider, external_id, confidence, match_method,
+                    verified_at, last_checked_at, created_at, updated_at
+                )
+                SELECT id, 'myanimelist', CAST(mal_id AS TEXT), 'exact',
+                       'legacy_column', ?, ?, ?, ?
+                FROM mangas WHERE COALESCE(mal_id, 0) > 0
+                """,
+                (identity_now, identity_now, identity_now, identity_now),
+            )
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO manga_external_identities (
+                    manga_id, provider, external_id, confidence, match_method,
+                    verified_at, last_checked_at, created_at, updated_at
+                )
+                SELECT id, 'anilist', CAST(anilist_id AS TEXT), 'exact',
+                       'legacy_column', ?, ?, ?, ?
+                FROM mangas WHERE COALESCE(anilist_id, 0) > 0
+                """,
+                (identity_now, identity_now, identity_now, identity_now),
+            )
+            duplicate_rows = conn.execute(
+                """
+                SELECT provider, external_id
+                FROM manga_external_identities
+                GROUP BY provider, external_id
+                HAVING COUNT(DISTINCT manga_id) > 1
+                """
+            ).fetchall()
+            for duplicate in duplicate_rows:
+                provider = str(duplicate["provider"])
+                external_id = str(duplicate["external_id"])
+                manga_ids = sorted({
+                    str(row[0]) for row in conn.execute(
+                        """
+                        SELECT manga_id FROM manga_external_identities
+                        WHERE provider = ? AND external_id = ?
+                        """,
+                        (provider, external_id),
+                    ).fetchall()
+                })
+                conflict_type = (
+                    "anilist_multiple_mal_records"
+                    if provider == "anilist"
+                    else "duplicate_external_id"
+                )
+                conn.execute(
+                    """
+                    INSERT INTO manga_identity_conflicts (
+                        conflict_key, conflict_type, provider, external_id,
+                        manga_ids, details, status, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, '{}', 'open', ?, ?)
+                    ON CONFLICT(conflict_key) DO UPDATE SET
+                        conflict_type = excluded.conflict_type,
+                        manga_ids = excluded.manga_ids,
+                        status = 'open',
+                        updated_at = excluded.updated_at
+                    """,
+                    (
+                        f"duplicate:{provider}:{external_id}",
+                        conflict_type,
+                        provider,
+                        external_id,
+                        json.dumps(manga_ids, ensure_ascii=False),
+                        identity_now,
+                        identity_now,
+                    ),
+                )
             conn.commit()
 
 db = DatabaseManager()

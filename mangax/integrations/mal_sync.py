@@ -10,6 +10,10 @@ from typing import Any
 
 from mangax.core.database import db
 from mangax.core.dependencies import library_manager
+from mangax.core.external_identity import (
+    ExternalIdentityService,
+    IdentityConflictError,
+)
 from mangax.core.library import LibraryManager
 from mangax.integrations.mal_integration import (
     MalIntegrationError,
@@ -45,6 +49,7 @@ class MalSyncService:
         self.integration_manager = integration_manager
         self.library_manager = library_manager
         self.database = database_manager
+        self.identities = ExternalIdentityService(database_manager)
         self._sync_lock = threading.Lock()
 
     @staticmethod
@@ -225,19 +230,23 @@ class MalSyncService:
         progress("importing", 0, len(entries), result)
 
         with self.database.get_connection() as conn:
+            # Kayıt savepoint'leri her koşulda tek toplu transaction'ın içinde
+            # kalsın; iptal veya kapanma bütün kısmi içe aktarımı geri alabilsin.
+            conn.execute("BEGIN IMMEDIATE")
             rows = [dict(row) for row in conn.execute("SELECT * FROM mangas").fetchall()]
             by_id = {str(row["id"]): row for row in rows}
-            by_mal_id = {
-                self._nonnegative_int(row.get("mal_id")): row
-                for row in rows
-                if self._nonnegative_int(row.get("mal_id")) > 0
-            }
+            by_mal_id: dict[int, list[dict[str, Any]]] = {}
+            for row in rows:
+                legacy_mal_id = self._nonnegative_int(row.get("mal_id"))
+                if legacy_mal_id > 0:
+                    by_mal_id.setdefault(legacy_mal_id, []).append(row)
 
             for index, raw_entry in enumerate(entries, start=1):
                 progress("importing", index - 1, len(entries), result)
                 entry = raw_entry if isinstance(raw_entry, dict) else {}
                 mal_id = self._nonnegative_int(entry.get("mal_id"))
-                existing = by_mal_id.get(mal_id) if mal_id else None
+                existing = None
+                savepoint = f"mal_sync_entry_{index}"
                 try:
                     if not mal_id:
                         raise ValueError("Geçersiz MAL kimliği")
@@ -246,6 +255,45 @@ class MalSyncService:
                     seen_mal_ids.add(mal_id)
 
                     manga = entry.get("manga") if isinstance(entry.get("manga"), dict) else None
+                    incoming_anilist_id = self._nonnegative_int(
+                        (manga or {}).get("anilist_id")
+                    )
+                    incoming_manga_id = str((manga or {}).get("id") or "")
+                    if not incoming_anilist_id and incoming_manga_id.startswith("anilist_"):
+                        incoming_anilist_id = self._nonnegative_int(
+                            incoming_manga_id.removeprefix("anilist_")
+                        )
+                    exact_pair = bool(entry.get("matched") and incoming_anilist_id)
+                    resolution = self.identities.resolve(
+                        mal_id=mal_id,
+                        anilist_id=incoming_anilist_id,
+                        exact_pair=exact_pair,
+                        conn=conn,
+                    )
+                    if resolution.conflict:
+                        raise IdentityConflictError(
+                            "MAL kimliği birden fazla MangaX kaydıyla çakışıyor.",
+                            conflict_key=resolution.conflict_key,
+                        )
+                    if resolution.manga_id:
+                        existing = by_id.get(resolution.manga_id)
+                    legacy_matches = by_mal_id.get(mal_id, [])
+                    if existing is None and len(legacy_matches) > 1:
+                        conflict_key = f"duplicate:myanimelist:{mal_id}"
+                        self.identities.record_conflict(
+                            conflict_key=conflict_key,
+                            conflict_type="duplicate_external_id",
+                            provider="myanimelist",
+                            external_id=mal_id,
+                            manga_ids=[str(item["id"]) for item in legacy_matches],
+                            conn=conn,
+                        )
+                        raise IdentityConflictError(
+                            "Aynı MAL kimliği birden fazla MangaX kaydında bulunuyor.",
+                            conflict_key=conflict_key,
+                        )
+                    if existing is None and len(legacy_matches) == 1:
+                        existing = legacy_matches[0]
                     if existing is None and manga is None:
                         result["unmatched"] += 1
                         continue
@@ -267,6 +315,7 @@ class MalSyncService:
                             raise ValueError("Manga kimliği başka bir MAL kaydıyla eşleşmiş")
 
                     values = self._managed_values(entry, manga, existing)
+                    conn.execute(f"SAVEPOINT {savepoint}")
                     if existing is None:
                         conn.execute(
                             """
@@ -311,11 +360,30 @@ class MalSyncService:
                                 values["external_titles"],
                             ),
                         )
+                        if exact_pair:
+                            self.identities.link_exact_pair(
+                                target_id,
+                                mal_id=mal_id,
+                                anilist_id=incoming_anilist_id,
+                                match_method="anilist_idmal",
+                                conn=conn,
+                            )
+                        else:
+                            self.identities.link(
+                                target_id,
+                                "myanimelist",
+                                mal_id,
+                                confidence="exact",
+                                match_method="mal_sync",
+                                verified=True,
+                                conn=conn,
+                            )
                         inserted = dict(values)
                         inserted["id"] = target_id
                         by_id[target_id] = inserted
-                        by_mal_id[mal_id] = inserted
+                        by_mal_id.setdefault(mal_id, []).append(inserted)
                         result["added"] += 1
+                        conn.execute(f"RELEASE SAVEPOINT {savepoint}")
                         progress("importing", index, len(entries), result)
                         continue
 
@@ -416,11 +484,38 @@ class MalSyncService:
                             existing["id"],
                         ),
                     )
+                    if exact_pair:
+                        self.identities.link_exact_pair(
+                            existing["id"],
+                            mal_id=mal_id,
+                            anilist_id=incoming_anilist_id,
+                            match_method="anilist_idmal",
+                            conn=conn,
+                        )
+                    else:
+                        self.identities.link(
+                            existing["id"],
+                            "myanimelist",
+                            mal_id,
+                            confidence="exact",
+                            match_method="mal_sync",
+                            verified=True,
+                            conn=conn,
+                        )
                     existing.update(values)
                     existing["mal_last_synced_at"] = synced_at
-                    by_mal_id[mal_id] = existing
+                    if all(item["id"] != existing["id"] for item in by_mal_id.setdefault(mal_id, [])):
+                        by_mal_id[mal_id].append(existing)
                     result["updated" if changed else "unchanged"] += 1
-                except (KeyError, TypeError, ValueError, OverflowError) as error:
+                    conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+                except (IdentityConflictError, KeyError, TypeError, ValueError, OverflowError) as error:
+                    try:
+                        conn.execute(f"ROLLBACK TO SAVEPOINT {savepoint}")
+                        conn.execute(f"RELEASE SAVEPOINT {savepoint}")
+                    except Exception:
+                        pass
+                    if isinstance(error, IdentityConflictError):
+                        result["conflicts"] += 1
                     message = str(error) or "MAL kaydı eşitlenemedi"
                     self._record_error(conn, existing, message, synced_at)
                     result["failed"] += 1

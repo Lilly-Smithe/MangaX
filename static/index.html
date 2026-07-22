@@ -13,7 +13,7 @@
 
 <link href="/static/css/styles.css?v=20260721p" rel="stylesheet"/>
 </head>
-<body data-app-edition="reader" data-app-version="v0.14.0" data-github-extensions-available="false">
+<body data-app-edition="reader" data-app-version="v0.14.2" data-github-extensions-available="false">
 <div class="app-container">
 
 <aside class="sidebar" id="app-sidebar">
@@ -41,7 +41,7 @@
 </div>
 </nav>
 <div class="sidebar-footer">
-<span class="app-version">v0.14.0</span>
+<span class="app-version">v0.14.2</span>
 </div>
 </aside>
 
@@ -106,6 +106,9 @@
 </div>
 <div class="library-bulk-bar hidden" id="library-bulk-bar">
 <strong><span id="library-selected-count">0</span> seri seçildi</strong>
+<button aria-pressed="false" class="btn btn-secondary" id="library-select-all" onclick="toggleSelectAllVisibleLibraryMangas()" type="button">
+<i aria-hidden="true" class="fa-solid fa-check-double"></i> Görünenlerin Tümünü Seç
+                        </button>
 <select aria-label="Seçilenlerin okuma durumu" id="library-bulk-status">
 <option value="">Durumu değiştirme</option>
 <option value="reading">Okunuyor</option>
@@ -116,6 +119,9 @@
 </select>
 <input id="library-bulk-collection" maxlength="40" placeholder="Koleksiyon ekle…" type="text"/>
 <button class="btn btn-primary" onclick="applyLibraryBulkUpdate()" type="button">Uygula</button>
+<button class="btn btn-danger" id="library-bulk-delete" onclick="deleteSelectedLibraryMangas()" type="button">
+<i aria-hidden="true" class="fa-solid fa-trash-can"></i> Seçilenleri Sil
+                        </button>
 <button class="btn btn-secondary" onclick="clearLibrarySelection()" type="button">Seçimi Temizle</button>
 </div>
 <div class="library-grid library-catalog-grid" id="library-catalog-grid"></div>
@@ -265,6 +271,8 @@
 </div>
 </section>
 </div>
+
+
 <div class="settings-card settings-category-panel mal-integration-card" data-settings-panel="integrations">
 <div class="settings-card-header"><i class="fa-solid fa-list-check"></i><h2>MyAnimeList</h2></div>
 <p class="settings-card-desc">Manga listeni güvenli biçimde MangaX ile eşitle. MAL'a geri gönderme ayrı izinle ve kontrollü kuyrukla çalışır.</p>
@@ -346,7 +354,7 @@
 </div>
 <div class="about-info">
 <div class="about-row"><span>Uygulama</span><span>MangaX</span></div>
-<div class="about-row"><span>Versiyon</span><span class="app-version">v0.14.0</span></div>
+<div class="about-row"><span>Versiyon</span><span class="app-version">v0.14.2</span></div>
 
 </div>
 <section aria-labelledby="app-update-title" class="recovery-settings-panel app-update-settings">
@@ -358,7 +366,7 @@
 </div>
 <div aria-live="polite" class="settings-inline-empty" id="app-update-status" role="status">Henüz güncelleme kontrolü yapılmadı.</div>
 <div aria-hidden="true" class="system-check-progress-track hidden" id="app-update-progress"><span id="app-update-progress-bar" style="width:0"></span></div>
-<div class="app-update-settings-meta"><span>Kurulu sürüm <strong class="app-version">v0.14.0</strong></span><span>Son kontrol <strong id="app-update-last-check">Henüz yok</strong></span></div>
+<div class="app-update-settings-meta"><span>Kurulu sürüm <strong class="app-version">v0.14.2</strong></span><span>Son kontrol <strong id="app-update-last-check">Henüz yok</strong></span></div>
 </section>
 <button class="btn btn-secondary settings-onboarding-btn" onclick="openOnboarding()" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Başlangıç Sihirbazını Aç</button>
 <section class="recovery-settings-panel">
@@ -831,6 +839,7 @@
 <script src="/static/js/local-import.js?v=20260718b"></script>
 
 <script src="/static/js/manga-detail.js?v=20260718q"></script>
+
 
 
 <script src="/static/js/settings.js?v=20260719d"></script>

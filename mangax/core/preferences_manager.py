@@ -19,6 +19,7 @@ DEFAULT_PREFERENCES = {
     "extension_update_mode": "notify",
     "backup_before_extension_update": True,
     "fallback_mode": "ask",
+    "catalog_provider_preference": "anilist",
     "automatic_update_checks": True,
     "last_app_update_check": "",
     "skipped_app_update_version": "",
@@ -33,12 +34,19 @@ class PreferencesManager:
         self.path = path
         self._lock = RLock()
         self.existed_at_startup = self.path.is_file()
+        self._migration_required = False
         self.data = self._load()
+        if self._migration_required:
+            self._save()
 
     def _load(self) -> dict[str, Any]:
         try:
             stored = json.loads(self.path.read_text(encoding="utf-8"))
-            return {**DEFAULT_PREFERENCES, **(stored if isinstance(stored, dict) else {})}
+            merged = {**DEFAULT_PREFERENCES, **(stored if isinstance(stored, dict) else {})}
+            if merged.get("catalog_provider_preference") not in {"myanimelist", "anilist"}:
+                merged["catalog_provider_preference"] = "anilist"
+                self._migration_required = True
+            return merged
         except (OSError, ValueError, TypeError):
             return dict(DEFAULT_PREFERENCES)
 
@@ -68,6 +76,8 @@ class PreferencesManager:
                 raise ValueError("Geçersiz eklenti güncelleme modu")
             if normalized.get("fallback_mode", "ask") not in {"auto", "ask", "off"}:
                 raise ValueError("Geçersiz kaynak geçiş modu")
+            if normalized.get("catalog_provider_preference", "anilist") not in {"myanimelist", "anilist"}:
+                raise ValueError("Geçersiz katalog sağlayıcısı tercihi")
             if "download_directory" in normalized:
                 path = Path(str(normalized["download_directory"] or DOWNLOADS_DIR)).expanduser().resolve()
                 if path == Path(path.anchor):

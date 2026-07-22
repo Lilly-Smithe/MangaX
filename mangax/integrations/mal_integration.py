@@ -17,6 +17,7 @@ import httpx
 
 from mangax.core.config import APP_URL, DATA_DIR, MAL_OAUTH_CLIENT_ID
 from mangax.integrations.secure_store import SecureStoreError, WindowsDpapiJsonStore
+from mangax.integrations.catalog_media import safe_catalog_media_url
 
 
 MAL_AUTHORIZE_URL = "https://myanimelist.net/v1/oauth2/authorize"
@@ -88,7 +89,9 @@ class MalIntegrationManager:
             "id": f"mal_{mal_id}",
             "title": str(node.get("title") or "Bilinmeyen Manga"),
             "description": "",
-            "cover_url": str(picture.get("large") or picture.get("medium") or ""),
+            "cover_url": safe_catalog_media_url(
+                picture.get("large") or picture.get("medium"), "myanimelist"
+            ),
             "status": str(node.get("status") or "unknown"),
             "tags": [],
             "year": int(year_text) if year_text.isdigit() else 0,
@@ -457,6 +460,20 @@ class MalIntegrationManager:
             next_url = candidate
         else:
             raise MalIntegrationError("MAL manga listesi güvenli sayfalama sınırını aştı.")
+        # `list_updated_at` sırasında ilk kayıt en güncel olandır. Liste
+        # sayfalar arasında değişirken aynı MAL kimliği tekrar görünebilir;
+        # senkron servisine yinelenen iş veya sahte hata olarak taşıma.
+        unique_entries: list[dict[str, Any]] = []
+        seen_page_ids: set[int] = set()
+        for item in raw_entries:
+            node = self._mapping(item.get("node"))
+            mal_id = self._safe_nonnegative_int(node.get("id"))
+            if mal_id > 0:
+                if mal_id in seen_page_ids:
+                    continue
+                seen_page_ids.add(mal_id)
+            unique_entries.append(item)
+        raw_entries = unique_entries
         mal_ids = [
             self._safe_nonnegative_int(self._mapping(item.get("node")).get("id"))
             for item in raw_entries
@@ -515,7 +532,9 @@ class MalIntegrationManager:
             entries.append({
                 "mal_id": mal_id,
                 "title": str(node.get("title") or "Bilinmeyen Manga"),
-                "cover_url": str(picture.get("large") or picture.get("medium") or ""),
+                "cover_url": safe_catalog_media_url(
+                    picture.get("large") or picture.get("medium"), "myanimelist"
+                ),
                 "status": str(list_status.get("status") or "plan_to_read"),
                 "score": min(10, self._safe_nonnegative_int(list_status.get("score"))),
                 "num_chapters_read": self._safe_nonnegative_int(list_status.get("num_chapters_read")),

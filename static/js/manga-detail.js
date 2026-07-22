@@ -366,7 +366,7 @@ async function viewMangaDetails(mangaId, options = {}) {
             }
         }
         
-        if (mangaId.startsWith("anilist_")) {
+        if (mangaId.startsWith("anilist_") || mangaId.startsWith("mal_")) {
             activeManga = searchManga;
         } else {
             activeManga = defaultSource.details;
@@ -482,10 +482,13 @@ function activateProgressiveSource(source, manga, loader, selector) {
 
 function applyProgressiveMetadata(mangaId, searchManga, metadata) {
     const manga = searchManga || { id: mangaId, _sources: [] };
-    const fields = [
+    const catalogFields = [
         'title', 'cover_url', 'banner_url', 'description',
-        'status', 'tags', 'year', '_anilist_chapters'
+        'status', 'tags', 'year', '_metadata_source'
     ];
+    const fields = searchManga?._metadata_source
+        ? ['_anilist_chapters']
+        : [...catalogFields, '_anilist_chapters'];
     fields.forEach(field => {
         if (metadata[field] !== undefined && metadata[field] !== null) {
             manga[field] = metadata[field];
@@ -548,6 +551,8 @@ async function loadAniListSourcesProgressively(
     let firstSourceShown = false;
     let plannedSources = [];
     const failedSourceNames = [];
+    let manualBindingCandidates = [];
+    let manualSelectionVisible = false;
 
     const sourceNamesText = names => {
         const values = [...new Set(names.filter(Boolean))];
@@ -671,10 +676,14 @@ async function loadAniListSourcesProgressively(
             } else if (event.type === 'source_status') {
                 if (event.source_name) failedSourceNames.push(event.source_name);
                 if (statusText && event.message) statusText.textContent = event.message;
+                if (Array.isArray(event.candidates)) {
+                    manualBindingCandidates = event.candidates;
+                }
                 if (
                     event.status === 'ambiguous'
                     && typeof window.renderSourceBindingCandidates === 'function'
                 ) {
+                    manualSelectionVisible = true;
                     window.renderSourceBindingCandidates(mangaId, event.candidates || []);
                 }
             } else if (event.type === 'source') {
@@ -682,9 +691,10 @@ async function loadAniListSourcesProgressively(
             } else if (
                 event.type === 'complete'
                 && Number(event.source_count || 0) === 0
+                && !manualSelectionVisible
                 && typeof window.renderSourceBindingRetry === 'function'
             ) {
-                window.renderSourceBindingRetry(mangaId);
+                window.renderSourceBindingRetry(mangaId, manualBindingCandidates);
             }
         };
 
@@ -740,11 +750,9 @@ async function loadAniListSourcesProgressively(
 function changeMangaSource(sourceId, preferredLang = null) {
     const src = allFetchedSources.find(x => x.id === sourceId);
     if (src) {
-        if (activeManga && activeManga.id && activeManga.id.startsWith("anilist_")) {
-            // Keep activeManga (AniList metadata) as is!
-        } else {
-            activeManga = src.details;
-        }
+        // Katalog metadata'sı detay açılırken sabitlenir. Bölüm kaynağı
+        // değişikliği yalnız bölüm listesini değiştirebilir.
+        activeManga = activeManga || src.details;
         activeChapters = src.chapters;
         scheduleKnownChapterSync(activeManga?.id || src.details?.id, src.chapters);
         

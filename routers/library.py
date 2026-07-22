@@ -5,6 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from mangax.core.models import (
     DeleteRequest,
     KnownChaptersRequest,
+    LibraryBulkDeleteRequest,
     LibraryBulkUpdateRequest,
     LibraryMetadataRequest,
     ProgressRequest,
@@ -76,6 +77,17 @@ def delete_manga(manga_id: str):
             detail="Seri silinemedi veya bulunamadı."
         )
     return {"status": "success", "message": "Seri tamamen silindi."}
+
+
+@router.post("/library/bulk-delete")
+def bulk_delete_library(req: LibraryBulkDeleteRequest):
+    """Seçilen serileri mevcut güvenli dosya ve ilişki temizliğiyle kaldır."""
+    result = library_manager.remove_mangas(req.manga_ids)
+    return {
+        "status": "success" if not result["failed_ids"] else "partial",
+        "removed": len(result["removed_ids"]),
+        **result,
+    }
 
 
 @router.put("/library/{manga_id}/metadata")

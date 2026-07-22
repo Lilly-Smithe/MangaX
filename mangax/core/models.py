@@ -68,6 +68,10 @@ class LibraryBulkUpdateRequest(BaseModel):
     add_collection: str = Field(default="", max_length=40)
 
 
+class LibraryBulkDeleteRequest(BaseModel):
+    manga_ids: list[str] = Field(min_length=1, max_length=200)
+
+
 class KnownChaptersRequest(BaseModel):
     chapter_numbers: list[str] = Field(default_factory=list, max_length=5000)
 

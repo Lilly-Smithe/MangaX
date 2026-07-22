@@ -49,7 +49,7 @@ startup_metrics.mark('data_migrations_complete')
 from mangax.runtime.edition_runtime import configure_services, start_services, close_services
 from mangax.core.backup_service import local_backup_manager
 from mangax.core.migrate_folders import migrate_downloads
-print(f"[MangaX DEBUG] sys.frozen: {getattr(sys, 'frozen', False)}", flush=True)
+print(f'[MangaX DEBUG] sys.frozen: {getattr(sys, 'frozen', False)}', flush=True)
 print(f'[MangaX DEBUG] sys.executable: {sys.executable}', flush=True)
 print(f'[MangaX DEBUG] config.BASE_DIR: {BASE_DIR}', flush=True)
 print(f'[MangaX DEBUG] config.DOWNLOADS_DIR: {DOWNLOADS_DIR}', flush=True)

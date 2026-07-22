@@ -369,7 +369,7 @@
 }
 .source-binding-panel {
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.2fr) auto auto;
+    grid-template-columns: minmax(220px, 1fr) minmax(260px, 1.2fr) auto auto auto;
     align-items: center;
     gap: 10px;
     width: 100%;

@@ -117,6 +117,7 @@ let librarySortOrder = 'updated_desc';
 let libraryCatalogView = getSavedLibraryCatalogView();
 let librarySelectionMode = false;
 let selectedLibraryMangaIds = new Set();
+let visibleLibraryMangaIds = [];
 let activeLibraryEditorId = '';
 const knownChapterSyncTimers = new Map();
 const pendingKnownChapters = new Map();

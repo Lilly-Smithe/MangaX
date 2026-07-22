@@ -1,5 +1,6 @@
 // Library Management: online reading history and offline downloads.
 const deletingLibraryMangaIds = new Set();
+let libraryBulkDeleteInFlight = false;
 
 function isReaderEdition() {
     return document.body?.dataset.appEdition === 'reader';
@@ -54,6 +55,21 @@ function formatStorageBytes(value) {
     return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
 }
 
+function hasReadableLocalChapters(manga) {
+    return Object.values(manga?.downloaded_chapters || {}).some(chapter => (
+        Number(chapter?.page_count) > 0
+        || (Array.isArray(chapter?.pages) && chapter.pages.length > 0)
+    ));
+}
+
+function hasReadableLocalChapter(manga, chapterId) {
+    const chapter = manga?.downloaded_chapters?.[chapterId];
+    return Boolean(chapter) && (
+        Number(chapter.page_count) > 0
+        || (Array.isArray(chapter.pages) && chapter.pages.length > 0)
+    );
+}
+
 function getMangaDownloadSummary(mangaId) {
     const items = Object.values(chapterDownloadStatus).filter(item => item.manga_id === mangaId);
     const active = items.filter(item => ['pending', 'downloading', 'paused'].includes(item.status));
@@ -94,7 +110,7 @@ function buildLibraryCard(id, manga, mode) {
         ? '/' + manga.cover_path.split('/').map(segment => encodeURIComponent(segment)).join('/')
         : manga.cover_url);
     const isContinue = mode === 'continue';
-    const canReadOffline = Object.prototype.hasOwnProperty.call(chapters, manga.last_read_chapter);
+    const canReadOffline = hasReadableLocalChapter(manga, manga.last_read_chapter);
     const resumeOnline = manga.last_read_online === true || !canReadOffline;
     const progressText = isContinue
         ? `Bölüm ${chapterNum} · Sayfa ${(manga.last_read_page || 0) + 1}`
@@ -315,6 +331,7 @@ function renderLibraryCatalog() {
         if (librarySortOrder === 'unread_desc') return (b[1].unread_count || 0) - (a[1].unread_count || 0) || a[1].title.localeCompare(b[1].title, 'tr');
         return (b[1].updated_at || b[1].last_read_at || 0) - (a[1].updated_at || a[1].last_read_at || 0);
     });
+    visibleLibraryMangaIds = entries.map(([id]) => id);
     grid.classList.toggle('compact-list', libraryCatalogView === 'list');
     grid.classList.toggle('selection-mode', librarySelectionMode);
     grid.innerHTML = '';
@@ -374,16 +391,99 @@ function clearLibrarySelection() {
     renderLibraryCatalog();
 }
 
+function toggleSelectAllVisibleLibraryMangas() {
+    if (!visibleLibraryMangaIds.length) {
+        showToast('Bu görünümde seçilebilecek seri yok.', 'info');
+        return;
+    }
+    const allVisibleSelected = visibleLibraryMangaIds.every(id => selectedLibraryMangaIds.has(id));
+    visibleLibraryMangaIds.forEach(id => {
+        if (allVisibleSelected) selectedLibraryMangaIds.delete(id);
+        else selectedLibraryMangaIds.add(id);
+    });
+    renderLibraryCatalog();
+}
+
 function updateLibrarySelectionBar() {
     const bar = document.getElementById('library-bulk-bar');
     const button = document.getElementById('library-select-toggle');
     if (!bar || !button) return;
     bar.classList.toggle('hidden', !librarySelectionMode);
     document.getElementById('library-selected-count').textContent = selectedLibraryMangaIds.size;
+    const selectAllButton = document.getElementById('library-select-all');
+    const deleteButton = document.getElementById('library-bulk-delete');
+    const allVisibleSelected = visibleLibraryMangaIds.length > 0
+        && visibleLibraryMangaIds.every(id => selectedLibraryMangaIds.has(id));
+    if (selectAllButton) {
+        selectAllButton.disabled = visibleLibraryMangaIds.length === 0 || libraryBulkDeleteInFlight;
+        selectAllButton.setAttribute('aria-pressed', String(allVisibleSelected));
+        selectAllButton.innerHTML = allVisibleSelected
+            ? '<i class="fa-solid fa-square-minus" aria-hidden="true"></i> Görünenlerin Seçimini Kaldır'
+            : '<i class="fa-solid fa-check-double" aria-hidden="true"></i> Görünenlerin Tümünü Seç';
+    }
+    if (deleteButton) deleteButton.disabled = selectedLibraryMangaIds.size === 0 || libraryBulkDeleteInFlight;
     button.classList.toggle('active', librarySelectionMode);
     button.innerHTML = librarySelectionMode
         ? '<i class="fa-solid fa-xmark"></i> Seçimi Bitir'
         : '<i class="fa-solid fa-check-double"></i> Toplu Seç';
+}
+
+async function deleteSelectedLibraryMangas() {
+    if (libraryBulkDeleteInFlight) return;
+    const mangaIds = [...selectedLibraryMangaIds].filter(id => libraryData.mangas?.[id]);
+    if (!mangaIds.length) return showToast('Önce en az bir seri seçin.', 'error');
+
+    const mangas = mangaIds.map(id => libraryData.mangas[id]);
+    const localChapterCount = mangas.reduce(
+        (total, manga) => total + Object.keys(manga.downloaded_chapters || {}).length,
+        0,
+    );
+    const localMessage = localChapterCount > 0
+        ? ` Cihazdaki ${localChapterCount} yerel bölüm ve bunlara ait yönetilen dosyalar da güvenli biçimde silinecek.`
+        : ' Okuma durumları, ilerleme, kişisel notlar ve koleksiyon bağlantıları kaldırılacak.';
+    const confirmed = await showAppConfirm({
+        title: 'Seçilen Mangaları Kaldır',
+        message: `${mangaIds.length} manga kütüphaneden kaldırılacak.${localMessage}`,
+        confirmText: `${mangaIds.length} Mangayı Kaldır`,
+        variant: 'danger',
+        icon: 'fa-trash-can',
+    });
+    if (!confirmed) return;
+
+    libraryBulkDeleteInFlight = true;
+    updateLibrarySelectionBar();
+    try {
+        const response = await fetch('/api/library/bulk-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ manga_ids: mangaIds }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || 'Seçilen seriler kaldırılamadı.');
+
+        const clearedIds = [...(result.removed_ids || []), ...(result.missing_ids || [])];
+        clearedIds.forEach(id => {
+            delete libraryData.mangas[id];
+            selectedLibraryMangaIds.delete(id);
+        });
+        (result.failed_ids || []).forEach(id => selectedLibraryMangaIds.add(id));
+        if (activeManga && clearedIds.includes(activeManga.id)) closeDetailsModal();
+        if (!selectedLibraryMangaIds.size) librarySelectionMode = false;
+        renderLibrarySnapshot(libraryData);
+        cacheLibrarySnapshot(libraryData);
+
+        if ((result.failed_ids || []).length) {
+            showToast(`${result.removed || 0} manga kaldırıldı; ${(result.failed_ids || []).length} manga kaldırılamadı.`, 'error');
+        } else {
+            showToast(`${result.removed || 0} manga kütüphaneden kaldırıldı.`, 'success');
+        }
+        loadLibrary({ silent: true });
+    } catch (error) {
+        showToast(error.message || 'Toplu kaldırma sırasında hata oluştu.', 'error');
+    } finally {
+        libraryBulkDeleteInFlight = false;
+        updateLibrarySelectionBar();
+    }
 }
 
 async function applyLibraryBulkUpdate() {

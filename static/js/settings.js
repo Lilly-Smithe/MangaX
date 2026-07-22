@@ -97,6 +97,7 @@ async function loadAdvancedPreferences() {
         sourcePriorityState = data.source_priority || [];
         localStorage.setItem(ADVANCED_CLIENT_SETTINGS_KEY, JSON.stringify({ ...advancedSettingsState, source_priority: sourcePriorityState }));
         setControlValue('settings-fallback-mode', advancedSettingsState.fallback_mode || 'ask');
+        setControlValue('settings-catalog-provider', advancedSettingsState.catalog_provider_preference || 'anilist');
         setControlValue('settings-extension-update-mode', advancedSettingsState.extension_update_mode || 'notify');
         setControlValue('settings-backup-before-update', advancedSettingsState.backup_before_extension_update, true);
         setControlValue('settings-request-timeout', advancedSettingsState.request_timeout_seconds || 15);
@@ -121,6 +122,7 @@ async function loadAdvancedPreferences() {
 function advancedPreferencesFromControls() {
     return {
         fallback_mode: document.getElementById('settings-fallback-mode')?.value || 'ask',
+        catalog_provider_preference: document.getElementById('settings-catalog-provider')?.value || undefined,
         extension_update_mode: document.getElementById('settings-extension-update-mode')?.value || 'notify',
         backup_before_extension_update: Boolean(document.getElementById('settings-backup-before-update')?.checked),
         request_timeout_seconds: Number(document.getElementById('settings-request-timeout')?.value) || 15,
@@ -136,6 +138,7 @@ function advancedPreferencesFromControls() {
 
 async function saveAdvancedPreferences() {
     const payload = advancedPreferencesFromControls();
+    const previousCatalogProvider = advancedSettingsState.catalog_provider_preference || 'anilist';
     if (payload.low_bandwidth_mode) {
         payload.download_concurrency = Math.min(payload.download_concurrency, 2);
         localStorage.setItem('downloadCompressionProfile', 'compact');
@@ -147,8 +150,18 @@ async function saveAdvancedPreferences() {
         if (!response.ok) throw new Error(data.detail || 'Ayarlar kaydedilemedi.');
         advancedSettingsState = data.settings || payload;
         localStorage.setItem(ADVANCED_CLIENT_SETTINGS_KEY, JSON.stringify({ ...advancedSettingsState, source_priority: sourcePriorityState }));
+        if (
+            payload.catalog_provider_preference
+            && payload.catalog_provider_preference !== previousCatalogProvider
+            && typeof cancelDiscoverRequests === 'function'
+        ) {
+            cancelDiscoverRequests();
+        }
         showToast('Ayar kaydedildi.', 'success');
-    } catch (error) { showToast(error.message, 'error'); }
+    } catch (error) {
+        setControlValue('settings-catalog-provider', previousCatalogProvider);
+        showToast(error.message, 'error');
+    }
 }
 
 
