@@ -54,7 +54,17 @@ FORBIDDEN_STATIC_FILES = {
     "static/css/modules/downloads.css",
     "static/css/modules/extensions.css",
     "static/css/modules/notifications.css",
+    "static/js/feature-extensions.js",
+    "static/js/reader-translation.js",
+    "static/css/modules/feature-extensions.css",
+    "static/css/modules/reader-translation.css",
 }
+FORBIDDEN_PATH_PREFIXES = (
+    "mangax/full/feature_extensions/",
+    "routers/feature_extensions.py",
+    "routers/koharu.py",
+    "routers/translation.py",
+)
 SENSITIVE_NAME_PATTERNS = (
     re.compile(r"(^|/)(?:\.env(?:\..*)?|credentials?(?:\..*)?|cookies?\.json)$", re.I),
     re.compile(r"\.(?:pem|key|p12|pfx|jks|keystore)$", re.I),
@@ -64,6 +74,9 @@ SECRET_VALUE_PATTERNS = (
     re.compile(r"\bgh[pousr]_[A-Za-z0-9_]{20,}\b"),
     re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
     re.compile(r"(?i)(?:client[_ -]?secret|private[_ -]?key|github[_ -]?pat)\s*[:=]\s*['\"][^'\"]{8,}['\"]"),
+    re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b"),
+    re.compile(r"\bAIza[A-Za-z0-9_-]{24,}\b"),
+    re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{16,}\b"),
 )
 FORBIDDEN_ENDPOINT_PREFIXES = (
     "/api/search",
@@ -86,6 +99,14 @@ SCAN_EXCLUSIONS = {
     "tests/test_public_reader_export.py",
     "PUBLIC_EXPORT_SECURITY.json",
 }
+READER_PRIVATE_TEXT_MARKERS = (
+    "koharu",
+    "feature_extensions",
+    "feature-extensions",
+    "reader-translation",
+    "/api/translation",
+    "manga çevirmeni",
+)
 
 
 def _relative_files(root: Path) -> list[str]:
@@ -102,10 +123,22 @@ def _scan_tree(root: Path, files: list[str]) -> tuple[list[str], list[str]]:
     top_levels = {Path(item).parts[0] for item in files if Path(item).parts}
     found_top = sorted(top_levels & FORBIDDEN_TOP_LEVEL)
     found_files = sorted(set(files) & (FORBIDDEN_FILES | FORBIDDEN_STATIC_FILES))
+    found_private_paths = sorted(
+        item
+        for item in files
+        if any(
+            item == prefix or item.startswith(prefix)
+            for prefix in FORBIDDEN_PATH_PREFIXES
+        )
+    )
     if found_top:
         errors.append("Yasak üst klasörler: " + ", ".join(found_top))
     if found_files:
         errors.append("Yasak Full dosyaları: " + ", ".join(found_files))
+    if found_private_paths:
+        errors.append(
+            "Reader özellik eklentisi dosyaları: " + ", ".join(found_private_paths)
+        )
     checks.append("Scraper, eklenti mağazası ve Full modül yolu bulunmuyor.")
 
     sensitive_names = sorted(
@@ -122,6 +155,7 @@ def _scan_tree(root: Path, files: list[str]) -> tuple[list[str], list[str]]:
     secret_locations: list[str] = []
     endpoint_locations: list[str] = []
     private_runtime_locations: list[str] = []
+    feature_extension_locations: list[str] = []
     for relative in files:
         path = root / relative
         if relative in SCAN_EXCLUSIONS or path.suffix.lower() not in TEXT_SUFFIXES:
@@ -131,6 +165,8 @@ def _scan_tree(root: Path, files: list[str]) -> tuple[list[str], list[str]]:
         except (OSError, UnicodeDecodeError):
             continue
         lower = text.lower()
+        if any(marker in lower for marker in READER_PRIVATE_TEXT_MARKERS):
+            feature_extension_locations.append(relative)
         if PRIVATE_REPOSITORY_REFERENCE in text:
             private_reference_locations.append(relative)
         if EXTENSION_REPOSITORY_REFERENCE in text:
@@ -158,10 +194,16 @@ def _scan_tree(root: Path, files: list[str]) -> tuple[list[str], list[str]]:
         errors.append("Full API endpoint metni bulundu: " + ", ".join(endpoint_locations))
     if private_runtime_locations:
         errors.append("Private runtime importu bulundu: " + ", ".join(private_runtime_locations))
+    if feature_extension_locations:
+        errors.append(
+            "Reader kaynak ağacında Koharu/çeviri entegrasyonu metni bulundu: "
+            + ", ".join(feature_extension_locations)
+        )
     checks.append("Private repo referansı en fazla merkezi config.py içinde bulunuyor.")
     checks.append("Gerçek kaynak adı, eklenti mağazası repo adresi veya gömülü gizli değer bulunmuyor.")
     checks.append("Keşfet, kaynak, eklenti, takip ve indirme API endpoint metni bulunmuyor.")
     checks.append("Private dependencies, scraper, kaynak veya eklenti runtime importu bulunmuyor.")
+    checks.append("Koharu, özellik eklentisi ve çeviri endpoint metni bulunmuyor.")
     return errors, checks
 
 

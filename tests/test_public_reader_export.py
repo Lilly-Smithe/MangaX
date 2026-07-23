@@ -47,6 +47,34 @@ class PublicReaderExportTests(unittest.TestCase):
         self.assertTrue(files.isdisjoint(FORBIDDEN_FILES | FORBIDDEN_STATIC_FILES))
         self.assertTrue({Path(item).parts[0] for item in files}.isdisjoint(FORBIDDEN_TOP_LEVEL))
 
+    def test_koharu_and_translation_integration_leave_no_reader_trace(self):
+        excluded = {
+            "tools/audit_public_reader.py",
+            "tests/test_public_reader_export.py",
+        }
+        markers = (
+            "koharu",
+            "feature_extensions",
+            "feature-extensions",
+            "reader-translation",
+            "/api/translation",
+            "manga çevirmeni",
+        )
+        hits = []
+        for path in self.output.rglob("*"):
+            relative = path.relative_to(self.output).as_posix()
+            if (
+                not path.is_file()
+                or relative in excluded
+                or path.suffix.lower()
+                not in {".py", ".js", ".css", ".html", ".json", ".md", ".txt", ".bat", ".spec"}
+            ):
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore").lower()
+            if any(marker in text for marker in markers):
+                hits.append(relative)
+        self.assertEqual(hits, [])
+
 
 if __name__ == "__main__":
     unittest.main()

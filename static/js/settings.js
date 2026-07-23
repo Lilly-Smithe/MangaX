@@ -35,7 +35,7 @@ function shouldShowNotification(kind) {
     return getNotificationPreference(kind) && !isNotificationQuietHours();
 }
 
-const SETTINGS_CATEGORIES = ['general', 'appearance', 'sources', 'reader', 'downloads', 'backup', 'integrations', 'notifications', 'system'];
+const SETTINGS_CATEGORIES = ['appearance', 'reader', 'backup', 'integrations', 'system'];
 const GITHUB_SETTINGS_CATEGORIES = new Set(['general', 'sources', 'downloads', 'notifications']);
 
 function settingsFullFeaturesAvailable() {

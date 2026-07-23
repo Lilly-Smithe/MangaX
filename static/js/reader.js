@@ -94,9 +94,23 @@ let readerUsingMangaProfile = false;
 let readerBookmarks = [];
 let readerFocusMode = false;
 let readerLastLoadFailure = null;
+let readerChapterNavigationPending = false;
 const WEBTOON_PRELOAD_RADIUS = 3;
 const WEBTOON_RETAIN_RADIUS = 6;
 let readerDimensionSaveTimer = null;
+
+function emitReaderLifecycle(name, detail = {}) {
+    document.dispatchEvent(new CustomEvent(`mangax:reader-${name}`, {
+        detail: {
+            mangaId: readerMangaId,
+            chapterId: readerChapterId,
+            pageIndex: readerPageIndex,
+            pageCount: readerPages.length,
+            mode: readerMode,
+            ...detail,
+        },
+    }));
+}
 
 function loadReaderPageDimensions() {
     try {
@@ -339,6 +353,7 @@ async function tryReaderSourceFallback(currentChapter, failureReason, triedSourc
             setTimeout(() => {
                 startReading(readerMangaId, candidate.chapter.id, true, {
                     fallbackTriedSourceIds: nextTriedSourceIds,
+                    requestedChapterNumber: normalizeReaderChapterNumber(currentChapter.chapter),
                 });
             }, 0);
             return true;
@@ -676,6 +691,7 @@ async function startReading(mangaId, chapterId, isOnline, options = {}) {
     readerAtEndCard = false;
     _readerProgressReady = false;
     readerLastLoadFailure = null;
+    emitReaderLifecycle('context-reset');
     hideReaderLoadError();
     loadMangaReaderState(mangaId);
 
@@ -718,10 +734,29 @@ async function startReading(mangaId, chapterId, isOnline, options = {}) {
     const mangaTitle = activeManga ? activeManga.title : "Manga";
     document.getElementById('reader-manga-title').textContent = mangaTitle;
 
-    const chapter = activeChapters.find(c => c.id === chapterId);
+    const chapter = activeChapters.find(c => c.id === chapterId)
+        || allFetchedSources
+            .flatMap(source => Array.isArray(source.chapters) ? source.chapters : [])
+            .find(candidate => candidate.id === chapterId);
     const chapterNum = chapter ? chapter.chapter : "?";
     const chapterTitle = chapter ? (chapter.title || "Başlıksız") : "";
     document.getElementById('reader-chapter-title').textContent = `Bölüm ${chapterNum} - ${chapterTitle}`;
+
+    const requestedChapterNumber = normalizeReaderChapterNumber(options.requestedChapterNumber);
+    const actualChapterNumber = normalizeReaderChapterNumber(chapter?.chapter);
+    if (
+        requestedChapterNumber
+        && actualChapterNumber
+        && requestedChapterNumber !== actualChapterNumber
+    ) {
+        _hideLoader();
+        showReaderLoadError(
+            'Bölüm geçişi durduruldu',
+            `İstenen Bölüm ${requestedChapterNumber} yerine Bölüm ${actualChapterNumber} döndürüldü. Aynı bölümün tekrar açılmaması için geçiş iptal edildi.`,
+            { online: isOnline, reason: 'chapter_mismatch' }
+        );
+        return;
+    }
 
     // Configure layout mode CSS classes
     setReaderModeLayout();
@@ -768,6 +803,7 @@ async function startReading(mangaId, chapterId, isOnline, options = {}) {
         // Hide loader and render pages
         _hideLoader();
         renderReaderPages();
+        emitReaderLifecycle('chapter-ready');
 
         // Setup controls
         setupControlsAutohide();
@@ -881,6 +917,7 @@ function renderReaderPages() {
                 if (entry.isIntersecting && entry.boundingClientRect.height > 20) {
                     const index = parseInt(entry.target.getAttribute('data-index'));
                     readerPageIndex = index;
+                    emitReaderLifecycle('page-change');
                     updateWebtoonImageWindow(index);
                     updatePageIndicator();
                     updatePreciseWebtoonProgress(true);
@@ -932,6 +969,7 @@ function renderReaderPages() {
     }
 
     applyReaderPreferences();
+    emitReaderLifecycle('rendered');
 }
 
 function updateWebtoonImageWindow(centerIndex) {
@@ -1138,11 +1176,114 @@ function getFilteredChapters() {
         .map(item => item.chapter);
 }
 
+function getReaderCurrentChapter() {
+    return activeChapters.find(chapter => chapter.id === readerChapterId)
+        || allFetchedSources
+            .flatMap(source => Array.isArray(source.chapters) ? source.chapters : [])
+            .find(chapter => chapter.id === readerChapterId)
+        || null;
+}
+
+function readerChapterNumericValue(chapter) {
+    const normalized = normalizeReaderChapterNumber(chapter?.chapter);
+    const numeric = Number(normalized);
+    return Number.isFinite(numeric) ? numeric : null;
+}
+
+function getReaderAdjacentChapterCandidate(direction) {
+    const currentChapter = getReaderCurrentChapter();
+    if (!currentChapter) return null;
+
+    const currentNumber = readerChapterNumericValue(currentChapter);
+    const currentLanguage = currentChapter.language === 'en' ? 'en' : 'tr';
+    const currentSource = getReaderSourceForChapter(readerChapterId);
+    const priority = getAppPreference('source_priority', []);
+
+    if (readerIsOnline && currentNumber !== null) {
+        const candidates = [];
+        allFetchedSources.forEach(source => {
+            if (!source?.id || !Array.isArray(source.chapters)) return;
+            source.chapters.forEach(chapter => {
+                const chapterLanguage = chapter.language === 'en' ? 'en' : 'tr';
+                const chapterNumber = readerChapterNumericValue(chapter);
+                if (chapterLanguage !== currentLanguage || chapterNumber === null) return;
+                if (direction > 0 && chapterNumber <= currentNumber) return;
+                if (direction < 0 && chapterNumber >= currentNumber) return;
+                candidates.push({ source, chapter, chapterNumber });
+            });
+        });
+
+        candidates.sort((a, b) => {
+            if (a.chapterNumber !== b.chapterNumber) {
+                return direction > 0
+                    ? a.chapterNumber - b.chapterNumber
+                    : b.chapterNumber - a.chapterNumber;
+            }
+            const aCurrent = a.source.id === currentSource?.id ? 0 : 1;
+            const bCurrent = b.source.id === currentSource?.id ? 0 : 1;
+            if (aCurrent !== bCurrent) return aCurrent - bCurrent;
+            const aPriority = priority.indexOf(a.source.id);
+            const bPriority = priority.indexOf(b.source.id);
+            return (aPriority < 0 ? 9999 : aPriority) - (bPriority < 0 ? 9999 : bPriority);
+        });
+
+        if (candidates.length > 0) return candidates[0];
+    }
+
+    const list = getFilteredChapters();
+    let currentIndex = list.findIndex(chapter => chapter.id === readerChapterId);
+    if (currentIndex < 0) {
+        currentIndex = list.findIndex(chapter => readerChaptersMatch(currentChapter, chapter));
+    }
+    const targetIndex = currentIndex + direction;
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= list.length) return null;
+
+    const chapter = list[targetIndex];
+    const source = getReaderSourceForChapter(chapter.id) || currentSource;
+    return { source, chapter, chapterNumber: readerChapterNumericValue(chapter) };
+}
+
+async function navigateReaderChapter(direction) {
+    if (readerChapterNavigationPending) return;
+    const candidate = getReaderAdjacentChapterCandidate(direction);
+    if (!candidate?.chapter) {
+        showToast(direction > 0 ? 'Son bölümdesiniz.' : 'İlk bölümdesiniz.', 'info');
+        return;
+    }
+
+    const currentChapter = getReaderCurrentChapter();
+    const currentNumber = normalizeReaderChapterNumber(currentChapter?.chapter);
+    const targetNumber = normalizeReaderChapterNumber(candidate.chapter.chapter);
+    if (currentNumber && targetNumber && currentNumber === targetNumber) {
+        showToast('Aynı bölüm yeniden açılmadı.', 'info');
+        return;
+    }
+
+    readerChapterNavigationPending = true;
+    const previousButton = document.getElementById('reader-prev-chap');
+    const nextButton = document.getElementById('reader-next-chap');
+    if (previousButton) previousButton.disabled = true;
+    if (nextButton) nextButton.disabled = true;
+    try {
+        const currentSource = getReaderSourceForChapter(readerChapterId);
+        if (candidate.source?.id && candidate.source.id !== currentSource?.id) {
+            changeMangaSource(candidate.source.id, candidate.chapter.language || null);
+        }
+        await startReading(readerMangaId, candidate.chapter.id, readerIsOnline, {
+            requestedChapterNumber: targetNumber,
+        });
+    } finally {
+        readerChapterNavigationPending = false;
+        if (readerPages.length > 0) updatePageIndicator();
+    }
+}
+
 // Navigation Controls
 function jumpToPage(index, { behavior = 'smooth', save = true } = {}) {
     if (index < 0 || index >= readerPages.length) return;
 
     readerPageIndex = readerMode === 'classic' ? getClassicSpreadStart(index) : index;
+    emitReaderLifecycle('page-change');
     updatePageIndicator();
 
     if (readerMode === 'webtoon') {
@@ -1424,29 +1565,11 @@ document.addEventListener('fullscreenchange', () => {
 
 // Chapter Switching
 async function nextChapter() {
-    const list = getFilteredChapters();
-    const currentIdx = list.findIndex(c => c.id === readerChapterId);
-
-    if (currentIdx !== -1 && currentIdx < list.length - 1) {
-        await startReading(readerMangaId, list[currentIdx + 1].id, readerIsOnline);
-    } else if (currentIdx === -1 && list.length > 0) {
-        await startReading(readerMangaId, list[0].id, readerIsOnline);
-    } else {
-        showToast("Son bölümdesiniz.", "info");
-    }
+    await navigateReaderChapter(1);
 }
 
 async function prevChapter() {
-    const list = getFilteredChapters();
-    const currentIdx = list.findIndex(c => c.id === readerChapterId);
-
-    if (currentIdx > 0) {
-        await startReading(readerMangaId, list[currentIdx - 1].id, readerIsOnline);
-    } else if (currentIdx === -1 && list.length > 0) {
-        await startReading(readerMangaId, list[list.length - 1].id, readerIsOnline);
-    } else {
-        showToast("İlk bölümdesiniz.", "info");
-    }
+    await navigateReaderChapter(-1);
 }
 
 function releaseReaderPageResources() {
@@ -1491,6 +1614,7 @@ async function exitReader() {
     }
 
     document.getElementById('reader-overlay').classList.remove('active');
+    emitReaderLifecycle('closed');
     document.onkeydown = null;
     releaseReaderPageResources();
 

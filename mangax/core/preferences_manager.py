@@ -26,6 +26,7 @@ DEFAULT_PREFERENCES = {
     "safe_mode": False,
     "extension_update_mode": "notify",
     "backup_before_extension_update": True,
+    "feature_extension_settings": {},
     "fallback_mode": "ask",
     "catalog_provider_preference": "anilist",
     "automatic_update_checks": True,
@@ -71,6 +72,9 @@ class PreferencesManager:
                 if not isinstance(merged.get(key), bool):
                     merged[key] = False
                     self._migration_required = True
+            if not isinstance(merged.get("feature_extension_settings"), dict):
+                merged["feature_extension_settings"] = {}
+                self._migration_required = True
             return merged
         except (OSError, ValueError, TypeError):
             return dict(DEFAULT_PREFERENCES)
@@ -111,6 +115,10 @@ class PreferencesManager:
                 "library_density": {"comfortable", "balanced", "dense"},
                 "ui_scale": {"small", "normal", "large"},
             }
+            if "feature_extension_settings" in normalized and not isinstance(
+                normalized["feature_extension_settings"], dict
+            ):
+                raise ValueError("Geçersiz özellik eklentisi ayarları")
             for key, allowed in allowed_layout_values.items():
                 if key in normalized and normalized[key] not in allowed:
                     raise ValueError(f"Geçersiz görünüm tercihi: {key}")
