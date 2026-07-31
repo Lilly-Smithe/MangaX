@@ -12,12 +12,13 @@ import threading
 import time
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable
-from urllib.parse import quote
+from urllib.parse import quote, urljoin, urlsplit
 
 import httpx
 
 from mangax.core.config import GITHUB_ACCESS_REPOSITORY, GITHUB_FULL_RELEASE_MANIFEST_PATH
 from mangax.integrations.github_integration import GitHubIntegrationError, github_integration_manager
+from mangax.integrations.app_update import validate_update_url
 
 
 GITHUB_API_URL = "https://api.github.com"
@@ -131,7 +132,7 @@ class FullReleaseManager:
                 self._contents_url(self.manifest_path),
                 headers=self._headers(token, "application/vnd.github.raw+json"),
                 timeout=20.0,
-                follow_redirects=True,
+                follow_redirects=False,
             )
             response.raise_for_status()
             manifest = self._validate_manifest(response.json())
@@ -213,27 +214,44 @@ class FullReleaseManager:
         downloaded = 0
         try:
             token = self.token_provider()
-            with httpx.stream(
-                "GET",
-                self._contents_url(repository_path),
-                headers=self._headers(token, "application/vnd.github.raw"),
-                timeout=60.0,
-                follow_redirects=True,
-            ) as response:
-                response.raise_for_status()
+            allowed_hosts = {
+                "api.github.com",
+                "objects.githubusercontent.com",
+                "release-assets.githubusercontent.com",
+            }
+            current_url = self._contents_url(repository_path)
+            validate_update_url(current_url, allowed_hosts=allowed_hosts)
+            with httpx.Client(timeout=60.0, follow_redirects=False, trust_env=False) as client:
                 with partial.open("xb") as output:
-                    for chunk in response.iter_bytes(chunk_size=1024 * 256):
-                        if cancel_event.is_set():
-                            raise InterruptedError("cancelled")
-                        if not chunk:
-                            continue
-                        downloaded += len(chunk)
-                        if downloaded > expected_size:
-                            raise FullReleaseIntegrityError("İndirilen dosyanın boyutu manifest ile eşleşmiyor.")
-                        digest.update(chunk)
-                        output.write(chunk)
-                        with self._lock:
-                            job["downloaded"] = downloaded
+                    for redirect_count in range(6):
+                        request_headers = (
+                            self._headers(token, "application/vnd.github.raw")
+                            if (urlsplit(current_url).hostname or "").lower() == "api.github.com"
+                            else {"Accept": "application/octet-stream", "User-Agent": "MangaX-Full-Installer"}
+                        )
+                        with client.stream("GET", current_url, headers=request_headers) as response:
+                            if response.status_code in {301, 302, 303, 307, 308}:
+                                if redirect_count >= 5:
+                                    raise FullReleaseError("Full sürüm indirmesi çok fazla yönlendirme yaptı.")
+                                current_url = urljoin(current_url, response.headers.get("location", ""))
+                                validate_update_url(current_url, allowed_hosts=allowed_hosts)
+                                continue
+                            response.raise_for_status()
+                            for chunk in response.iter_bytes(chunk_size=1024 * 256):
+                                if cancel_event.is_set():
+                                    raise InterruptedError("cancelled")
+                                if not chunk:
+                                    continue
+                                downloaded += len(chunk)
+                                if downloaded > expected_size:
+                                    raise FullReleaseIntegrityError("İndirilen dosyanın boyutu manifest ile eşleşmiyor.")
+                                digest.update(chunk)
+                                output.write(chunk)
+                                with self._lock:
+                                    job["downloaded"] = downloaded
+                            break
+                    else:
+                        raise FullReleaseError("Full sürüm indirmesi tamamlanamadı.")
                     output.flush()
                     os.fsync(output.fileno())
             if downloaded != expected_size or digest.hexdigest().lower() != expected_sha:

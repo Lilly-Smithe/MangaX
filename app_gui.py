@@ -49,10 +49,7 @@ startup_metrics.mark('data_migrations_complete')
 from mangax.runtime.edition_runtime import configure_services, start_services, close_services
 from mangax.core.backup_service import local_backup_manager
 from mangax.core.migrate_folders import migrate_downloads
-print(f'[MangaX DEBUG] sys.frozen: {getattr(sys, 'frozen', False)}', flush=True)
-print(f'[MangaX DEBUG] sys.executable: {sys.executable}', flush=True)
-print(f'[MangaX DEBUG] config.BASE_DIR: {BASE_DIR}', flush=True)
-print(f'[MangaX DEBUG] config.DOWNLOADS_DIR: {DOWNLOADS_DIR}', flush=True)
+print(f"[MangaX] Çalışma profili: {('paket' if getattr(sys, 'frozen', False) else 'kaynak')}", flush=True)
 from mangax.runtime.router_registry import register_edition_routers
 
 class MangaXDesktopBridge:
@@ -87,8 +84,9 @@ class MangaXDesktopBridge:
             path = selected[0] if isinstance(selected, (list, tuple)) else selected
             return self._local_imports.start(path)
         except Exception as error:
-            print(f'[MangaX] Yerel manga içe aktarma hatası: {error}', flush=True)
-            return {'status': 'error', 'message': str(error)}
+            print(f'[MangaX] Yerel manga içe aktarma hatası: {type(error).__name__}', flush=True)
+            message = str(error) if isinstance(error, ValueError) else 'Manga içe aktarma başlatılamadı.'
+            return {'status': 'error', 'message': message}
 
     def get_local_manga_import(self, job_id: str) -> dict:
         return self._local_imports.status(job_id)
@@ -140,22 +138,25 @@ class MangaXDesktopBridge:
         path = Path(installer_path).resolve()
         if self._installer_started or not path.is_file() or path.suffix.lower() not in {'.exe', '.msi'}:
             return False
-        self._installer_started = True
-
-        def handoff() -> None:
+        try:
             local_backup_manager.create(backup_label)
-            if self._window is not None:
-                try:
-                    self._window.destroy()
-                except Exception:
-                    pass
-            time.sleep(1.0)
             if path.suffix.lower() == '.msi':
                 command = ['msiexec.exe', '/i', str(path)]
             else:
                 command = [str(path), f'/DIR={BASE_DIR}']
-            subprocess.Popen(command, cwd=str(path.parent), shell=False, close_fds=True, creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0))
-        threading.Thread(target=handoff, name='MangaXInstallerHandoff', daemon=False).start()
+            process = subprocess.Popen(command, cwd=str(path.parent), shell=False, close_fds=True, creationflags=getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0))
+            if process.poll() is not None and process.returncode not in {None, 0}:
+                raise RuntimeError('Kurulum programı başlatılamadı.')
+        except Exception as error:
+            self._installer_started = False
+            print(f'[MangaX] Kurulum devri tamamlanamadı: {error}', flush=True)
+            return False
+        self._installer_started = True
+        if self._window is not None:
+            try:
+                self._window.destroy()
+            except Exception:
+                pass
         return True
 import uvicorn
 from fastapi import FastAPI
@@ -207,6 +208,17 @@ def _release_single_instance() -> None:
             pass
     _instance_mutex = None
 
+def _show_startup_error(title: str, message: str) -> None:
+    """WebView açılmadan oluşan kritik hatayı görünür kıl."""
+    print(f'[MangaX HATA] {title}: {message}', flush=True)
+    if sys.platform != 'win32':
+        return
+    try:
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(None, str(message), str(title), 16)
+    except Exception:
+        pass
+
 def _run_startup_step(label: str, action) -> bool:
     """İkincil bakım servisleri arayüzün açılmasını engellemesin."""
     try:
@@ -216,29 +228,6 @@ def _run_startup_step(label: str, action) -> bool:
         print(f'[MangaX] Başlangıç adımı atlandı ({label}): {error}', flush=True)
         traceback.print_exc()
         return False
-
-def _close_headless_chrome():
-    try:
-        import psutil
-        killed = 0
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-            try:
-                name = (proc.info.get('name') or '').lower()
-                if 'chromedriver' in name:
-                    proc.terminate()
-                    killed += 1
-                    continue
-                if 'chrome' in name:
-                    cmdline_str = ' '.join(proc.info.get('cmdline') or []).lower()
-                    if '--headless' in cmdline_str:
-                        proc.terminate()
-                        killed += 1
-            except Exception:
-                pass
-        if killed:
-            print(f'[MangaX] {killed} headless Chrome/ChromeDriver süreci kapatıldı.')
-    except Exception as e:
-        print(f'[MangaX] Chrome temizleme hatası: {e}')
 
 def _wait_for_server(host: str, port: int, timeout: float=15.0) -> bool:
     """Sunucu porta cevap verene kadar bekle. / Wait until server is ready."""
@@ -289,7 +278,7 @@ _background_startup_thread: threading.Thread | None = None
 
 def _start_noncritical_services() -> None:
     """Start maintenance and network-capable workers after local readiness."""
-    for label, action in (('edition servisleri', start_services), ('yerel yedekleme', local_backup_manager.start), ('eski indirmeleri taşıma', migrate_downloads), ('tarayıcı temizliği', _close_headless_chrome)):
+    for label, action in (('edition servisleri', start_services), ('yerel yedekleme', local_backup_manager.start), ('eski indirmeleri taşıma', migrate_downloads)):
         if _shutdown_event.is_set():
             return
         _run_startup_step(label, action)
@@ -304,7 +293,7 @@ def _on_window_closed():
         _shutdown_complete = True
     _shutdown_event.set()
     print('[MangaX] Pencere kapatildi. Sunucu durduruluyor...')
-    for label, action in (('son yedek', lambda: local_backup_manager.stop(create_final=True)), ('servisler', close_services), ('tarayıcı temizliği', _close_headless_chrome), ('yerel sunucu', _stop_server), ('tek örnek kilidi', _release_single_instance)):
+    for label, action in (('son yedek', lambda: local_backup_manager.stop(create_final=True)), ('servisler', close_services), ('yerel sunucu', _stop_server), ('tek örnek kilidi', _release_single_instance)):
         try:
             action()
         except Exception as error:
@@ -316,7 +305,7 @@ def main():
         print('[MangaX] Uygulama zaten çalışıyor; ikinci örnek açılmadı.', flush=True)
         return
     if not _port_is_available(HOST, PORT):
-        print(f'[MangaX HATA] {PORT} portu başka bir uygulama tarafından kullanılıyor.', flush=True)
+        _show_startup_error('MangaX başlatılamadı', f'Yerel uygulama portu ({PORT}) başka bir program tarafından kullanılıyor. Diğer MangaX pencerelerini kapatıp yeniden deneyin.')
         _release_single_instance()
         return
     server_thread = threading.Thread(target=_run_server, daemon=True)
@@ -324,7 +313,7 @@ def main():
     startup_metrics.mark('server_thread_started')
     print(f'[MangaX] Sunucu baslatiliyor: {APP_URL}')
     if not _wait_for_server(HOST, PORT, timeout=30):
-        print('[MangaX HATA] Sunucu 30 saniye icinde baslamadi!')
+        _show_startup_error('MangaX başlatılamadı', 'Yerel uygulama servisi 30 saniye içinde hazır olmadı. Ayrıntılar MangaX log klasörüne kaydedildi.')
         if _server_exception:
             print(f'[MangaX SUNUCU ISTISNA] {_server_exception}')
         try:
@@ -361,7 +350,7 @@ def main():
             print(f'[MangaX] {_backend} basarisiz: {_e}')
             continue
     if not _started:
-        print('[MangaX HATA] Hicbir GUI backend calismiyor. WebView2 Runtime kurulu mu?')
+        _show_startup_error('MangaX arayüzü açılamadı', "Windows WebView2 Runtime bulunamadı veya başlatılamadı. WebView2 Runtime'ı kurup MangaX'i yeniden açın.")
         print('  https://developer.microsoft.com/en-us/microsoft-edge/webview2/ adresinden indirin.')
         _on_window_closed()
         sys.exit(1)

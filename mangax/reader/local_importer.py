@@ -15,6 +15,7 @@ from PIL import Image, ImageOps
 
 from mangax.core.config import LOCAL_MANGA_DIR
 from mangax.core.dependencies import library_manager
+from mangax.core.image_safety import validate_image_dimensions
 
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
@@ -146,6 +147,7 @@ def _copy_folder_chapter(
 def _create_cover_thumbnail(source: Path, destination: Path) -> None:
     """Kartlarda tam manga sayfasını decode etmemek için küçük bir kapak üret."""
     with Image.open(source) as image:
+        validate_image_dimensions(image)
         image = ImageOps.exif_transpose(image)
         image.thumbnail(THUMBNAIL_SIZE, Image.Resampling.LANCZOS)
         if image.mode not in {"RGB", "RGBA"}:

@@ -18,17 +18,17 @@
 
 /* ── Cards (Sade, Modern, Flat-Glassmorphism) ─────────────────────────── */
 .settings-card {
-    background: #0d0d0d;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 20px var(--shadow-color);
     transition: var(--transition-smooth);
 }
 
 .settings-card:hover {
-    border-color: rgba(229, 9, 20, 0.2);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border-color));
+    box-shadow: 0 8px 30px var(--shadow-color);
 }
 
 .settings-card-header {
@@ -36,7 +36,7 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 14px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 10px;
 }
 
@@ -110,8 +110,8 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 0 14px;
     transition: var(--transition-smooth);

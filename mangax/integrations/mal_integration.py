@@ -340,16 +340,14 @@ class MalIntegrationManager:
         *,
         data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        credentials = self._load_credentials()
-        if not credentials.get("access_token"):
-            raise MalIntegrationError("MyAnimeList hesabı bağlı değil.")
-        if int(credentials.get("expires_at") or 0) <= int(time.time()) + 60:
-            credentials = self._refresh_access_token(credentials)
+        credentials = self._request_credentials()
         def send(active_credentials: dict[str, Any]) -> httpx.Response:
             options = {
                 "headers": {"Authorization": f"Bearer {active_credentials['access_token']}"},
                 "timeout": 25.0,
-                "follow_redirects": True,
+                # Official MAL API calls do not require redirects. Refusing them
+                # guarantees the bearer token is never forwarded to another host.
+                "follow_redirects": False,
             }
             if method.upper() == "GET":
                 return httpx.get(url, **options)
@@ -357,7 +355,10 @@ class MalIntegrationManager:
         try:
             response = send(credentials)
             if response.status_code == 401:
-                credentials = self._refresh_access_token(credentials)
+                credentials = self._request_credentials(
+                    force_refresh=True,
+                    rejected_access_token=str(credentials.get("access_token") or ""),
+                )
                 response = send(credentials)
             if response.status_code == 429:
                 raise MalRateLimitError(
@@ -371,6 +372,28 @@ class MalIntegrationManager:
             raise
         except (httpx.HTTPError, ValueError, TypeError) as error:
             raise MalIntegrationError("MyAnimeList listesine şu anda ulaşılamıyor.") from error
+
+    def _request_credentials(
+        self,
+        *,
+        force_refresh: bool = False,
+        rejected_access_token: str = "",
+    ) -> dict[str, Any]:
+        """Serialize refresh-token rotation without serializing normal API calls."""
+        with self._lock:
+            credentials = self._load_credentials()
+            if not credentials.get("access_token"):
+                raise MalIntegrationError("MyAnimeList hesabı bağlı değil.")
+            current_access = str(credentials.get("access_token") or "")
+            another_request_refreshed = (
+                force_refresh
+                and bool(rejected_access_token)
+                and current_access != rejected_access_token
+            )
+            expired = int(credentials.get("expires_at") or 0) <= int(time.time()) + 60
+            if (force_refresh and not another_request_refreshed) or expired:
+                credentials = self._refresh_access_token(credentials)
+            return dict(credentials)
 
     def _authorized_get(self, url: str) -> dict[str, Any]:
         return self._authorized_request("GET", url)

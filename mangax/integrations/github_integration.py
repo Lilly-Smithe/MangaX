@@ -105,7 +105,7 @@ class GitHubIntegrationManager:
                 f"{GITHUB_API_URL}/user",
                 headers=self._api_headers(token),
                 timeout=15.0,
-                follow_redirects=True,
+                follow_redirects=False,
             )
             if profile_response.status_code in {401, 403}:
                 raise GitHubSessionExpiredError("GitHub oturumunun süresi doldu. Hesabı yeniden bağlayın.")
@@ -115,7 +115,7 @@ class GitHubIntegrationManager:
                 f"{GITHUB_API_URL}/repos/{self.repository}",
                 headers=self._api_headers(token),
                 timeout=15.0,
-                follow_redirects=True,
+                follow_redirects=False,
             )
             if repository_response.status_code in {401, 403, 404}:
                 raise GitHubAccessDeniedError("Bu hesap için erişim bulunamadı")

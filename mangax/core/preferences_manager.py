@@ -6,7 +6,13 @@ from pathlib import Path
 from threading import RLock
 from typing import Any
 
-from mangax.core.config import DATA_DIR, DOWNLOADS_DIR, DEFAULT_DOWNLOADS_DIR
+from mangax.core.config import (
+    DATA_DIR,
+    DOWNLOADS_DIR,
+    DEFAULT_DOWNLOADS_DIR,
+    LEGACY_DOWNLOADS_DIR,
+    PACKAGED_RUNTIME,
+)
 
 PREFERENCES_PATH = Path(DATA_DIR) / "app_preferences.json"
 DEFAULT_PREFERENCES = {
@@ -74,6 +80,14 @@ class PreferencesManager:
                     self._migration_required = True
             if not isinstance(merged.get("feature_extension_settings"), dict):
                 merged["feature_extension_settings"] = {}
+                self._migration_required = True
+            configured_downloads = str(merged.get("download_directory") or "").strip()
+            if (
+                PACKAGED_RUNTIME
+                and configured_downloads
+                and Path(configured_downloads).expanduser().resolve() == Path(LEGACY_DOWNLOADS_DIR).resolve()
+            ):
+                merged["download_directory"] = DEFAULT_DOWNLOADS_DIR
                 self._migration_required = True
             return merged
         except (OSError, ValueError, TypeError):

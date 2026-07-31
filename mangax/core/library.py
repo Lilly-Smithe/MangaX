@@ -8,8 +8,10 @@ import threading
 import time
 import re
 from typing import Dict, Any, Optional, List
-from mangax.core.config import BASE_DIR, DATA_DIR, DOWNLOADS_DIR, LOCAL_MANGA_DIR
+from mangax.core.config import BASE_DIR, DATA_DIR, DOWNLOADS_DIR, LOCAL_MANGA_DIR, IS_FULL_EDITION
 from mangax.core.database import db
+from mangax.core.image_safety import validate_image_dimensions
+from mangax.core.remote_media import fetch_public_image_sync
 from mangax.core.models import LIBRARY_STATUS_VALUES
 LIBRARY_FILE = os.path.join(DATA_DIR, 'library.json')
 BACKUP_FILE = os.path.join(DATA_DIR, 'library.json.bak')
@@ -43,7 +45,7 @@ class LibraryManager:
                     data = json.load(f)
                 mangas = data.get('mangas', {})
                 if not mangas:
-                    os.rename(LIBRARY_FILE, BACKUP_FILE)
+                    os.replace(LIBRARY_FILE, BACKUP_FILE)
                     return
                 with db.get_connection() as conn:
                     cur = conn.execute('SELECT COUNT(*) FROM mangas')
@@ -58,7 +60,7 @@ class LibraryManager:
                                 conn.execute('\n                                    INSERT INTO downloaded_chapters (\n                                        id, manga_id, chapter, title, language, pages, path\n                                    ) VALUES (?, ?, ?, ?, ?, ?, ?)\n                                ', (ch.get('id', ch_id), manga_id, ch.get('chapter', ''), ch.get('title', ''), ch.get('language', 'tr'), pages, ch.get('path', '')))
                         conn.commit()
                         print('[Migration] Successfully migrated JSON to SQLite.')
-                os.rename(LIBRARY_FILE, BACKUP_FILE)
+                os.replace(LIBRARY_FILE, BACKUP_FILE)
             except Exception as e:
                 print(f'Error migrating library.json: {e}')
 
@@ -182,7 +184,7 @@ class LibraryManager:
                 updates.append('updated_at = ?')
                 params.extend([chapter_id, max(0, int(page_index)), chapter_num, chapter_title, source_id, language, bool(online), at_time, page_offset, chapter_percent, at_time])
                 params.append(manga_id)
-                query = f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?'
+                query = f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?"
                 conn.execute(query, params)
             conn.commit()
         self._refresh_unread_count(manga_id, chapter_num)
@@ -287,7 +289,7 @@ class LibraryManager:
                 updates.append('mal_num_volumes_read = ?')
                 params.append(max(0, int(mal_num_volumes_read)))
             params.append(manga_id)
-            result = conn.execute(f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?', params)
+            result = conn.execute(f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?", params)
             conn.commit()
             if result.rowcount == 0:
                 return None
@@ -358,7 +360,7 @@ class LibraryManager:
                     updates.append('collections = ?')
                     params.append(json.dumps(self._clean_collections([*existing, collection[0]]), ensure_ascii=False))
                 params.append(manga_id)
-                conn.execute(f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?', params)
+                conn.execute(f"UPDATE mangas SET {', '.join(updates)} WHERE id = ?", params)
                 updated_ids.append(manga_id)
             conn.commit()
         return [manga for manga_id in updated_ids if (manga := self.get_manga(manga_id))]
@@ -591,7 +593,7 @@ class LibraryManager:
                     if not chapter_path or not os.path.isdir(chapter_path):
                         conn.execute('DELETE FROM downloaded_chapters WHERE id = ? AND manga_id = ?', (chapter_id, manga_id))
                         changed = True
-                        print(f'[Library] Kayip bolum kaydi temizlendi: {m_row['title']} / {chapter_id}')
+                        print(f"[Library] Kayip bolum kaydi temizlendi: {m_row['title']} / {chapter_id}")
                 if changed:
                     c_cur = conn.execute('SELECT * FROM downloaded_chapters WHERE manga_id = ?', (manga_id,))
                     c_rows_after = c_cur.fetchall()
@@ -611,59 +613,6 @@ class LibraryManager:
             for manga in cur.fetchall():
                 manga_id = manga['id']
                 manga_dict = dict(manga)
-                if manga_id.startswith('anilist_'):
-                    if not manga_dict.get('cover_url') or not manga_dict.get('description') or manga_dict.get('status') == 'unknown':
-                        try:
-                            raise RuntimeError('Reader çevrimiçi servis içermez.')
-                            search_title = manga_dict.get('title', '')
-                            if not search_title or search_title == 'Unknown Manga':
-                                search_title = manga_dict.get('folder_name', '')
-                            if search_title:
-                                meta = get_anilist_metadata(search_title)
-                                if meta:
-                                    updates = []
-                                    params = []
-                                    if not manga_dict.get('title') or manga_dict['title'] == 'Unknown Manga':
-                                        updates.append('title = ?')
-                                        params.append(meta['title'])
-                                    updates.append('description = ?')
-                                    params.append(meta['description'])
-                                    updates.append('cover_url = ?')
-                                    params.append(meta['cover_url'])
-                                    updates.append('status = ?')
-                                    params.append(meta['status'])
-                                    if meta.get('tags'):
-                                        updates.append('tags = ?')
-                                        params.append(json.dumps(meta['tags']))
-                                    if meta.get('year'):
-                                        updates.append('year = ?')
-                                        params.append(meta['year'])
-                                    if not manga_dict.get('cover_path'):
-                                        try:
-                                            import httpx
-                                            from PIL import Image
-                                            import io
-                                            from mangax.core.migrate_folders import _safe_folder_name, _set_folder_icon
-                                            folder_name = manga_dict.get('folder_name') or manga_dict.get('title')
-                                            safe_name = _safe_folder_name(folder_name)
-                                            manga_dir = os.path.join(DOWNLOADS_DIR, safe_name)
-                                            os.makedirs(manga_dir, exist_ok=True)
-                                            cover_path = os.path.join(manga_dir, 'cover.webp')
-                                            resp = httpx.get(meta['cover_url'], timeout=10.0)
-                                            if resp.status_code == 200:
-                                                img = Image.open(io.BytesIO(resp.content)).convert('RGB')
-                                                img.save(cover_path, 'WEBP', quality=75)
-                                                rel_path = os.path.relpath(cover_path, BASE_DIR).replace('\\', '/')
-                                                updates.append('cover_path = ?')
-                                                params.append(rel_path)
-                                                _set_folder_icon(manga_dir, cover_path)
-                                        except Exception as dl_err:
-                                            print(f'Error downloading cover for repaired manga {manga_id}: {dl_err}')
-                                    params.append(manga_id)
-                                    conn.execute(f'UPDATE mangas SET {', '.join(updates)} WHERE id = ?', params)
-                                    changed = True
-                        except Exception as e:
-                            print(f'Error repairing metadata for {manga_id}: {e}')
             if changed:
                 conn.commit()
 
@@ -686,7 +635,6 @@ class LibraryManager:
                     continue
                 try:
                     import io
-                    import httpx
                     from PIL import Image
                     from mangax.core.migrate_folders import _safe_folder_name
                     folder_name = manga_dict.get('folder_name') or manga_dict.get('title') or manga_id
@@ -694,24 +642,26 @@ class LibraryManager:
                     manga_dir = os.path.join(DOWNLOADS_DIR, safe_name)
                     os.makedirs(manga_dir, exist_ok=True)
                     repaired_cover_path = os.path.join(manga_dir, 'cover.webp')
-                    request_options = {'headers': {'User-Agent': 'Mozilla/5.0'}, 'timeout': 15.0, 'follow_redirects': True}
-                    response = httpx.get(cover_url, **request_options)
-                    if response.status_code >= 400:
+                    try:
+                        fetched = fetch_public_image_sync(cover_url, headers={'User-Agent': 'Mozilla/5.0'})
+                    except Exception:
+                        raise
                         raise RuntimeError('Reader çevrimiçi servis içermez.')
                         metadata = get_anilist_metadata(manga_dict.get('title', ''))
                         fallback_url = metadata.get('cover_url', '') if metadata else ''
                         if not fallback_url:
-                            response.raise_for_status()
+                            raise
                         cover_url = fallback_url
                         conn.execute('UPDATE mangas SET cover_url = ? WHERE id = ?', (fallback_url, manga_id))
-                        response = httpx.get(fallback_url, **request_options)
-                    response.raise_for_status()
-                    image = Image.open(io.BytesIO(response.content)).convert('RGB')
-                    image.save(repaired_cover_path, 'WEBP', quality=82)
+                        fetched = fetch_public_image_sync(fallback_url, headers={'User-Agent': 'Mozilla/5.0'})
+                    with Image.open(io.BytesIO(fetched.content)) as source:
+                        validate_image_dimensions(source)
+                        image = source.convert('RGB')
+                        image.save(repaired_cover_path, 'WEBP', quality=82)
                     rel_path = os.path.relpath(repaired_cover_path, BASE_DIR).replace('\\', '/')
                     conn.execute('UPDATE mangas SET cover_path = ?, folder_name = ? WHERE id = ?', (rel_path, safe_name, manga_id))
                     changed = True
-                    print(f'[Library] Eksik kapak onarildi: {manga_dict.get('title', manga_id)}')
+                    print(f"[Library] Eksik kapak onarildi: {manga_dict.get('title', manga_id)}")
                 except Exception as e:
                     print(f'Error repairing cover for {manga_id}: {e}')
             if changed:

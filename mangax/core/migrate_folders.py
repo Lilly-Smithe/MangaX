@@ -40,9 +40,20 @@ def migrate_internal_files_to_root():
     exe_dir = os.path.dirname(sys._MEIPASS)
     # _MEIPASS geçici klasörüdür. Ancak onedir modunda _internal klasörü doğrudan exe yanındadır.
     internal_dir = os.path.join(exe_dir, "_internal")
-    
+
     if not os.path.exists(internal_dir):
         return
+
+    # Modern packages keep writable state in the shared user DATA_DIR. Copying
+    # instead of moving preserves a recovery source if migration is interrupted.
+    from mangax.runtime.shared_data_migration import (
+        migrate_legacy_downloads,
+        migrate_shared_user_data,
+    )
+
+    migrate_shared_user_data(os.path.join(internal_dir, "data"), DATA_DIR)
+    migrate_legacy_downloads(os.path.join(internal_dir, "downloads"), DOWNLOADS_DIR)
+    return
 
     # _internal altındaki kaynaklar
     internal_data = os.path.join(internal_dir, "data")
@@ -171,6 +182,11 @@ def migrate_downloads():
     library.json'u günceller.
     """
     # Önce _internal altındaki eski dosyaları taşı
+    # Büyük eski indirme ağaçları backend açılışını bloke etmesin; bu işlev
+    # yalnız ertelenmiş bakım iş parçacığında çalıştırılır.
+    from mangax.runtime.shared_data_migration import migrate_legacy_downloads
+
+    migrate_legacy_downloads()
     migrate_internal_files_to_root()
 
     # Bu eski JSON/UUID düzeni yalnız bir kez taranır. Yeni indirmeler zaten

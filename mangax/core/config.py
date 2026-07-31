@@ -1,6 +1,6 @@
 import os
 import sys
-APP_VERSION = 'v0.14.25'
+APP_VERSION = 'v0.14.28'
 SUPPORTED_EDITIONS = {'reader'}
 APP_EDITION = os.getenv('MANGAX_EDITION', 'reader').strip().lower() or 'full'
 if APP_EDITION not in SUPPORTED_EDITIONS:
@@ -21,9 +21,11 @@ STATIC_DIR = os.path.join(BASE_DIR, 'static')
 LEGACY_DATA_DIR = os.path.join(BASE_DIR, 'data')
 _local_app_data = os.environ.get('LOCALAPPDATA', '').strip()
 _packaged_runtime = bool(getattr(sys, 'frozen', False) or '_internal' in current_file_path)
+PACKAGED_RUNTIME = _packaged_runtime
 _shared_data_default = os.path.join(_local_app_data, 'MangaX', 'data') if _local_app_data and _packaged_runtime else LEGACY_DATA_DIR
 DATA_DIR = os.path.abspath(os.getenv('MANGAX_DATA_DIR', _shared_data_default))
-DEFAULT_DOWNLOADS_DIR = os.path.join(BASE_DIR, 'downloads')
+LEGACY_DOWNLOADS_DIR = os.path.abspath(os.path.join(BASE_DIR, 'downloads'))
+DEFAULT_DOWNLOADS_DIR = os.path.join(DATA_DIR, 'downloads') if _packaged_runtime else LEGACY_DOWNLOADS_DIR
 DOWNLOADS_DIR = DEFAULT_DOWNLOADS_DIR
 try:
     import json
@@ -31,12 +33,12 @@ try:
     if os.path.isfile(_preferences_path):
         with open(_preferences_path, 'r', encoding='utf-8') as _preferences_file:
             _configured_downloads = str(json.load(_preferences_file).get('download_directory') or '').strip()
-        if _configured_downloads:
+        if _configured_downloads and (not (_packaged_runtime and os.path.abspath(os.path.expanduser(_configured_downloads)) == LEGACY_DOWNLOADS_DIR)):
             DOWNLOADS_DIR = os.path.abspath(os.path.expanduser(_configured_downloads))
 except (OSError, ValueError, TypeError):
     pass
 LOCAL_MANGA_DIR = os.path.abspath(os.getenv('MANGAX_LOCAL_MANGA_DIR', os.path.join(_local_app_data, 'MangaX', 'local_manga') if _local_app_data else os.path.join(DATA_DIR, 'local_manga')))
-SOURCE_REPORTS_DIR = os.path.join(BASE_DIR, 'kaynak_raporlari')
+SOURCE_REPORTS_DIR = os.path.join(DATA_DIR, 'kaynak_raporlari')
 BACKUPS_DIR = os.path.join(DATA_DIR, 'backups')
 EXTENSIONS_DIR = os.path.join(DATA_DIR, 'extensions')
 HOST = '127.0.0.1'

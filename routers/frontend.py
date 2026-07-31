@@ -2,6 +2,9 @@
 # Ana sayfa
 
 import os
+import base64
+import hashlib
+import re
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, JSONResponse
 from mangax.core.config import STATIC_DIR
@@ -9,14 +12,27 @@ from mangax.core.preferences_manager import preferences_manager
 
 router = APIRouter(tags=["Frontend"])
 
-CONTENT_SECURITY_POLICY = (
+CONTENT_SECURITY_POLICY_BASE = (
     "default-src 'self'; "
-    "script-src 'self' 'unsafe-inline'; "
+    "{script_policy}; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
     "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; "
     "img-src 'self' http: https: data: blob:; "
     "connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
 )
+
+
+def _content_security_policy(html: str) -> str:
+    """Authorize only the exact legacy inline handlers shipped by MangaX."""
+    handlers = set(re.findall(r"\bon(?:click|change|input|submit|keydown|error)=\"([^\"]+)\"", html))
+    hashes = []
+    for handler in sorted(handlers):
+        digest = hashlib.sha256(handler.encode("utf-8")).digest()
+        hashes.append("'sha256-" + base64.b64encode(digest).decode("ascii") + "'")
+    script_policy = "script-src 'self'"
+    if hashes:
+        script_policy += " 'unsafe-hashes' " + " ".join(hashes)
+    return CONTENT_SECURITY_POLICY_BASE.format(script_policy=script_policy)
 
 
 @router.get("/")
@@ -43,7 +59,7 @@ def serve_index():
     return HTMLResponse(
         html,
         headers={
-            "Content-Security-Policy": CONTENT_SECURITY_POLICY,
+            "Content-Security-Policy": _content_security_policy(html),
             "X-Content-Type-Options": "nosniff",
             "Referrer-Policy": "no-referrer",
             "Cache-Control": "no-store",

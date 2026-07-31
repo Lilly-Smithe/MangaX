@@ -93,7 +93,8 @@ def clear_cache() -> dict[str, Any]:
                 cleared += path.stat().st_size
                 path.unlink()
         except OSError as error:
-            raise HTTPException(status_code=500, detail=f'Önbellek temizlenemedi: {error}')
+            print(f'[Preferences] cache_cleanup_failed: {type(error).__name__}', flush=True)
+            raise HTTPException(status_code=500, detail='Önbellek temizlenemedi.') from error
     return {'status': 'success', 'cleared_bytes': cleared}
 
 @router.post('/storage/cleanup-stale')
